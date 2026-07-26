@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de Administración</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <img src="img/logoIMMNaranja.svg" alt="Logo">
+                <span>SiGeRU</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html">Inicio</a>
+                <a href="administrador.html">Administrador</a>
+            </nav>
+        </header>
+
+        <div class="titulo">
+            <h1>Panel de Administración</h1>
+        </div>
+        <main class="panelContenedor">
+            <div class="panel">
+                <h2>Registrar Camión</h2>
+                <form action="#" method="post">
+                    <label>Matricula</label>
+                    <input type="text" name="matricula">
+
+                    <label>Tipo</label>
+                    <select name="tipoCamion">
+                        <option>Residuos mezclados</option>
+                        <option>Reciclables</option>
+                    </select>
+
+                    <label>Estado</label>
+                    <select name="estadoCamion">
+                        <option>Disponible</option>
+                        <option>En servicio</option>
+                        <option>Fuera de servicio</option>
+                    </select>
+
+                    <label>Mantenimiento</label>
+                    <select name="mantenimientoCamion">
+                        <option>Al día</option>
+                        <option>Pendiente</option>
+                        <option>En mantenimiento</option>
+                    </select>
+
+                    <button class="btn">
+                        Registrar Camión
+                    </button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Registrar Contenedor</h2>
+
+                <form action="#" method="post">
+                    <label>ID del contenedor</label>
+                    <input type="text" name="idContenedor">
+
+                    <label>Ubicación</label>
+                    <input type="text" name="ubicacionContenedor">
+
+                    <label>Tipo de residuo</label>
+                    <select name="tipoContenedor">
+                        <option>Residuos mezclados</option>
+                        <option>Papel y cartón</option>
+                        <option>Plásticos</option>
+                        <option>Vidrio</option>
+                        <option>Metales</option>
+                    </select>
+
+                    <label>Estado</label>
+                    <select name="estadoContenedor">
+                        <option>Nuevo</option>
+                    </select>
+
+                    <button class="btn btn-secundario">
+                        Registrar Contenedor
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <div class="contenido">
+            <h2>Registros</h2>
+            <div class="cartas">
+                <div class="carta">
+                    <h3>Camiones registrados</h3>
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Mantenimiento</th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="carta">
+                    <h3>Contenedores registrados</h3>
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ubicación</th>
+                            <th>Tipo de residuo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><strong>SiGeRU</strong></p>
+            <p>Panel de Administración</p>
+            <p>Proyecto Integrador - UTU 2026</p>
+        </footer>
+    </body>
+</html>

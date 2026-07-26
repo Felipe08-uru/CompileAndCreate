@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Sistema de Gestión de Residuos Urbanos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo Intendencia de Montevideo">
+            <span>SiGeRU</span>
+        </div>
+        <div class="nav">
+            <a href="#">Inicio</a>
+            <a href="#funciones">Funciones</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Sistema de Gestión de Residuos Urbanos</h1>
+            <p>
+                Plataforma destinada a la administración de usuarios,
+                contenedores, camiones e incidencias para optimizar la
+                gestión de residuos urbanos.
+            </p>
+            <div class="botones">
+                <button class="btn" onclick="mostrarLogin()">Iniciar Sesión</button>
+                <button class="btn btn-secundario" onclick="mostrarRegistro()">Registrarse</button>
+            </div>
+        </div>
+        <div class="hero-img">
+            <img src="img/contenedores.jpg" alt="Gestión de residuos">
+        </div>
+    </div>
+
+    <div class="contenido" id="funciones">
+        <h2>¿Qué permite hacer SiGeRU?</h2>
+        <div class="cards">
+            <div class="card">
+                <h3>Usuarios</h3>
+                <p>Administración de usuarios y roles del sistema.</p>
+            </div>
+            <div class="card">
+                <h3>Contenedores</h3>
+                <p>Registrar ubicación, estado y tipo de residuos.</p>
+            </div>
+            <div class="card">
+                <h3>Camiones</h3>
+                <p>Gestionar la flota y su disponibilidad.</p>
+            </div>
+            <div class="card">
+                <h3>Incidencias</h3>
+                <p>Registrar problemas y hacer seguimiento.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer" id="contacto">
+        <p><strong>SiGeRU</strong></p>
+        <p>Proyecto integrador de pasaje de grado</p>
+        <p>Utu 2026</p>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+        <div id="loginForm">
+            <h2>Iniciar Sesión</h2>
+            <input type="text" placeholder="Usuario">
+            <input type="password" placeholder="Contraseña">
+            <button class="btn">Ingresar</button>
+            <p>
+                ¿No tienes cuenta?
+                <a href="#" onclick="mostrarRegistro(); return false;">
+                    Regístrate
+                </a>
+            </p>
+        </div>
+
+        <div id="registroForm" style="display:none;">
+            <h2>Registrarse</h2>
+            <input type="text" placeholder="Nombre">
+            <input type="text" placeholder="Apellido">
+            <input type="email" placeholder="Correo electrónico">
+            <input type="text" placeholder="Usuario">
+            <input type="password" placeholder="Contraseña">
+            <input type="password" placeholder="Confirmar contraseña">
+            <button class="btn btn-secundario">
+                Crear cuenta
+            </button>
+            <p>
+                ¿Ya tienes cuenta?
+                <a href="#" onclick="mostrarLogin(); return false;">
+                    Iniciar sesión
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById("modal");
+        const overlay = document.getElementById("overlay");
+
+        function mostrarLogin() {
+
+            modal.style.display = "block";
+            overlay.style.display = "block";
+
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("registroForm").style.display = "none";
+        }
+
+        function mostrarRegistro() {
+
+            modal.style.display = "block";
+            overlay.style.display = "block";
+
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("registroForm").style.display = "block";
+        }
+
+        function cerrarModal() {
+
+            modal.style.display = "none";
+            overlay.style.display = "none";
+        }
+    </script>
+</body>
+</html>
