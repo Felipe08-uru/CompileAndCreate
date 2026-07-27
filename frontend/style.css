@@ -17,51 +17,43 @@ body{
 .header{
     background:#0f4c81;
     padding:20px 8%;
-    padding-right:11%;
-    box-shadow:0 3px 10px rgba(0,0,0,.15);
     overflow:hidden;
 }
 
 .logo{
-    position:relative;
-    display:inline-block;
-    padding:8px 20px 8px 180px;
-    background:#f8f9fa;
-    border-radius:10px;
+    float:left;
+    background:white;
+    padding:8px 18px;
+    border-radius:6px;
 }
 
 .logo img{
-    position:absolute;
-    left:15px;
-    top:50%;
-    transform:translateY(-50%);
-    height:80px;
-    width:auto;
+    height:65px;
+    vertical-align:middle;
 }
 
 .logo span{
-    color:#0f4c81;
-    font-size:30px;
+    font-size:28px;
     font-weight:bold;
-    line-height:80px;
+    color:#0f4c81;
+    margin-left:15px;
+    vertical-align:middle;
 }
 
 .nav{
     float:right;
-    margin-top:18px;
+    margin-top:22px;
 }
 
 .nav a{
-    display:inline-block;
     color:white;
     text-decoration:none;
-    font-weight:bold;
     margin-left:25px;
-    transition:.3s;
+    font-weight:bold;
 }
 
 .nav a:hover{
-    color:#9dd8ff;
+    text-decoration:underline;
 }
 
 /*=========================
