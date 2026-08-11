@@ -1,12 +1,12 @@
 CREATE TABLE Usuario (
-    CI CHAR(8) PRIMARY KEY,
-    Nombre1 VARCHAR(50) NOT NULL,
-    Nombre2 VARCHAR(50),
-    Apellido1 VARCHAR(50) NOT NULL,
-    Apellido2 VARCHAR(50),
-    Contrasena VARCHAR(255) NOT NULL,
-    Rol VARCHAR(30) NOT NULL,
-    CorreoE VARCHAR(100) UNIQUE NOT NULL
+    ci CHAR(8) PRIMARY KEY,
+    nombre1 VARCHAR(50) NOT NULL,
+    nombre2 VARCHAR(50),
+    apellido1 VARCHAR(50) NOT NULL,
+    apellido2 VARCHAR(50),
+    contrasena VARCHAR(255) NOT NULL,
+    rol VARCHAR(30) NOT NULL,
+    correo_c VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE Vecino (
