@@ -1,3 +1,6 @@
+CREATE DATABASE sigeru;
+USE sigeru;
+
 CREATE TABLE Usuario (
     ci CHAR(8) PRIMARY KEY,
     nombre1 VARCHAR(50) NOT NULL,
