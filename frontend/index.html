@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +8,13 @@
 </head>
 
 <body>
+
     <div class="header">
         <div class="logo">
             <img src="img/logoIMMNaranja.svg" alt="Logo Intendencia de Montevideo">
             <span>SiGeRU</span>
         </div>
+
         <div class="nav">
             <a href="#">Inicio</a>
             <a href="#funciones">Funciones</a>
@@ -29,11 +30,13 @@
                 contenedores, camiones e incidencias para optimizar la
                 gestión de residuos urbanos.
             </p>
+
             <div class="botones">
                 <button class="btn" onclick="mostrarLogin()">Iniciar Sesión</button>
                 <button class="btn btn-secundario" onclick="mostrarRegistro()">Registrarse</button>
             </div>
         </div>
+
         <div class="hero-img">
             <img src="img/contenedores.jpg" alt="Gestión de residuos">
         </div>
@@ -41,19 +44,23 @@
 
     <div class="contenido" id="funciones">
         <h2>¿Qué permite hacer SiGeRU?</h2>
+
         <div class="cards">
             <div class="card">
                 <h3>Usuarios</h3>
                 <p>Administración de usuarios y roles del sistema.</p>
             </div>
+
             <div class="card">
                 <h3>Contenedores</h3>
                 <p>Registrar ubicación, estado y tipo de residuos.</p>
             </div>
+
             <div class="card">
                 <h3>Camiones</h3>
                 <p>Gestionar la flota y su disponibilidad.</p>
             </div>
+
             <div class="card">
                 <h3>Incidencias</h3>
                 <p>Registrar problemas y hacer seguimiento.</p>
@@ -64,41 +71,50 @@
     <div class="footer" id="contacto">
         <p><strong>SiGeRU</strong></p>
         <p>Proyecto integrador de pasaje de grado</p>
-        <p>Utu 2026</p>
+        <p>UTU 2026</p>
     </div>
 
     <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
     <div id="modal" class="modal">
         <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
         <div id="loginForm">
             <h2>Iniciar Sesión</h2>
-            <input type="text" placeholder="Usuario">
-            <input type="password" placeholder="Contraseña">
-            <button class="btn">Ingresar</button>
+
+            <input type="email" id="loginCorreo" placeholder="Correo electrónico">
+            <input type="password" id="loginContrasena" placeholder="Contraseña">
+
+            <button class="btn" onclick="iniciarSesion()">Ingresar</button>
+
+            <p id="mensajeLogin"></p>
+
             <p>
                 ¿No tienes cuenta?
-                <a href="#" onclick="mostrarRegistro(); return false;">
-                    Regístrate
-                </a>
+                <a href="#" onclick="mostrarRegistro(); return false;">Regístrate</a>
             </p>
         </div>
 
-        <div id="registroForm" style="display:none;">
+        <div id="registroForm" style="display: none;">
             <h2>Registrarse</h2>
-            <input type="text" placeholder="Nombre">
-            <input type="text" placeholder="Apellido">
-            <input type="email" placeholder="Correo electrónico">
-            <input type="text" placeholder="Usuario">
-            <input type="password" placeholder="Contraseña">
-            <input type="password" placeholder="Confirmar contraseña">
-            <button class="btn btn-secundario">
-                Crear cuenta
-            </button>
+
+            <input type="text" id="registroCi" maxlength="8" placeholder="Cédula de identidad">
+            <input type="text" id="registroNombre1" placeholder="Primer nombre">
+            <input type="text" id="registroNombre2" placeholder="Segundo nombre (opcional)">
+            <input type="text" id="registroApellido1" placeholder="Primer apellido">
+            <input type="text" id="registroApellido2" placeholder="Segundo apellido (opcional)">
+            <input type="email" id="registroCorreo" placeholder="Correo electrónico">
+            <input type="tel" id="registroTelefono" placeholder="Teléfono">
+            <input type="password" id="registroContrasena" placeholder="Contraseña">
+            <input type="password" id="registroConfirmar" placeholder="Confirmar contraseña">
+
+            <button class="btn btn-secundario" onclick="registrarUsuario()">Crear cuenta</button>
+
+            <p id="mensajeRegistro"></p>
+
             <p>
                 ¿Ya tienes cuenta?
-                <a href="#" onclick="mostrarLogin(); return false;">
-                    Iniciar sesión
-                </a>
+                <a href="#" onclick="mostrarLogin(); return false;">Iniciar sesión</a>
             </p>
         </div>
     </div>
@@ -108,28 +124,144 @@
         const overlay = document.getElementById("overlay");
 
         function mostrarLogin() {
-
             modal.style.display = "block";
             overlay.style.display = "block";
 
             document.getElementById("loginForm").style.display = "block";
             document.getElementById("registroForm").style.display = "none";
+            document.getElementById("mensajeLogin").textContent = "";
         }
 
         function mostrarRegistro() {
-
             modal.style.display = "block";
             overlay.style.display = "block";
 
             document.getElementById("loginForm").style.display = "none";
             document.getElementById("registroForm").style.display = "block";
+            document.getElementById("mensajeRegistro").textContent = "";
         }
 
         function cerrarModal() {
-
             modal.style.display = "none";
             overlay.style.display = "none";
         }
+
+        async function iniciarSesion() {
+            const correo_e = document.getElementById("loginCorreo").value.trim();
+            const contrasena = document.getElementById("loginContrasena").value;
+            const mensaje = document.getElementById("mensajeLogin");
+
+            if (correo_e === "" || contrasena === "") {
+                mensaje.textContent = "Complete todos los campos.";
+                return;
+            }
+
+            try {
+                const respuesta = await fetch("../backend/api.php/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        correo_e: correo_e,
+                        contrasena: contrasena
+                    })
+                });
+
+                const resultado = await respuesta.json();
+
+                console.log("Respuesta del servidor (LOGIN):", resultado);
+
+                if (respuesta.ok && resultado.success) {
+
+                    mensaje.textContent = "Inicio de sesión correcto.";
+
+                    setTimeout(function() {
+                        window.location.href = "administrador.html";
+                    }, 500);
+
+                } else {
+                    mensaje.textContent = resultado.error || "No se pudo iniciar sesión.";
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                mensaje.textContent = "No se pudo conectar con el servidor.";
+            }
+        }
+
+        async function registrarUsuario() {
+            const ci = document.getElementById("registroCi").value.trim();
+            const nombre1 = document.getElementById("registroNombre1").value.trim();
+            const nombre2 = document.getElementById("registroNombre2").value.trim();
+            const apellido1 = document.getElementById("registroApellido1").value.trim();
+            const apellido2 = document.getElementById("registroApellido2").value.trim();
+            const correo_e = document.getElementById("registroCorreo").value.trim();
+            const telefono = document.getElementById("registroTelefono").value.trim();
+            const contrasena = document.getElementById("registroContrasena").value;
+            const confirmar = document.getElementById("registroConfirmar").value;
+            const mensaje = document.getElementById("mensajeRegistro");
+
+            if (ci === "" || nombre1 === "" || apellido1 === "" || correo_e === "" || contrasena === "" || confirmar === "") {
+                mensaje.textContent = "Complete todos los campos obligatorios.";
+                return;
+            }
+
+            if (contrasena !== confirmar) {
+                mensaje.textContent = "Las contraseñas no coinciden.";
+                return;
+            }
+
+            try {
+                const respuesta = await fetch("../backend/api.php/registro", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        ci: ci,
+                        nombre1: nombre1,
+                        nombre2: nombre2 !== "" ? nombre2 : null,
+                        apellido1: apellido1,
+                        apellido2: apellido2 !== "" ? apellido2 : null,
+                        correo_e: correo_e,
+                        contrasena: contrasena,
+                        telefono: telefono
+                    })
+                });
+
+                const resultado = await respuesta.json();
+
+                console.log("Respuesta del servidor:", resultado);
+
+                if (respuesta.ok && resultado.success) {
+                    mensaje.textContent = resultado.success;
+
+                    document.getElementById("registroCi").value = "";
+                    document.getElementById("registroNombre1").value = "";
+                    document.getElementById("registroNombre2").value = "";
+                    document.getElementById("registroApellido1").value = "";
+                    document.getElementById("registroApellido2").value = "";
+                    document.getElementById("registroCorreo").value = "";
+                    document.getElementById("registroTelefono").value = "";
+                    document.getElementById("registroContrasena").value = "";
+                    document.getElementById("registroConfirmar").value = "";
+
+                    setTimeout(function() {
+                        mostrarLogin();
+                    }, 1000);
+                } else {
+                    mensaje.textContent = resultado.error || "No se pudo registrar el usuario.";
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                mensaje.textContent = "No se pudo conectar con el servidor.";
+            }
+        }
     </script>
+
 </body>
 </html>

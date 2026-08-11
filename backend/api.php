@@ -1,127 +1,217 @@
 <?php
-
-require_once 'config.php';
-require_once 'usuario.php';
-require_once 'camion.php';
-require_once 'contenedor.php';
+require_once "config.php";
+require_once "usuario.php";
+require_once "camion.php";
+require_once "contenedor.php";
 
 session_start();
 
-header('Content-Type: application/json');
+header("Content-Type: application/json; charset=UTF-8");
 
 $usuarioObj = new Usuario($conn);
 $camionObj = new Camion($conn);
 $contenedorObj = new Contenedor($conn);
 
-$method = $_SERVER['REQUEST_METHOD'];
-$endpoint = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
+$method = $_SERVER["REQUEST_METHOD"];
+$endpoint = isset($_SERVER["PATH_INFO"]) ? $_SERVER["PATH_INFO"] : "/";
 
 switch ($method) {
-    case 'GET':
-        // usuarios
-        if ($endpoint === '/usuarios') {
-            echo json_encode($usuarioObj->getAllUsuarios());
-        }
-        elseif (preg_match('/^\/usuarios\/(.+)$/', $endpoint, $matches)) {
-            echo json_encode($usuarioObj->getUsuarioByCi($matches[1]));
-        }
-
-        // camiones
-        elseif ($endpoint === '/camiones') {
-            echo json_encode($camionObj->getAllCamiones());
-        }
-        elseif (preg_match('/^\/camiones\/(.+)$/', $endpoint, $matches)) {
-            echo json_encode($camionObj->getCamionByMatricula($matches[1]));
-        }
-
-        // contenedores
-        elseif ($endpoint === '/contenedores') {
-            echo json_encode($contenedorObj->getAllContenedores());
-        }
-        elseif (preg_match('/^\/contenedores\/(\d+)$/', $endpoint, $matches)) {
-            echo json_encode($contenedorObj->getContenedorById($matches[1]));
-        }
-
-        else {
-            http_response_code(404);
-            echo json_encode([
-                "error" => "Endpoint no encontrado"
-            ]);
-        }
-
-    break;
-
-    case 'POST':
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        // Login
-        if ($endpoint === '/login') {
-
-            $resultado = $usuarioObj->login($data);
-
-            if (isset($resultado["usuario"])) {
-                $_SESSION["usuario"] = $resultado["usuario"];
+    case "GET":
+        if ($endpoint === "/usuarios") {
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+                break;
             }
 
-            echo json_encode($resultado);
+            if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+                http_response_code(403);
+                echo json_encode([
+                    "error" => "No tiene permisos"
+                ]);
+                break;
+            }
+
+            echo json_encode($usuarioObj->getAllUsuarios());
+        } elseif (preg_match('/^\/usuarios\/(.+)$/', $endpoint, $matches)) {
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+                break;
+            }
+
+            if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+                http_response_code(403);
+                echo json_encode([
+                    "error" => "No tiene permisos"
+                ]);
+                break;
+            }
+
+            echo json_encode(
+                $usuarioObj->getUsuarioByCi($matches[1])
+            );
         }
 
-        // usuarios
-        elseif ($endpoint === '/usuarios') {
+        elseif ($endpoint === "/camiones") {
+            echo json_encode($camionObj->getAllCamiones());
+        }
+
+        elseif (preg_match('/^\/camiones\/(.+)$/', $endpoint, $matches)) {
+            echo json_encode(
+                $camionObj->getCamionByMatricula($matches[1])
+            );
+        }
+
+        elseif ($endpoint === "/contenedores") {
+            echo json_encode($contenedorObj->getAllContenedores());
+        }
+
+        elseif (preg_match('/^\/contenedores\/(\d+)$/', $endpoint, $matches)) {
+            echo json_encode(
+                $contenedorObj->getContenedorById($matches[1])
+            );
+        }
+
+        else {
+            http_response_code(404);
+            echo json_encode([
+                "error" => "Endpoint no encontrado"
+            ]);
+        }
+
+        break;
+
+    case "POST":
+        $data = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($data)) {
+            http_response_code(400);
+            echo json_encode([
+                "error" => "JSON inválido"
+            ]);
+
+            break;
+        }
+
+        if ($endpoint === "/registro") {
+            $data["rol"] = "Vecino";
             echo $usuarioObj->addUsuario($data);
+            break;
         }
 
-        // camiones
-        elseif ($endpoint === '/camiones') {
+        if ($endpoint === "/login") {
+            $resultado = $usuarioObj->login($data);
+            if (isset($resultado["success"])) {
+                session_regenerate_id(true);
+                $_SESSION["usuario"] = $resultado["success"];
+            }
+            echo json_encode($resultado);
+            break;
+        }
+
+        if ($endpoint === "/usuarios") {
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+                break;
+            }
+
+            if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+                http_response_code(403);
+                echo json_encode([
+                    "error" => "No tiene permisos para registrar usuarios"
+                ]);
+                break;
+            }
+            echo $usuarioObj->addUsuario($data);
+            break;
+        }
+
+        if ($endpoint === "/camiones") {
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+                break;
+            }
             echo $camionObj->addCamion($data);
+            break;
         }
 
-        // contenedores
-        elseif ($endpoint === '/contenedores') {
+        if ($endpoint === "/contenedores") {
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+                break;
+            }
             echo $contenedorObj->addContenedor($data);
+            break;
         }
+        http_response_code(404);
+        echo json_encode([
+            "error" => "Endpoint no encontrado"
+        ]);
 
-        else {
-            http_response_code(404);
+        break;
+
+    case "DELETE":
+        if (!isset($_SESSION["usuario"])) {
+            http_response_code(401);
             echo json_encode([
-                "error" => "Endpoint no encontrado"
+                "error" => "Debe iniciar sesión"
             ]);
+            break;
         }
 
-    break;
+        if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+            http_response_code(403);
+            echo json_encode([
+                "error" => "No tiene permisos"
+            ]);
 
-    case 'DELETE':
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        // Usuarios
-        if ($endpoint === '/usuarios') {
+            break;
+        }
+        $data = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+        if ($endpoint === "/usuarios") {
             echo $usuarioObj->deleteUsuario($data);
-        }
-
-        // Camiones
-        elseif ($endpoint === '/camiones') {
+        } elseif ($endpoint === "/camiones") {
             echo $camionObj->deleteCamion($data);
-        }
-
-        // Contenedores
-        elseif ($endpoint === '/contenedores') {
+        } elseif ($endpoint === "/contenedores") {
             echo $contenedorObj->deleteContenedor($data);
-        }
-
-        else {
+        } else {
             http_response_code(404);
+
             echo json_encode([
                 "error" => "Endpoint no encontrado"
             ]);
         }
-    break;
+
+        break;
+
     default:
-        header('Allow: GET, POST, DELETE');
+        header("Allow: GET, POST, DELETE");
         http_response_code(405);
+
         echo json_encode([
             "error" => "Método no permitido"
         ]);
-    break;
-}
 
+        break;
+}
 ?>
