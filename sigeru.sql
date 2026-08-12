@@ -9,7 +9,7 @@ CREATE TABLE Usuario (
     apellido2 VARCHAR(50),
     contrasena VARCHAR(255) NOT NULL,
     rol VARCHAR(30) NOT NULL,
-    correo_c VARCHAR(100) UNIQUE NOT NULL
+    correo_e VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE Vecino (
