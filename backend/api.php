@@ -3,6 +3,7 @@ require_once "config.php";
 require_once "usuario.php";
 require_once "camion.php";
 require_once "contenedor.php";
+require_once "poligono.php";
 
 session_start();
 
@@ -11,6 +12,7 @@ header("Content-Type: application/json; charset=UTF-8");
 $usuarioObj = new Usuario($conn);
 $camionObj = new Camion($conn);
 $contenedorObj = new Contenedor($conn);
+$poligonoObj = new Poligono($conn);
 
 $method = $_SERVER["REQUEST_METHOD"];
 $endpoint = isset($_SERVER["PATH_INFO"]) ? $_SERVER["PATH_INFO"] : "/";
@@ -74,6 +76,28 @@ switch ($method) {
         elseif (preg_match('/^\/contenedores\/(\d+)$/', $endpoint, $matches)) {
             echo json_encode(
                 $contenedorObj->getContenedorById($matches[1])
+            );
+        }
+        elseif ($endpoint === "/poligonos") {
+
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+
+                break;
+            }
+
+            if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+                http_response_code(403);
+                echo json_encode(["error" => "No tiene permisos"]);
+                break;
+            }
+
+            echo json_encode(
+                $poligonoObj->getAllPoligonos()
             );
         }
 
@@ -160,6 +184,27 @@ switch ($method) {
             echo $contenedorObj->addContenedor($data);
             break;
         }
+        if ($endpoint === "/poligonos") {
+
+            if (!isset($_SESSION["usuario"])) {
+                http_response_code(401);
+
+                echo json_encode([
+                    "error" => "Debe iniciar sesión"
+                ]);
+
+                break;
+            }
+
+            if ($_SESSION["usuario"]["rol"] !== "Administrador") {
+                http_response_code(403);
+                echo json_encode(["error" => "No tiene permisos para crear zonas"]);
+                break;
+            }
+            echo $poligonoObj->addPoligono($data);
+            break;
+        }
+
         http_response_code(404);
         echo json_encode([
             "error" => "Endpoint no encontrado"

@@ -3,7 +3,7 @@
 class Contenedor{
 
     private $conn;
-    private $table = "contenedor";
+    private $table = "Contenedor";
 
     public function __construct($db){
         $this->conn = $db;
@@ -11,43 +11,59 @@ class Contenedor{
 
     public function getAllContenedores(){
         $sql = "SELECT * FROM $this->table";
-        $result = mysqli_query($this->conn,$sql);
+        $result = mysqli_query($this->conn, $sql);
 
-        return mysqli_fetch_all($result,MYSQLI_ASSOC);
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
     }
 
     public function getContenedorById($id){
-        $sql = "SELECT * FROM $this->table WHERE id_contenedor=$id";
-        $result = mysqli_query($this->conn,$sql);
+        $sql = "SELECT * FROM $this->table WHERE Id_Contenedor=$id";
+        $result = mysqli_query($this->conn, $sql);
 
         return mysqli_fetch_assoc($result);
     }
 
     public function addContenedor($data){
+
         $id = $data['id_contenedor'];
         $tipo = $data['tipo'];
         $estado = $data['estado'];
-        $ubicacion = $data['ubicacion'];
-        $sql = "INSERT INTO $this->table(id_contenedor,tipo,estado,ubicacion)
-                VALUES('$id','$tipo','$estado','$ubicacion')";
+        $latitud = $data['latitud'];
+        $longitud = $data['longitud'];
 
-        if(mysqli_query($this->conn,$sql)){
-            return json_encode(["mensaje"=>"Contenedor agregado"]);
+        $sql = "INSERT INTO $this->table
+                (Id_Contenedor, Tipo, Estado, Latitud, Longitud)
+                VALUES
+                ('$id', '$tipo', '$estado', '$latitud', '$longitud')";
+
+        if(mysqli_query($this->conn, $sql)){
+            return json_encode([
+                "mensaje" => "Contenedor agregado"
+            ]);
         }
 
-        return json_encode(["error"=>mysqli_error($this->conn)]);
+        return json_encode([
+            "error" => mysqli_error($this->conn)
+        ]);
     }
 
     public function deleteContenedor($data){
-        $id = $data['id_contenedor'];
-        $sql = "DELETE FROM $this->table WHERE id_contenedor='$id'";
-        
-        if(mysqli_query($this->conn,$sql)){
-            return json_encode(["mensaje"=>"Contenedor eliminado"]);
-        }
-        return json_encode(["error"=>mysqli_error($this->conn)]);
-    }
 
+        $id = $data['id_contenedor'];
+
+        $sql = "DELETE FROM $this->table
+                WHERE Id_Contenedor='$id'";
+
+        if(mysqli_query($this->conn, $sql)){
+            return json_encode([
+                "mensaje" => "Contenedor eliminado"
+            ]);
+        }
+
+        return json_encode([
+            "error" => mysqli_error($this->conn)
+        ]);
+    }
 }
 
 ?>
