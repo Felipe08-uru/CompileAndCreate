@@ -8,237 +8,218 @@
     <link rel="stylesheet" href="estilos/admin.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
-    <body>
-        <header class="header">
-            <div class="logo">
-                <img src="img/logoIMMNaranja.svg" alt="Logo">
-                <span>SiGeRU</span>
-            </div>
-            <nav class="nav">
-                <a href="index.html">Inicio</a>
-                <a href="administrador.html">Administrador</a>
-            </nav>
-        </header>
-
-        <div class="titulo">
-            <h1>Panel de Administración</h1>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
         </div>
-        <main class="panelContenedor">
-            <div class="panel">
-                <h2>Registrar Camión</h2>
-                <form action="#" method="post">
-                    <label>Matricula</label>
-                    <input type="text" name="matricula">
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+        </nav>
+    </header>
 
-                    <label>Tipo</label>
-                    <select name="tipoCamion">
-                        <option>Residuos mezclados</option>
-                        <option>Reciclables</option>
-                    </select>
+    <div class="titulo">
+        <h1>Panel de Administración</h1>
+    </div>
 
-                    <label>Estado</label>
-                    <select name="estadoCamion">
-                        <option>Disponible</option>
-                        <option>En servicio</option>
-                        <option>Fuera de servicio</option>
-                    </select>
-
-                    <button class="btn">
-                        Registrar Camión
-                    </button>
-                </form>
-            </div>
-
-            <div class="panel">
-                <h2>Registrar Contenedor</h2>
-
-                <form action="#" method="post">
-                    <label>ID del contenedor</label>
-                    <input type="text" name="idContenedor">
-
-                    <label>Ubicación</label>
-                    <input type="text" name="ubicacionContenedor">
-
-                    <label>Tipo de residuo</label>
-                    <select name="tipoContenedor">
-                        <option>Residuos mezclados</option>
-                        <option>Papel y cartón</option>
-                        <option>Plásticos</option>
-                        <option>Vidrio</option>
-                        <option>Metales</option>
-                    </select>
-
-                    <label>Estado</label>
-                    <select name="estadoContenedor">
-                        <option>Nuevo</option>
-                    </select>
-
-                    <button class="btn btn-secundario">
-                        Registrar Contenedor
-                    </button>
-                </form>
-            </div>
-        </main>
-
-        <div class="contenido">
-            <h2>Registros</h2>
-            <div class="cartas">
-                <div class="carta">
-                    <h3>Camiones registrados</h3>
-                    <table>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="carta">
-                    <h3>Contenedores registrados</h3>
-                    <table>
-                        <tr>
-                            <th>ID</th>
-                            <th>Ubicación</th>
-                            <th>Tipo de residuo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+    
+    <div class="contenido">
+        <h2>Vista general</h2>
+        <div class="carta">
+            <p>Visualización de las zonas de recolección registradas.</p>
+            <div id="mapa"></div>
+            <p id="mensajeMapa"></p>
         </div>
+    </div>
 
-        <div class="contenido">
-            <h2>Gestión de Zonas</h2>
+    <div class="contenido">
+        <h2>Gestión de zonas</h2>
+        <div class="carta">
+            <a href="mapaAdmin.html" class="btn">
+                Gestionar zonas
+            </a>
+        </div>
+    </div>
+
+    <main class="panelContenedor">
+    <div class="panel">
+        <h2>Registrar Camión</h2>
+        <form action="#" method="post">
+            <label>Matricula</label>
+            <input type="text" name="matricula">
+
+            <label>Tipo</label>
+            <select name="tipoCamion">
+                <option>Residuos mezclados</option>
+                <option>Reciclables</option>
+            </select>
+
+            <label>Estado</label>
+            <select name="estadoCamion">
+                <option>Disponible</option>
+                <option>En servicio</option>
+                <option>Fuera de servicio</option>
+            </select>
+
+            <button class="btn">
+                Registrar Camión
+            </button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Registrar Contenedor</h2>
+        <p>Seleccione la ubicación del contenedor y registre sus datos desde el mapa.</p>
+        <a href="mapaContenedores.html" class="btn btn-secundario">
+            Añadir Contenedor
+        </a>
+    </div>
+    </main>
+
+    <div class="contenido">
+        <h2>Registros</h2>
+        <div class="cartas">
             <div class="carta">
-                <h3>Cargar zona</h3>
-                <p>Haz clic en el mapa para agregar los puntos que forman la zona.</p>
+                <h3>Camiones registrados</h3>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                    </tr>
+                </table>
+            </div>
 
-                <div id="mapa"></div>
-
-                <div class="controles-mapa">
-                    <button class="btn" type="button" onclick="guardarZona()">Guardar zona</button>
-                    <button class="btn btn-secundario" type="button" onclick="limpiarZona()">Limpiar</button>
-                </div>
-
-                <p id="mensajeMapa"></p>
+            <div class="carta">
+                <h3>Contenedores registrados</h3>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ubicación</th>
+                        <th>Tipo de residuo</th>
+                        <th>Estado</th>
+                    </tr>
+                </table>
             </div>
         </div>
+    </div>
 
-        <footer class="footer">
-            <p><strong>SiGeRU</strong></p>
-            <p>Panel de Administración</p>
-            <p>Proyecto Integrador - UTU 2026</p>
-        </footer>
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel de Administración</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
 
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script>
-            const API = "../backend/api.php";
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-            let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
+    <script>
+        const API = "../backend/api.php";
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap contributors"
-            }).addTo(mapa);
+        let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
 
-            let puntos = [];
-            let marcadores = [];
-            let poligono = null;
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(mapa);
 
-            mapa.on("click", function(e) {
-                puntos.push([e.latlng.lat, e.latlng.lng]);
+        let iconoContenedor = L.icon({
+            iconUrl: "img/contenedor.png",
+            iconSize: [30, 30],
+            iconAnchor: [15, 20]
+        });
 
-                let marcador = L.marker([e.latlng.lat, e.latlng.lng]).addTo(mapa);
-                marcadores.push(marcador);
+        function cargarZonas() {
+            fetch(API + "/poligonos")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                data.forEach(function(zona) {
+                    let vertices = zona.vertices.map(function(v) {
+                        return [v.latitud, v.longitud];
+                    });
 
-                if (poligono) {
-                    mapa.removeLayer(poligono);
-                }
+                    if (vertices.length >= 3) {
+                        L.polygon(vertices).addTo(mapa);
 
-                if (puntos.length >= 3) {
-                    poligono = L.polygon(puntos).addTo(mapa);
-                }
+                        let centro = calcularCentro(vertices);
+
+                        L.marker(centro, {
+                            icon: L.divIcon({
+                                className: "id-zona",
+                                html: "<span>" + zona.id_poligono + "</span>",
+                                iconSize: null,
+                                iconAnchor: [0, 0]
+                            }),
+                            interactive: false
+                        }).addTo(mapa);
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al cargar las zonas:", error);
+                document.getElementById("mensajeMapa").textContent = "Error al cargar las zonas.";
+            });
+        }
+
+        function cargarContenedores() {
+            fetch(API + "/contenedores")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                data.forEach(function(contenedor) {
+                    if (
+                        contenedor.Latitud !== null &&
+                        contenedor.Longitud !== null
+                    ) {
+                        L.marker(
+                            [
+                                parseFloat(contenedor.Latitud),
+                                parseFloat(contenedor.Longitud)
+                            ],
+                            {
+                                icon: iconoContenedor
+                            }
+                        )
+                        .addTo(mapa)
+                        .bindPopup(
+                            "<strong>Contenedor " +
+                            contenedor.Id_Contenedor +
+                            "</strong><br>" +
+                            "Tipo: " +
+                            contenedor.Tipo +
+                            "<br>" +
+                            "Estado: " +
+                            contenedor.Estado
+                        );
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al cargar los contenedores:", error);
+                document.getElementById("mensajeMapa").textContent = "Error al cargar los contenedores.";
+            });
+        }
+
+        function calcularCentro(vertices) {
+            let sumaLatitud = 0;
+            let sumaLongitud = 0;
+
+            vertices.forEach(function(punto) {
+                sumaLatitud += punto[0];
+                sumaLongitud += punto[1];
             });
 
-            function limpiarZona() {
-                puntos = [];
+            return [
+                sumaLatitud / vertices.length,
+                sumaLongitud / vertices.length
+            ];
+        }
 
-                marcadores.forEach(function(marcador) {
-                    mapa.removeLayer(marcador);
-                });
-
-                marcadores = [];
-
-                if (poligono) {
-                    mapa.removeLayer(poligono);
-                    poligono = null;
-                }
-
-                document.getElementById("mensajeMapa").textContent = "";
-            }
-
-            function guardarZona() {
-                if (puntos.length < 3) {
-                    document.getElementById("mensajeMapa").textContent = "La zona debe tener al menos 3 puntos.";
-                    return;
-                }
-
-                let vertices = puntos.map(function(punto) {
-                    return {
-                        latitud: punto[0],
-                        longitud: punto[1]
-                    };
-                });
-
-                fetch(API + "/poligonos", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        vertices: vertices
-                    })
-                })
-                .then(function(response) {
-                    return response.json();
-                })
-                .then(function(data) {
-                    if (data.error) {
-                        document.getElementById("mensajeMapa").textContent = data.error;
-                    } else {
-                        document.getElementById("mensajeMapa").textContent = "Zona guardada correctamente.";
-                        limpiarZona();
-                        cargarZonas();
-                    }
-                })
-                .catch(function(error) {
-                    console.error(error);
-                    document.getElementById("mensajeMapa").textContent = "Error al guardar la zona.";
-                });
-            }
-
-            function cargarZonas() {
-                fetch(API + "/poligonos")
-                .then(function(response) {
-                    return response.json();
-                })
-                .then(function(data) {
-                    data.forEach(function(zona) {
-                        let vertices = zona.vertices.map(function(v) {
-                            return [v.latitud, v.longitud];
-                        });
-
-                        if (vertices.length >= 3) {
-                            L.polygon(vertices).addTo(mapa);
-                        }
-                    });
-                })
-                .catch(function(error) {
-                    console.error("Error al cargar las zonas:", error);
-                });
-            }
-
-            cargarZonas();
-        </script>
-    </body>
+        cargarZonas();
+        cargarContenedores();
+    </script>
+</body>
 </html>

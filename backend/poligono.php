@@ -134,6 +134,51 @@ class Poligono{
             ]);
         }
     }
+    public function deletePoligono($id){
+
+        $id = intval($id);
+
+        mysqli_begin_transaction($this->conn);
+
+        try{
+
+            $sqlVertices = "
+                DELETE FROM Poligono_Vertices
+                WHERE Id_Poligono = $id
+            ";
+
+            if(!mysqli_query($this->conn, $sqlVertices)){
+                throw new Exception(mysqli_error($this->conn));
+            }
+
+            $sqlPoligono = "
+                DELETE FROM Poligono
+                WHERE Id_Poligono = $id
+            ";
+
+            if(!mysqli_query($this->conn, $sqlPoligono)){
+                throw new Exception(mysqli_error($this->conn));
+            }
+
+            if(mysqli_affected_rows($this->conn) === 0){
+                throw new Exception("No existe una zona con ese ID");
+            }
+
+            mysqli_commit($this->conn);
+
+            return json_encode([
+                "mensaje" => "Zona eliminada correctamente"
+            ]);
+
+        }catch(Exception $e){
+
+            mysqli_rollback($this->conn);
+
+            return json_encode([
+                "error" => $e->getMessage()
+            ]);
+        }
+    }
 }
 
 ?>

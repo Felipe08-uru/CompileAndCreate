@@ -239,6 +239,8 @@ switch ($method) {
             echo $camionObj->deleteCamion($data);
         } elseif ($endpoint === "/contenedores") {
             echo $contenedorObj->deleteContenedor($data);
+        } elseif (preg_match('/^\/poligonos\/(\d+)$/', $endpoint, $matches)) {
+            echo $poligonoObj->deletePoligono($matches[1]);
         } else {
             http_response_code(404);
 

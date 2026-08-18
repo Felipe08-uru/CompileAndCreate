@@ -25,11 +25,30 @@ class Contenedor{
 
     public function addContenedor($data){
 
-        $id = $data['id_contenedor'];
-        $tipo = $data['tipo'];
-        $estado = $data['estado'];
-        $latitud = $data['latitud'];
-        $longitud = $data['longitud'];
+        if(
+            !isset($data["tipo"]) ||
+            !isset($data["latitud"]) ||
+            !isset($data["longitud"])
+        ){
+            return json_encode([
+                "error" => "Faltan datos del contenedor"
+            ]);
+        }
+
+        $sqlId = "
+            SELECT COALESCE(MAX(Id_Contenedor), 0) + 1 AS nuevo_id
+            FROM $this->table
+        ";
+
+        $resultId = mysqli_query($this->conn, $sqlId);
+        $fila = mysqli_fetch_assoc($resultId);
+
+        $id = intval($fila["nuevo_id"]);
+
+        $tipo = $data["tipo"];
+        $estado = "Nuevo";
+        $latitud = floatval($data["latitud"]);
+        $longitud = floatval($data["longitud"]);
 
         $sql = "INSERT INTO $this->table
                 (Id_Contenedor, Tipo, Estado, Latitud, Longitud)
@@ -38,7 +57,8 @@ class Contenedor{
 
         if(mysqli_query($this->conn, $sql)){
             return json_encode([
-                "mensaje" => "Contenedor agregado"
+                "mensaje" => "Contenedor agregado",
+                "id_contenedor" => $id
             ]);
         }
 

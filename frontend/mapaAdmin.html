@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de Administración</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1>Administracion de circuitos</h1>
+    </div>
+
+    <div class="contenido">
+        <h2>Gestión de Zonas</h2>
+        <div class="carta">
+            <h3>Cargar zona</h3>
+            <p>Haz clic en el mapa para agregar los puntos que forman la zona.</p>
+
+            <div id="mapa"></div>
+
+            <div class="controles-mapa">
+                <button class="btn" type="button" onclick="guardarZona()">Guardar zona</button>
+                <button class="btn btn-secundario" type="button" onclick="limpiarZona()">Limpiar</button>
+                <button class="btn btn-terciario" type="button" onclick="mostrarModalEliminar()">Eliminar zona</button>
+            </div>
+
+            <p id="mensajeMapa"></p>
+        </div>
+    </div>
+
+    <div id="overlayEliminar" class="overlay" onclick="cerrarModalEliminar()"></div>
+
+    <div id="modalEliminar" class="modal">
+        <span class="cerrar" onclick="cerrarModalEliminar()">&times;</span>
+
+        <h2>Eliminar zona</h2>
+        <p>Ingrese el ID de la zona que desea eliminar.</p>
+
+        <input type="number" id="idZonaEliminar" placeholder="ID de la zona">
+
+        <button class="btn btn-terciario" onclick="eliminarZona()">Eliminar zona</button>
+
+        <p id="mensajeEliminar"></p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const API = "../backend/api.php";
+
+        let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(mapa);
+
+        let puntos = [];
+        let marcadores = [];
+        let poligono = null;
+
+        mapa.on("click", function(e) {
+            puntos.push([e.latlng.lat, e.latlng.lng]);
+
+            let marcador = L.marker([e.latlng.lat, e.latlng.lng]).addTo(mapa);
+            marcadores.push(marcador);
+
+            if (poligono) {
+                mapa.removeLayer(poligono);
+            }
+
+            if (puntos.length >= 3) {
+                poligono = L.polygon(puntos).addTo(mapa);
+            }
+        });
+
+        function limpiarZona() {
+            puntos = [];
+
+            marcadores.forEach(function(marcador) {
+                mapa.removeLayer(marcador);
+            });
+
+            marcadores = [];
+
+            if (poligono) {
+                mapa.removeLayer(poligono);
+                poligono = null;
+            }
+
+            document.getElementById("mensajeMapa").textContent = "";
+        }
+
+        function guardarZona() {
+            if (puntos.length < 3) {
+                document.getElementById("mensajeMapa").textContent = "La zona debe tener al menos 3 puntos.";
+                return;
+            }
+
+            let vertices = puntos.map(function(punto) {
+                return {
+                    latitud: punto[0],
+                    longitud: punto[1]
+                };
+            });
+
+            fetch(API + "/poligonos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    vertices: vertices
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    document.getElementById("mensajeMapa").textContent = data.error;
+                } else {
+                    document.getElementById("mensajeMapa").textContent = "Zona guardada correctamente.";
+                    limpiarZona();
+                    cargarZonas();
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
+                document.getElementById("mensajeMapa").textContent = "Error al guardar la zona.";
+            });
+        }
+
+        function cargarZonas() {
+            fetch(API + "/poligonos")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                data.forEach(function(zona) {
+                    let vertices = zona.vertices.map(function(v) {
+                        return [v.latitud, v.longitud];
+                    });
+
+                    if (vertices.length >= 3) {
+                        let poligonoZona = L.polygon(vertices).addTo(mapa);
+
+                        let centro = poligonoZona.getBounds().getCenter();
+
+                        L.marker(centro, {
+                            icon: L.divIcon({
+                                className: "id-zona",
+                                html: "<span>" + zona.id_poligono + "</span>",
+                                iconSize: null,
+                                iconAnchor: [0, 0]
+                            }),
+                            interactive: false
+                        }).addTo(mapa);
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al cargar las zonas:", error);
+            });
+        }
+
+        function mostrarModalEliminar() {
+            document.getElementById("modalEliminar").style.display = "block";
+            document.getElementById("overlayEliminar").style.display = "block";
+            document.getElementById("idZonaEliminar").value = "";
+            document.getElementById("mensajeEliminar").textContent = "";
+        }
+
+        function cerrarModalEliminar() {
+            document.getElementById("modalEliminar").style.display = "none";
+            document.getElementById("overlayEliminar").style.display = "none";
+        }
+
+        function eliminarZona() {
+            let id = document.getElementById("idZonaEliminar").value.trim();
+            let mensaje = document.getElementById("mensajeEliminar");
+
+            if (id === "") {
+                mensaje.textContent = "Ingrese el ID de la zona.";
+                return;
+            }
+
+            fetch(API + "/poligonos/" + id, {
+                method: "DELETE"
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    mensaje.textContent = data.error;
+                } else {
+                    mensaje.textContent = "Zona eliminada correctamente.";
+
+                    setTimeout(function() {
+                        cerrarModalEliminar();
+                        location.reload();
+                    }, 800);
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
+                mensaje.textContent = "Error al eliminar la zona.";
+            });
+        }
+
+        cargarZonas();
+    </script>
+</body>
+</html>

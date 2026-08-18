@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Gestión de Contenedores</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1>Gestión de Contenedores</h1>
+    </div>
+
+    <div class="contenido">
+        <h2>Registrar Contenedor</h2>
+
+        <div class="gestion-contenedores">
+            <div class="mapa-contenedor">
+                <p>Haz clic en el mapa para seleccionar la ubicación del contenedor.</p>
+                <div id="mapa"></div>
+            </div>
+
+            <div class="formularios-contenedor">
+                <div class="formulario-mapa">
+                    <h3>Datos del contenedor</h3>
+
+                    <label>Tipo de residuo</label>
+                    <select id="tipoContenedor">
+                        <option value="Residuos mezclados">Residuos mezclados</option>
+                        <option value="Reciclables">Reciclables</option>
+                    </select>
+
+                    <label>Estado</label>
+                    <input type="text" value="Nuevo" disabled>
+
+                    <div class="coordenadas">
+                        <div>
+                            <label>Latitud</label>
+                            <input type="text" id="latitud" readonly>
+                        </div>
+
+                        <div>
+                            <label>Longitud</label>
+                            <input type="text" id="longitud" readonly>
+                        </div>
+                    </div>
+
+                    <div class="controles-mapa">
+                        <button class="btn" type="button" onclick="guardarContenedor()">
+                            Guardar contenedor
+                        </button>
+
+                        <button class="btn btn-secundario" type="button" onclick="limpiarContenedor()">
+                            Limpiar
+                        </button>
+                    </div>
+
+                    <p id="mensajeMapa"></p>
+                </div>
+
+                <div class="formulario-mapa">
+                    <h3>Eliminar contenedor</h3>
+
+                    <label>ID del contenedor</label>
+                    <input type="number" id="idEliminar" min="1">
+
+                    <button class="btn btn-terciario" type="button" onclick="eliminarContenedor()">
+                        Eliminar contenedor
+                    </button>
+
+                    <p id="mensajeEliminar"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Gestión de Contenedores</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const API = "../backend/api.php";
+
+        let iconoContenedor = L.icon({
+            iconUrl: "img/contenedor.png",
+            iconSize: [30, 30],
+            iconAnchor: [15, 20]
+        });
+
+        let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(mapa);
+
+        let marcadorContenedor = null;
+
+        mapa.on("click", function(e) {
+            if (marcadorContenedor) {
+                mapa.removeLayer(marcadorContenedor);
+            }
+
+            marcadorContenedor = L.marker(
+                [e.latlng.lat, e.latlng.lng],
+                { icon: iconoContenedor }
+            ).addTo(mapa);
+
+            document.getElementById("latitud").value = e.latlng.lat.toFixed(7);
+            document.getElementById("longitud").value = e.latlng.lng.toFixed(7);
+            document.getElementById("mensajeMapa").textContent = "";
+        });
+
+        function limpiarContenedor() {
+            if (marcadorContenedor) {
+                mapa.removeLayer(marcadorContenedor);
+                marcadorContenedor = null;
+            }
+
+            document.getElementById("latitud").value = "";
+            document.getElementById("longitud").value = "";
+            document.getElementById("tipoContenedor").value = "Residuos mezclados";
+            document.getElementById("mensajeMapa").textContent = "";
+        }
+
+        function guardarContenedor() {
+            let latitud = document.getElementById("latitud").value;
+            let longitud = document.getElementById("longitud").value;
+            let tipo = document.getElementById("tipoContenedor").value;
+
+            if (latitud === "" || longitud === "") {
+                document.getElementById("mensajeMapa").textContent = "Debe seleccionar una ubicación en el mapa.";
+                return;
+            }
+
+            fetch(API + "/contenedores", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    tipo: tipo,
+                    latitud: parseFloat(latitud),
+                    longitud: parseFloat(longitud)
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    document.getElementById("mensajeMapa").textContent = data.error;
+                } else {
+                    limpiarContenedor();
+
+                    document.getElementById("mensajeMapa").textContent =
+                        "Contenedor " + data.id_contenedor + " guardado correctamente.";
+
+                    cargarContenedores();
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
+                document.getElementById("mensajeMapa").textContent = "Error al guardar el contenedor.";
+            });
+        }
+
+        function cargarZonas() {
+            fetch(API + "/poligonos")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                data.forEach(function(zona) {
+                    let vertices = zona.vertices.map(function(v) {
+                        return [v.latitud, v.longitud];
+                    });
+
+                    if (vertices.length >= 3) {
+                        let poligonoZona = L.polygon(vertices).addTo(mapa);
+
+                        let centro = poligonoZona.getBounds().getCenter();
+
+                        L.marker(centro, {
+                            icon: L.divIcon({
+                                className: "id-zona",
+                                html: "<span>" + zona.id_poligono + "</span>",
+                                iconSize: null,
+                                iconAnchor: [0, 0]
+                            }),
+                            interactive: false
+                        }).addTo(mapa);
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al cargar las zonas:", error);
+            });
+        }
+
+        function cargarContenedores() {
+            fetch(API + "/contenedores")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                data.forEach(function(contenedor) {
+                    if (
+                        contenedor.Latitud !== null &&
+                        contenedor.Longitud !== null
+                    ) {
+                        L.marker(
+                            [
+                                parseFloat(contenedor.Latitud),
+                                parseFloat(contenedor.Longitud)
+                            ],
+                            {
+                                icon: iconoContenedor
+                            }
+                        )
+                        .addTo(mapa)
+                        .bindPopup(
+                            "<strong>Contenedor " +
+                            contenedor.Id_Contenedor +
+                            "</strong><br>" +
+                            "Tipo: " +
+                            contenedor.Tipo +
+                            "<br>" +
+                            "Estado: " +
+                            contenedor.Estado
+                        );
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al cargar los contenedores:", error);
+            });
+        }
+
+        function eliminarContenedor() {
+            let id = document.getElementById("idEliminar").value;
+
+            if (id === "") {
+                document.getElementById("mensajeEliminar").textContent = "Debe ingresar el ID del contenedor.";
+                return;
+            }
+
+            fetch(API + "/contenedores", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id_contenedor: parseInt(id)
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    document.getElementById("mensajeEliminar").textContent = data.error;
+                } else {
+                    location.reload();
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
+                document.getElementById("mensajeEliminar").textContent = "Error al eliminar el contenedor.";
+            });
+        }
+
+        cargarZonas();
+        cargarContenedores();
+    </script>
+</body>
+</html>
