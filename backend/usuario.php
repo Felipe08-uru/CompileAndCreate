@@ -183,6 +183,37 @@ class Usuario {
         }
     }
 
+    public function updateUsuario($data){
+
+        $ci = $data["ci"];
+
+        $nombre1 = $data["nombre1"];
+        $nombre2 = $data["nombre2"];
+        $apellido1 = $data["apellido1"];
+        $apellido2 = $data["apellido2"];
+        $correo_e = $data["correo_e"];
+        $rol = $data["rol"];
+
+        $sql = "UPDATE Usuario SET
+                nombre1='$nombre1',
+                nombre2='$nombre2',
+                apellido1='$apellido1',
+                apellido2='$apellido2',
+                correo_e='$correo_e',
+                rol='$rol'
+                WHERE CI='$ci'";
+
+        if(mysqli_query($this->conn, $sql)){
+            return json_encode([
+                "mensaje" => "Usuario actualizado correctamente"
+            ]);
+        }
+
+        return json_encode([
+            "error" => mysqli_error($this->conn)
+        ]);
+    }    
+
     public function login($data) {
         if (!isset($data["correo_e"]) || !isset($data["contrasena"])) {
             http_response_code(400);

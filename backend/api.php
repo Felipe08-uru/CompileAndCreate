@@ -153,11 +153,17 @@ switch ($method) {
             if ($_SESSION["usuario"]["rol"] !== "Administrador") {
                 http_response_code(403);
                 echo json_encode([
-                    "error" => "No tiene permisos para registrar usuarios"
+                    "error" => "No tiene permisos"
                 ]);
                 break;
             }
-            echo $usuarioObj->addUsuario($data);
+
+            if (isset($data["accion"]) && $data["accion"] === "editar") {
+                echo $usuarioObj->updateUsuario($data);
+            } else {
+                echo $usuarioObj->addUsuario($data);
+            }
+
             break;
         }
 
