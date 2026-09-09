@@ -1,0 +1,30 @@
+version: "3.9"
+ 
+services:
+  web:
+    build: .
+    ports:
+      - "6967:80"
+    depends_on:
+      - db
+    networks:
+      - red_logs
+ 
+  db:
+    image: mysql:8.4
+    ports:
+    - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 
+      MYSQL_DATABASE: sigeru
+    volumes:
+      - datos_logs:/var/lib/mysql
+      - ./sigeru.sql:/docker-entrypoint-initdb.d/sigeru.sql
+    networks:
+      - red_logs
+ 
+networks:
+  red_logs:
+ 
+volumes:
+  datos_logs:
