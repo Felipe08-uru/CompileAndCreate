@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Sistema de Gestión de Residuos Urbanos</title>
+    <link rel="stylesheet" href="estilos/style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="#funciones">Funciones</a>
+            <a href="#contacto">Contacto</a>
+        </nav>
+    </div>
+
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Sistema de Gestión de Residuos Urbanos</h1>
+            <p>Plataforma destinada a la administración de usuarios, contenedores, camiones e incidencias para optimizar la gestión de residuos urbanos.</p>
+            <div class="botones">
+                <button class="btn" onclick="mostrarLogin()">Iniciar Sesión</button>
+                <button class="btn btn-secundario" onclick="mostrarRegistro()">Registrarse</button>
+            </div>
+        </div>
+        <div class="hero-img">
+            <img src="img/contenedores.jpg" alt="Gestión de residuos">
+        </div>
+    </div>
+
+    <div class="contenido" id="funciones">
+        <h2>Funciones del sistema</h2>
+        <div class="cards">
+            <div class="card">
+                <h3>Usuarios</h3>
+                <p>Gestión y administración de los usuarios registrados en el sistema.</p>
+            </div>
+            <div class="card">
+                <h3>Contenedores</h3>
+                <p>Registro, ubicación y seguimiento del estado de los contenedores.</p>
+            </div>
+            <div class="card">
+                <h3>Camiones</h3>
+                <p>Administración de los vehículos utilizados para la recolección de residuos.</p>
+            </div>
+            <div class="card">
+                <h3>Incidencias</h3>
+                <p>Registro y seguimiento de incidencias relacionadas con la gestión de residuos.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer" id="contacto">
+        <p>SiGeRU - Sistema de Gestión de Residuos Urbanos</p>
+        <p>Proyecto educativo - UTU</p>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+        <div id="loginForm">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="loginCorreo" placeholder="Correo electrónico">
+            <input type="password" id="loginContrasena" placeholder="Contraseña">
+            <button class="btn" onclick="iniciarSesion()">Ingresar</button>
+            <p id="mensajeLogin"></p>
+            <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro(); return false;">Regístrate</a></p>
+        </div>
+
+        <div id="registroForm" style="display: none;">
+            <h2>Registrarse</h2>
+            <input type="text" id="registroCi" maxlength="8" placeholder="Cédula de identidad">
+            <input type="text" id="registroNombre1" placeholder="Primer nombre">
+            <input type="text" id="registroNombre2" placeholder="Segundo nombre (opcional)">
+            <input type="text" id="registroApellido1" placeholder="Primer apellido">
+            <input type="text" id="registroApellido2" placeholder="Segundo apellido (opcional)">
+            <input type="email" id="registroCorreo" placeholder="Correo electrónico">
+            <input type="tel" id="registroTelefono" placeholder="Teléfono">
+            <input type="password" id="registroContrasena" placeholder="Contraseña">
+            <input type="password" id="registroConfirmar" placeholder="Confirmar contraseña">
+            <button class="btn btn-secundario" onclick="registrarUsuario()">Crear cuenta</button>
+            <p id="mensajeRegistro"></p>
+            <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin(); return false;">Iniciar sesión</a></p>
+        </div>
+    </div>
+
+    <script type="module" src="js/index.js"></script>
+</body>
+</html>

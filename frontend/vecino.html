@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SiGeRU - Panel del Vecino</title>
+        <link rel="stylesheet" href="estilos/admin.css" />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <img src="img/logoIMMNaranja.svg" alt="Logo" /> <span>SiGeRU</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html">Inicio</a> <a href="vecino.html">Vecino</a>
+                <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+            </nav>
+        </header>
+
+        <div class="titulo">
+            <h1>Panel del Vecino</h1>
+            <p>Consulte las zonas de recolección y los contenedores registrados.</p>
+        </div>
+
+        <div class="contenido">
+            <h2>Vista general</h2>
+            <div class="carta">
+                <p>
+                    Visualización de las zonas de recolección y los contenedores
+                    registrados.
+                </p>
+                <div id="mapa"></div>
+                <p id="mensajeMapa"></p>
+            </div>
+        </div>
+
+        <div class="contenido">
+            <h2>Incidencias</h2>
+            <div class="carta">
+                <p>
+                    Para registrar una incidencia, seleccione un contenedor en el mapa
+                    y presione el botón "Registrar incidencia".
+                </p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><strong>SiGeRU</strong></p>
+            <p>Panel del Vecino</p>
+            <p>Proyecto Integrador - UTU 2026</p>
+        </footer>
+
+        <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+        <div id="modal" class="modal">
+            <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+            <div id="incidenciaForm">
+                <h2>Registrar Incidencia</h2>
+
+                <label for="idContenedor">ID del contenedor</label>
+                <input type="text" id="idContenedor" name="idContenedor" readonly />
+
+                <label for="tipoIncidencia">Tipo de incidencia</label>
+                <select id="tipoIncidencia" name="tipoIncidencia">
+                    <option value="">Seleccione una incidencia</option>
+                    <option value="Contenedor lleno">Contenedor lleno</option>
+                    <option value="Contenedor roto">Contenedor roto</option>
+                    <option value="Contenedor volcado">Contenedor volcado</option>
+                    <option value="Contenedor vandalizado">Contenedor vandalizado</option>
+                    <option value="Basura alrededor">Basura alrededor</option>
+                    <option value="Mal olor">Mal olor</option>
+                    <option value="Otro">Otro</option>
+                </select>
+
+                <label for="foto">Foto de la incidencia</label>
+                <input
+                    type="file"
+                    id="foto"
+                    name="foto"
+                    accept="image/jpeg,image/png,image/gif"
+                />
+
+                <p class="ayuda-foto">
+                    Formatos permitidos: JPG, PNG o GIF. Máximo 5 MB.
+                </p>
+
+                <button
+                    type="button"
+                    class="btn"
+                    id="btnIncidencia"
+                    onclick="registrarIncidencia()"
+                >
+                    Registrar incidencia
+                </button>
+
+                <p id="mensajeIncidencia"></p>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script type="module" src="js/vecino.js"></script>
+    </body>
+</html>

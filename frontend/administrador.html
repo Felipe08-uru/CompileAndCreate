@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de Administración</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1>Panel de Administración</h1>
+    </div>
+
+    <div class="contenido">
+        <h2>Vista general</h2>
+        <div class="carta" id="vistaGeneral">
+            <p>Visualización de las zonas de recolección registradas.</p>
+            <div id="mapa"></div>
+            <p id="mensajeMapa"></p>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Gestión de zonas</h2>
+        <div class="carta">
+            <a href="mapaAdmin.html" class="btn">Gestionar zonas</a>
+        </div>
+    </div>
+
+    <main class="panelContenedor">
+        <div class="panel">
+            <h2>Registrar Camión</h2>
+            <p>Registre un nuevo camión indicando su matrícula, tipo y estado.</p>
+            <button type="button" class="btn" onclick="mostrarCamion()">Registrar Camión</button>
+        </div>
+
+        <div class="panel">
+            <h2>Registrar Contenedor</h2>
+            <p>Seleccione la ubicación del contenedor y registre sus datos desde el mapa.</p>
+            <a href="mapaContenedores.html" class="btn btn-secundario">Añadir Contenedor</a>
+        </div>
+    </main>
+
+    <div class="contenido">
+        <h2>Gestión de Usuarios</h2>
+        <div class="panelContenedor">
+            <div class="panel panel-completo">
+                <h2>Registrar Usuario</h2>
+                <p>Registre un nuevo usuario del sistema indicando sus datos personales, correo, contraseña y rol.</p>
+                <button type="button" class="btn" onclick="mostrarUsuario()">Registrar Usuario</button>
+            </div>
+        </div>
+    </div>
+
+<div class="contenido">
+    <h2>Registros</h2>
+
+    <div class="carta">
+
+        <label for="selectorTabla">Seleccionar registro:</label>
+
+        <select id="selectorTabla" onchange="cambiarTabla()">
+            <option value="usuarios">Usuarios</option>
+            <option value="camiones">Camiones</option>
+            <option value="contenedores">Contenedores</option>
+            <option value="incidencias">Incidencias</option>
+        </select>
+
+        <div id="tablaUsuariosContainer" class="tabla-container">
+            <h3>Usuarios registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>CI</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaUsuarios">
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tablaCamionesContainer" class="tabla-container">
+            <h3>Camiones registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaCamiones">
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tablaContenedoresContainer" class="tabla-container">
+            <h3>Contenedores registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ubicación</th>
+                        <th>Tipo de residuo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaContenedores">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tablaIncidenciasContainer" class="tabla-container">
+            <h3>Incidencias registradas</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Contenedor</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Foto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaIncidencias">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel de Administración</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+        <div id="camionForm" style="display:none;">
+            <h2>Registrar Camión</h2>
+
+            <label for="matricula">Matrícula</label>
+            <input type="text" id="matricula" name="matricula" placeholder="Ingrese la matrícula">
+
+            <label for="tipoCamion">Tipo</label>
+            <select id="tipoCamion" name="tipoCamion">
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
+            </select>
+
+            <label for="estadoCamion">Estado</label>
+            <select id="estadoCamion" name="estadoCamion">
+                <option value="Disponible">Disponible</option>
+                <option value="En servicio">En servicio</option>
+                <option value="Fuera de servicio">Fuera de servicio</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarCamion()">Registrar Camión</button>
+            <p id="mensajeCamion"></p>
+        </div>
+
+        <div id="usuarioForm" style="display:none;">
+            <h2>Registrar Usuario</h2>
+
+            <label for="ciUsuario">Cédula de identidad</label>
+            <input type="text" id="ciUsuario" maxlength="8" placeholder="Cédula de identidad">
+
+            <label for="nombre1Usuario">Primer nombre</label>
+            <input type="text" id="nombre1Usuario" placeholder="Primer nombre">
+
+            <label for="nombre2Usuario">Segundo nombre</label>
+            <input type="text" id="nombre2Usuario" placeholder="Segundo nombre (opcional)">
+
+            <label for="apellido1Usuario">Primer apellido</label>
+            <input type="text" id="apellido1Usuario" placeholder="Primer apellido">
+
+            <label for="apellido2Usuario">Segundo apellido</label>
+            <input type="text" id="apellido2Usuario" placeholder="Segundo apellido (opcional)">
+
+            <label for="correoUsuario">Correo electrónico</label>
+            <input type="email" id="correoUsuario" placeholder="Correo electrónico">
+
+            <label for="contrasenaUsuario">Contraseña</label>
+            <input type="password" id="contrasenaUsuario" placeholder="Contraseña">
+
+            <label for="rolUsuario">Rol</label>
+            <select id="rolUsuario">
+                <option value="Administrador">Administrador</option>
+                <option value="Vecino">Vecino</option>
+                <option value="Cuadrilla">Cuadrilla</option>
+                <option value="Operario">Operario</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarUsuario()">Registrar Usuario</button>
+            <p id="mensajeUsuario"></p>
+        </div>
+    </div>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/administrador.js"></script>
+</body>
+</html>

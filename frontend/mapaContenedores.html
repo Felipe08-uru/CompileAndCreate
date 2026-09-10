@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Gestión de Contenedores</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1>Gestión de Contenedores</h1>
+    </div>
+
+    <div class="contenido">
+        <h2>Registrar Contenedor</h2>
+
+        <div class="gestion-contenedores">
+            <div class="mapa-contenedor">
+                <p>Haz clic en el mapa para seleccionar la ubicación del contenedor.</p>
+                <div id="mapa"></div>
+            </div>
+
+            <div class="formularios-contenedor">
+                <div class="formulario-mapa">
+                    <h3>Datos del contenedor</h3>
+
+                    <label>Tipo de residuo</label>
+                    <select id="tipoContenedor">
+                        <option value="Residuos mezclados">Residuos mezclados</option>
+                        <option value="Reciclables">Reciclables</option>
+                    </select>
+
+                    <label>Estado</label>
+                    <input type="text" value="Nuevo" disabled>
+
+                    <div class="coordenadas">
+                        <div>
+                            <label>Latitud</label>
+                            <input type="text" id="latitud" readonly>
+                        </div>
+
+                        <div>
+                            <label>Longitud</label>
+                            <input type="text" id="longitud" readonly>
+                        </div>
+                    </div>
+
+                    <div class="controles-mapa">
+                        <button class="btn" type="button" onclick="guardarContenedor()">
+                            Guardar contenedor
+                        </button>
+
+                        <button class="btn btn-secundario" type="button" onclick="limpiarContenedor()">
+                            Limpiar
+                        </button>
+                    </div>
+
+                    <p id="mensajeMapa"></p>
+                </div>
+
+                <div class="formulario-mapa">
+                    <h3>Eliminar contenedor</h3>
+
+                    <label>ID del contenedor</label>
+                    <input type="number" id="idEliminar" min="1">
+
+                    <button class="btn btn-terciario" type="button" onclick="eliminarContenedorUI()">
+                        Eliminar contenedor
+                    </button>
+
+                    <p id="mensajeEliminar"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Gestión de Contenedores</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script type="module" src="js/mapaContenedores.js"></script>
+</body>
+</html>

@@ -1,272 +1,263 @@
 CREATE DATABASE sigeru;
 USE sigeru;
 
-CREATE TABLE Usuario (
-    ci CHAR(8) PRIMARY KEY,
-    nombre1 VARCHAR(50) NOT NULL,
-    nombre2 VARCHAR(50),
-    apellido1 VARCHAR(50) NOT NULL,
-    apellido2 VARCHAR(50),
-    contrasena VARCHAR(255) NOT NULL,
-    rol VARCHAR(30) NOT NULL,
-    correo_e VARCHAR(100) UNIQUE NOT NULL
+CREATE TABLE usuario (
+  ci char(8) NOT NULL,
+  nombre1 varchar(50) NOT NULL,
+  nombre2 varchar(50) DEFAULT NULL,
+  apellido1 varchar(50) NOT NULL,
+  apellido2 varchar(50) DEFAULT NULL,
+  contrasena varchar(255) NOT NULL,
+  rol varchar(30) NOT NULL,
+  correo_e varchar(100) NOT NULL,
+  PRIMARY KEY (ci),
+  UNIQUE KEY correo_e (correo_e)
 );
 
-CREATE TABLE Vecino (
-    CI CHAR(8) PRIMARY KEY,
-    FOREIGN KEY (CI) REFERENCES Usuario(CI)
+CREATE TABLE camion (
+  Matricula varchar(10) NOT NULL,
+  Estado varchar(30) DEFAULT NULL,
+  Tipo varchar(50) DEFAULT NULL,
+  PRIMARY KEY (Matricula)
 );
 
-CREATE TABLE Vecino_Tel (
-    CI CHAR(8),
-    Tel VARCHAR(20),
-    PRIMARY KEY (CI, Tel),
-    FOREIGN KEY (CI) REFERENCES Vecino(CI)
+CREATE TABLE contenedor (
+  Id_Contenedor int(11) NOT NULL,
+  Tipo varchar(50) DEFAULT NULL,
+  Estado varchar(30) DEFAULT NULL,
+  Latitud decimal(10,7) DEFAULT NULL,
+  Longitud decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (Id_Contenedor)
 );
 
-CREATE TABLE Operario (
-    CI CHAR(8) PRIMARY KEY,
-    FOREIGN KEY (CI) REFERENCES Usuario(CI)
+CREATE TABLE incidencia (
+  Id_Incidencia int(11) NOT NULL AUTO_INCREMENT,
+  Tipo varchar(50) DEFAULT NULL,
+  Estado varchar(30) DEFAULT NULL,
+  Id_Contenedor int(11) DEFAULT NULL,
+  Foto varchar(255) DEFAULT NULL,
+  PRIMARY KEY (Id_Incidencia),
+  KEY Id_Contenedor (Id_Contenedor),
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE Administrador (
-    CI CHAR(8) PRIMARY KEY,
-    FOREIGN KEY (CI) REFERENCES Usuario(CI)
+CREATE TABLE poligono (
+  Id_Poligono int(11) NOT NULL,
+  PRIMARY KEY (Id_Poligono)
 );
 
-CREATE TABLE Cuadrilla (
-    CI CHAR(8) PRIMARY KEY,
-    FOREIGN KEY (CI) REFERENCES Usuario(CI)
+CREATE TABLE poligono_vertices (
+  Id_Poligono int(11) NOT NULL,
+  Orden int(11) NOT NULL,
+  Latitud decimal(10,7) DEFAULT NULL,
+  Longitud decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (Id_Poligono, Orden),
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
 );
 
-CREATE TABLE Camion (
-    Matricula VARCHAR(10) PRIMARY KEY,
-    Estado VARCHAR(30),
-    Tipo VARCHAR(50)
+CREATE TABLE access_token (
+  token char(64) NOT NULL,
+  ci char(8) NOT NULL,
+  fecha_creado datetime NOT NULL DEFAULT current_timestamp(),
+  fecha_vencimiento datetime NOT NULL,
+  PRIMARY KEY (token),
+  KEY ci (ci),
+  FOREIGN KEY (ci) REFERENCES usuario (ci)
 );
 
-CREATE TABLE Usa (
-    CI CHAR(8),
-    Matricula VARCHAR(10),
-    PRIMARY KEY (CI, Matricula),
-    FOREIGN KEY (CI) REFERENCES Cuadrilla(CI),
-    FOREIGN KEY (Matricula) REFERENCES Camion(Matricula)
+CREATE TABLE administrador (
+  CI char(8) NOT NULL,
+  PRIMARY KEY (CI),
+  FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE Incidencia (
-    Id_Incidencia INT AUTO_INCREMENT PRIMARY KEY,
-    Tipo VARCHAR(50),
-    Estado VARCHAR(30),
-    Id_Contenedor INT,
-    Foto VARCHAR(255),
-    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor)
+CREATE TABLE cuadrilla (
+  CI char(8) NOT NULL,
+  PRIMARY KEY (CI),
+  FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE Reporta (
-    CI CHAR(8),
-    Id_Incidencia INT,
-    PRIMARY KEY (CI, Id_Incidencia),
-    FOREIGN KEY (CI) REFERENCES Usuario(CI),
-    FOREIGN KEY (Id_Incidencia) REFERENCES Incidencia(Id_Incidencia)
+CREATE TABLE operario (
+  CI char(8) NOT NULL,
+  PRIMARY KEY (CI),
+  FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE Contenedor (
-    Id_Contenedor INT PRIMARY KEY,
-    Tipo VARCHAR(50),
-    Estado VARCHAR(30),
-    Latitud DECIMAL(10,7),
-    Longitud DECIMAL(10,7)
+CREATE TABLE vecino (
+  CI char(8) NOT NULL,
+  PRIMARY KEY (CI),
+  FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE Recoge (
-    Id_Contenedor INT,
-    Matricula VARCHAR(10),
-    PRIMARY KEY (Id_Contenedor, Matricula),
-    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor),
-    FOREIGN KEY (Matricula) REFERENCES Camion(Matricula)
+CREATE TABLE vecino_tel (
+  CI char(8) NOT NULL,
+  Tel varchar(20) NOT NULL,
+  PRIMARY KEY (CI, Tel),
+  FOREIGN KEY (CI) REFERENCES vecino (CI)
 );
 
-CREATE TABLE Al (
-    Id_Incidencia INT,
-    Id_Contenedor INT,
-    PRIMARY KEY (Id_Incidencia, Id_Contenedor),
-    FOREIGN KEY (Id_Incidencia) REFERENCES Incidencia(Id_Incidencia),
-    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor)
+CREATE TABLE centro (
+  ID int(11) NOT NULL,
+  Servicio varchar(100) DEFAULT NULL,
+  ContAlmacenados int(11) DEFAULT NULL,
+  Capacidad int(11) DEFAULT NULL,
+  CamAlmacenados int(11) DEFAULT NULL,
+  PRIMARY KEY (ID)
 );
 
-CREATE TABLE Poligono (
-    Id_Poligono INT PRIMARY KEY
+CREATE TABLE centrodeacopio (
+  ID int(11) NOT NULL,
+  PRIMARY KEY (ID),
+  FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE Poligono_Vertices (
-    Id_Poligono INT,
-    Orden INT,
-    Latitud DECIMAL(10,7),
-    Longitud DECIMAL(10,7),
-    PRIMARY KEY (Id_Poligono, Orden),
-    FOREIGN KEY (Id_Poligono) REFERENCES Poligono(Id_Poligono)
+CREATE TABLE centro_herramientas (
+  ID int(11) NOT NULL,
+  Herramienta varchar(100) NOT NULL,
+  PRIMARY KEY (ID, Herramienta),
+  FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE Ruta (
-    Id_Contenedor INT PRIMARY KEY,
-    Id_Poligono INT,
-    Trayecto TEXT,
-    Cantidad_Contenedores INT,
-    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor),
-    FOREIGN KEY (Id_Poligono) REFERENCES Poligono(Id_Poligono)
+CREATE TABLE vertedero (
+  ID int(11) NOT NULL,
+  PRIMARY KEY (ID),
+  FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE Circula (
-    CI CHAR(8),
-    Id_Contenedor INT,
-    PRIMARY KEY (CI, Id_Contenedor),
-    FOREIGN KEY (CI) REFERENCES Cuadrilla(CI),
-    FOREIGN KEY (Id_Contenedor) REFERENCES Ruta(Id_Contenedor)
+CREATE TABLE metodo (
+  Id_Metodo int(11) NOT NULL,
+  PRIMARY KEY (Id_Metodo)
 );
 
-CREATE TABLE Centro (
-    ID INT PRIMARY KEY,
-    Servicio VARCHAR(100),
-    ContAlmacenados INT,
-    Capacidad INT,
-    CamAlmacenados INT
+CREATE TABLE ruta (
+  Id_Contenedor int(11) NOT NULL,
+  Id_Poligono int(11) DEFAULT NULL,
+  Trayecto text DEFAULT NULL,
+  Cantidad_Contenedores int(11) DEFAULT NULL,
+  PRIMARY KEY (Id_Contenedor),
+  KEY Id_Poligono (Id_Poligono),
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor),
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
 );
 
-CREATE TABLE Centro_Herramientas (
-    ID INT,
-    Herramienta VARCHAR(100),
-    PRIMARY KEY (ID, Herramienta),
-    FOREIGN KEY (ID) REFERENCES Centro(ID)
+CREATE TABLE al (
+  Id_Incidencia int(11) NOT NULL,
+  Id_Contenedor int(11) NOT NULL,
+  PRIMARY KEY (Id_Incidencia, Id_Contenedor),
+  KEY Id_Contenedor (Id_Contenedor),
+  FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia),
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE Termina (
-    ID INT,
-    Id_Contenedor INT,
-    PRIMARY KEY (ID, Id_Contenedor),
-    FOREIGN KEY (ID) REFERENCES Centro(ID),
-    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor)
+CREATE TABLE circula (
+  CI char(8) NOT NULL,
+  Id_Contenedor int(11) NOT NULL,
+  PRIMARY KEY (CI, Id_Contenedor),
+  KEY Id_Contenedor (Id_Contenedor),
+  FOREIGN KEY (CI) REFERENCES cuadrilla (CI),
+  FOREIGN KEY (Id_Contenedor) REFERENCES ruta (Id_Contenedor)
 );
 
-CREATE TABLE Reporta_Centro (
-    CI CHAR(8),
-    ID INT,
-    Cant_Residuos INT,
-    PRIMARY KEY (CI, ID),
-    FOREIGN KEY (CI) REFERENCES Operario(CI),
-    FOREIGN KEY (ID) REFERENCES Centro(ID)
+CREATE TABLE recoge (
+  Id_Contenedor int(11) NOT NULL,
+  Matricula varchar(10) NOT NULL,
+  PRIMARY KEY (Id_Contenedor, Matricula),
+  KEY Matricula (Matricula),
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor),
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
 );
 
-CREATE TABLE Vertedero (
-    ID INT PRIMARY KEY,
-    FOREIGN KEY (ID) REFERENCES Centro(ID)
+CREATE TABLE reporta (
+  CI char(8) NOT NULL,
+  Id_Incidencia int(11) NOT NULL,
+  PRIMARY KEY (CI, Id_Incidencia),
+  KEY Id_Incidencia (Id_Incidencia),
+  FOREIGN KEY (CI) REFERENCES usuario (ci),
+  FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia)
 );
 
-CREATE TABLE CentroDeAcopio (
-    ID INT PRIMARY KEY,
-    FOREIGN KEY (ID) REFERENCES Centro(ID)
+CREATE TABLE reporta_centro (
+  CI char(8) NOT NULL,
+  ID int(11) NOT NULL,
+  Cant_Residuos int(11) DEFAULT NULL,
+  PRIMARY KEY (CI, ID),
+  KEY ID (ID),
+  FOREIGN KEY (CI) REFERENCES operario (CI),
+  FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE Metodo (
-    Id_Metodo INT PRIMARY KEY
+CREATE TABLE termina (
+  ID int(11) NOT NULL,
+  Id_Contenedor int(11) NOT NULL,
+  PRIMARY KEY (ID, Id_Contenedor),
+  KEY Id_Contenedor (Id_Contenedor),
+  FOREIGN KEY (ID) REFERENCES centro (ID),
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE Tiene (
-    Id_Metodo INT,
-    ID INT,
-    PRIMARY KEY (Id_Metodo, ID),
-    FOREIGN KEY (Id_Metodo) REFERENCES Metodo(Id_Metodo),
-    FOREIGN KEY (ID) REFERENCES CentroDeAcopio(ID)
+CREATE TABLE tiene (
+  Id_Metodo int(11) NOT NULL,
+  ID int(11) NOT NULL,
+  PRIMARY KEY (Id_Metodo, ID),
+  KEY ID (ID),
+  FOREIGN KEY (Id_Metodo) REFERENCES metodo (Id_Metodo),
+  FOREIGN KEY (ID) REFERENCES centrodeacopio (ID)
 );
 
-INSERT INTO Usuario VALUES
-('12345678','Juan','Ignacio','Da Rosa','Alonso','1234','Vecino','juan@gmail.com'),
-('23456789','Felipe',NULL,'Bellas','Salvo','1234','Operario','felipe@gmail.com'),
-('34567890','Adrian','Alfonso','Bolivar','Chiarelli','1234','Administrador','adrian@gmail.com'),
-('45678901','John',NULL,'Doe','Smith','1234','Operario','john@gmail.com');
+CREATE TABLE usa (
+  CI char(8) NOT NULL,
+  Matricula varchar(10) NOT NULL,
+  PRIMARY KEY (CI, Matricula),
+  KEY Matricula (Matricula),
+  FOREIGN KEY (CI) REFERENCES cuadrilla (CI),
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
+);
 
-INSERT INTO Vecino VALUES
-('12345678');
+INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
+('12341234', 'ejemplo', NULL, 'ejemplo', NULL, '$2y$10$DqMBrLzZQIQWLxJau4rwcOOJKVsBx2JFa/ZbSYiK5RkdpVvkBuIqa', 'Administrador', 'ejemplo@gmail.com'),
+('12344321', 'Cuadrillin', NULL, 'Cuadrilla', NULL, '$2y$10$UYKWRcHi7oQv2g0Mlu/OFOniViD8qmFHe1x.g7N6Ix6h70JTcXe/i', 'Cuadrilla', 'cuadrilla@gmail.com'),
+('44444444', 'aoeu', NULL, 'aoeu', NULL, '$2y$10$9PEbmZNXu6v8Oofrq8hVROEhJuTnIYvMMQH9gmyLnBjZDPdXNLQ9C', 'Vecino', 'aoeu@gmail.com');
 
-INSERT INTO Vecino_Tel VALUES
-('12345678','099123456'),
-('12345678','098654321');
+INSERT INTO administrador (CI) VALUES
+('12341234');
 
-INSERT INTO Operario VALUES
-('23456789');
+INSERT INTO cuadrilla (CI) VALUES
+('12344321');
 
-INSERT INTO Administrador VALUES
-('34567890');
+INSERT INTO vecino (CI) VALUES
+('44444444');
 
-INSERT INTO Cuadrilla VALUES
-('45678901');
+INSERT INTO vecino_tel (CI, Tel) VALUES
+('44444444', '091632224');
 
-INSERT INTO Camion VALUES
-('SBI1234','Disponible','Compactador');
+INSERT INTO contenedor (Id_Contenedor, Tipo, Estado, Latitud, Longitud) VALUES
+(1, 'Residuos mezclados', 'Nuevo', -34.8970236, -56.1618465),
+(2, 'Reciclables', 'Nuevo', -34.9007677, -56.1628137),
+(4, 'Residuos mezclados', 'Nuevo', -34.9041993, -56.1605104),
+(5, 'Reciclables', 'Nuevo', -34.9059371, -56.1914033);
 
-INSERT INTO Usa VALUES
-('45678901','SBI1234');
+INSERT INTO incidencia (Id_Incidencia, Tipo, Estado, Id_Contenedor, Foto) VALUES
+(1, 'Contenedor lleno', 'Pendiente', 5, 'incidencia_6aa2d0c5ca7e0.jpg'),
+(2, 'Contenedor roto', 'Pendiente', 2, 'incidencia_6aa2e3790d573.jpg');
 
-INSERT INTO Incidencia VALUES
-(1,'Contenedor desbordado','Pendiente');
+INSERT INTO poligono (Id_Poligono) VALUES
+(2),
+(3),
+(4);
 
-INSERT INTO Reporta VALUES
-('12345678',1);
-
-INSERT INTO Contenedor VALUES
-(1,'Orgánico','Lleno',-34.9058300,-56.1916200),
-(2,'Reciclable','Vacío',-34.9062500,-56.1904500),
-(3,'Orgánico','Medio',-34.9049000,-56.1897000);
-
-INSERT INTO Recoge VALUES
-(1,'SBI1234'),
-(2,'SBI1234'),
-(3,'SBI1234');
-
-INSERT INTO Al VALUES
-(1,1),
-(1,2),
-(1,3);
-
-INSERT INTO Poligono VALUES
-(1);
-
-INSERT INTO Poligono_Vertices VALUES
-(1,1,-34.9068000,-56.1926000),
-(1,2,-34.9068000,-56.1887000),
-(1,3,-34.9037000,-56.1887000),
-(1,4,-34.9037000,-56.1926000);
-
-INSERT INTO Ruta VALUES
-(1,1,'4412,4413,4414,',3),
-(2,1,'4415,4416,4417,',3),
-(3,1,'4418,4419,4420,',3);
-
-INSERT INTO Circula VALUES
-('45678901',1);
-
-INSERT INTO Centro VALUES
-(1,'Clasificación',250,600,12);
-
-INSERT INTO Centro_Herramientas VALUES
-(1,'Pala'),
-(1,'Escoba'),
-(1,'Carretilla'),
-(1,'Hidrolavadora');
-
-INSERT INTO Termina VALUES
-(1,1);
-
-INSERT INTO Reporta_Centro VALUES
-('23456789',1,180);
-
-INSERT INTO Vertedero VALUES
-(1);
-
-INSERT INTO CentroDeAcopio VALUES
-(1);
-
-INSERT INTO Metodo VALUES
-(1);
-
-INSERT INTO Tiene VALUES
-(1,1);
+INSERT INTO poligono_vertices (Id_Poligono, Orden, Latitud, Longitud) VALUES
+(2, 1, -34.8975120, -56.1645985),
+(2, 2, -34.8962448, -56.1613798),
+(2, 3, -34.8961040, -56.1591911),
+(2, 4, -34.8979695, -56.1581182),
+(2, 5, -34.9027563, -56.1613798),
+(2, 6, -34.9022988, -56.1641693),
+(3, 1, -34.9074020, -56.1596847),
+(3, 2, -34.9058535, -56.1633539),
+(3, 3, -34.9028267, -56.1613369),
+(3, 4, -34.9031611, -56.1560369),
+(3, 5, -34.9090737, -56.1535263),
+(4, 1, -34.9081763, -56.1956263),
+(4, 2, -34.9043753, -56.1960340),
+(4, 3, -34.9038826, -56.1892962),
+(4, 4, -34.9077012, -56.1888885);
