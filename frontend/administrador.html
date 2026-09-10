@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +16,7 @@
         <nav class="nav">
             <a href="index.html">Inicio</a>
             <a href="administrador.html">Administrador</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
         </nav>
     </header>
 
@@ -26,7 +26,7 @@
 
     <div class="contenido">
         <h2>Vista general</h2>
-        <div class="carta">
+        <div class="carta" id="vistaGeneral">
             <p>Visualización de las zonas de recolección registradas.</p>
             <div id="mapa"></div>
             <p id="mensajeMapa"></p>
@@ -36,145 +36,130 @@
     <div class="contenido">
         <h2>Gestión de zonas</h2>
         <div class="carta">
-            <a href="mapaAdmin.html" class="btn">
-                Gestionar zonas
-            </a>
+            <a href="mapaAdmin.html" class="btn">Gestionar zonas</a>
         </div>
     </div>
 
     <main class="panelContenedor">
         <div class="panel">
             <h2>Registrar Camión</h2>
-            <form action="#" method="post">
-                <label>Matricula</label>
-                <input type="text" id="matricula" name="matricula">
-
-                <label>Tipo</label>
-                <select id="tipoCamion" name="tipoCamion">
-                    <option>Residuos mezclados</option>
-                    <option>Reciclables</option>
-                </select>
-
-                <label>Estado</label>
-                <select id="estadoCamion" name="estadoCamion">
-                    <option>Disponible</option>
-                    <option>En servicio</option>
-                    <option>Fuera de servicio</option>
-                </select>
-
-                <button type="button" class="btn" onclick="registrarCamion()">
-                    Registrar Camión
-                </button>
-                <p id="mensajeCamion"></p>
-            </form>
+            <p>Registre un nuevo camión indicando su matrícula, tipo y estado.</p>
+            <button type="button" class="btn" onclick="mostrarCamion()">Registrar Camión</button>
         </div>
 
         <div class="panel">
             <h2>Registrar Contenedor</h2>
             <p>Seleccione la ubicación del contenedor y registre sus datos desde el mapa.</p>
-            <a href="mapaContenedores.html" class="btn btn-secundario">
-                Añadir Contenedor
-            </a>
+            <a href="mapaContenedores.html" class="btn btn-secundario">Añadir Contenedor</a>
         </div>
     </main>
 
     <div class="contenido">
         <h2>Gestión de Usuarios</h2>
         <div class="panelContenedor">
-            <div class="panel">
+            <div class="panel panel-completo">
                 <h2>Registrar Usuario</h2>
-                <form action="#" method="post">
-                    <label>Cédula de identidad</label>
-                    <input type="text" id="ciUsuario" maxlength="8">
-
-                    <label>Primer nombre</label>
-                    <input type="text" id="nombre1Usuario">
-
-                    <label>Segundo nombre</label>
-                    <input type="text" id="nombre2Usuario">
-
-                    <label>Primer apellido</label>
-                    <input type="text" id="apellido1Usuario">
-
-                    <label>Segundo apellido</label>
-                    <input type="text" id="apellido2Usuario">
-
-                    <label>Correo electrónico</label>
-                    <input type="email" id="correoUsuario">
-
-                    <label>Contraseña</label>
-                    <input type="password" id="contrasenaUsuario">
-
-                    <label>Rol</label>
-                    <select id="rolUsuario">
-                        <option value="Administrador">Administrador</option>
-                        <option value="Vecino">Vecino</option>
-                        <option value="Cuadrilla">Cuadrilla</option>
-                        <option value="Operario">Operario</option>
-                    </select>
-
-                    <button type="button" class="btn" onclick="registrarUsuario()">
-                        Registrar Usuario
-                    </button>
-                    <p id="mensajeUsuario"></p>
-                </form>
+                <p>Registre un nuevo usuario del sistema indicando sus datos personales, correo, contraseña y rol.</p>
+                <button type="button" class="btn" onclick="mostrarUsuario()">Registrar Usuario</button>
             </div>
         </div>
     </div>
 
-    <div class="contenido">
-        <h2>Registros</h2>
-        <div class="cartas">
-            <div class="carta">
-                <h3>Usuarios registrados</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>CI</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>Correo</th>
-                            <th>Rol</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaUsuarios">
-                    </tbody>
-                </table>
-            </div>
+<div class="contenido">
+    <h2>Registros</h2>
 
-            <div class="carta">
-                <h3>Camiones registrados</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaCamiones">
-                    </tbody>
-                </table>
-            </div>
+    <div class="carta">
 
-            <div class="carta">
-                <h3>Contenedores registrados</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Ubicación</th>
-                            <th>Tipo de residuo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaContenedores">
-                    </tbody>
-                </table>
-            </div>
+        <label for="selectorTabla">Seleccionar registro:</label>
+
+        <select id="selectorTabla" onchange="cambiarTabla()">
+            <option value="usuarios">Usuarios</option>
+            <option value="camiones">Camiones</option>
+            <option value="contenedores">Contenedores</option>
+            <option value="incidencias">Incidencias</option>
+        </select>
+
+        <div id="tablaUsuariosContainer" class="tabla-container">
+            <h3>Usuarios registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>CI</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaUsuarios">
+                </tbody>
+            </table>
         </div>
+
+
+        <div id="tablaCamionesContainer" class="tabla-container">
+            <h3>Camiones registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaCamiones">
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tablaContenedoresContainer" class="tabla-container">
+            <h3>Contenedores registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ubicación</th>
+                        <th>Tipo de residuo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaContenedores">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tablaIncidenciasContainer" class="tabla-container">
+            <h3>Incidencias registradas</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Contenedor</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Foto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaIncidencias">
+                </tbody>
+            </table>
+        </div>
+
     </div>
+</div>
 
     <footer class="footer">
         <p><strong>SiGeRU</strong></p>
@@ -182,315 +167,623 @@
         <p>Proyecto Integrador - UTU 2026</p>
     </footer>
 
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+        <div id="camionForm" style="display:none;">
+            <h2>Registrar Camión</h2>
+
+            <label for="matricula">Matrícula</label>
+            <input type="text" id="matricula" name="matricula" placeholder="Ingrese la matrícula">
+
+            <label for="tipoCamion">Tipo</label>
+            <select id="tipoCamion" name="tipoCamion">
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
+            </select>
+
+            <label for="estadoCamion">Estado</label>
+            <select id="estadoCamion" name="estadoCamion">
+                <option value="Disponible">Disponible</option>
+                <option value="En servicio">En servicio</option>
+                <option value="Fuera de servicio">Fuera de servicio</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarCamion()">Registrar Camión</button>
+            <p id="mensajeCamion"></p>
+        </div>
+
+        <div id="usuarioForm" style="display:none;">
+            <h2>Registrar Usuario</h2>
+
+            <label for="ciUsuario">Cédula de identidad</label>
+            <input type="text" id="ciUsuario" maxlength="8" placeholder="Cédula de identidad">
+
+            <label for="nombre1Usuario">Primer nombre</label>
+            <input type="text" id="nombre1Usuario" placeholder="Primer nombre">
+
+            <label for="nombre2Usuario">Segundo nombre</label>
+            <input type="text" id="nombre2Usuario" placeholder="Segundo nombre (opcional)">
+
+            <label for="apellido1Usuario">Primer apellido</label>
+            <input type="text" id="apellido1Usuario" placeholder="Primer apellido">
+
+            <label for="apellido2Usuario">Segundo apellido</label>
+            <input type="text" id="apellido2Usuario" placeholder="Segundo apellido (opcional)">
+
+            <label for="correoUsuario">Correo electrónico</label>
+            <input type="email" id="correoUsuario" placeholder="Correo electrónico">
+
+            <label for="contrasenaUsuario">Contraseña</label>
+            <input type="password" id="contrasenaUsuario" placeholder="Contraseña">
+
+            <label for="rolUsuario">Rol</label>
+            <select id="rolUsuario">
+                <option value="Administrador">Administrador</option>
+                <option value="Vecino">Vecino</option>
+                <option value="Cuadrilla">Cuadrilla</option>
+                <option value="Operario">Operario</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarUsuario()">Registrar Usuario</button>
+            <p id="mensajeUsuario"></p>
+        </div>
+    </div>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
-        const API = "../backend/api.php";
+        const API="../backend/api.php";
+        const modal=document.getElementById("modal");
+        const overlay=document.getElementById("overlay");
 
-        let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
+        function obtenerHeaders(){
+            const token=localStorage.getItem("token");
+            const headers={
+                "Content-Type":"application/json"
+            };
+            if(token){
+                headers["Authorization"]="Bearer "+token;
+            }
+            return headers;
+        }
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors"
+        function verificarSesion(){
+            const token=localStorage.getItem("token");
+            const rol=localStorage.getItem("rol");
+
+            if(!token||rol!=="Administrador"){
+                localStorage.removeItem("token");
+                localStorage.removeItem("rol");
+                window.location.href="index.html";
+                return;
+            }
+
+            fetch("../backend/api.php/usuarios",{
+                headers:{
+                    "Authorization":"Bearer "+token
+                }
+            })
+            .then(function(response){
+                if(!response.ok){
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("rol");
+                    window.location.href="index.html";
+                }
+            })
+            .catch(function(){
+                localStorage.removeItem("token");
+                localStorage.removeItem("rol");
+                window.location.href="index.html";
+            });
+        }
+
+        function cerrarSesion(){
+            localStorage.removeItem("token");
+            window.location.href="index.html";
+        }
+
+        function mostrarCamion(){
+            modal.style.display="block";
+            overlay.style.display="block";
+            document.getElementById("camionForm").style.display="block";
+            document.getElementById("usuarioForm").style.display="none";
+            document.getElementById("mensajeCamion").textContent="";
+        }
+
+        function mostrarUsuario(){
+            modal.style.display="block";
+            overlay.style.display="block";
+            document.getElementById("camionForm").style.display="none";
+            document.getElementById("usuarioForm").style.display="block";
+            document.getElementById("mensajeUsuario").textContent="";
+        }
+
+        function cerrarModal(){
+            modal.style.display="none";
+            overlay.style.display="none";
+            document.getElementById("camionForm").style.display="none";
+            document.getElementById("usuarioForm").style.display="none";
+        }
+
+        function cambiarTabla(){
+            let seleccion=document.getElementById("selectorTabla").value;
+            let usuarios=document.getElementById("tablaUsuariosContainer");
+            let camiones=document.getElementById("tablaCamionesContainer");
+            let contenedores=document.getElementById("tablaContenedoresContainer");
+            let incidencias=document.getElementById("tablaIncidenciasContainer");
+
+            usuarios.classList.remove("activa");
+            camiones.classList.remove("activa");
+            contenedores.classList.remove("activa");
+            incidencias.classList.remove("activa");
+
+            if(seleccion==="usuarios"){
+                usuarios.classList.add("activa");
+            }
+
+            if(seleccion==="camiones"){
+                camiones.classList.add("activa");
+            }
+
+            if(seleccion==="contenedores"){
+                contenedores.classList.add("activa");
+            }
+
+            if(seleccion==="incidencias"){
+                incidencias.classList.add("activa");
+            }
+        }
+
+        let mapa=L.map("mapa").setView([-34.9055,-56.1905],16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+            attribution:"&copy; OpenStreetMap contributors"
         }).addTo(mapa);
 
-        let iconoContenedor = L.icon({
-            iconUrl: "img/contenedor.png",
-            iconSize: [30, 30],
-            iconAnchor: [15, 20]
+        let iconoContenedor=L.icon({
+            iconUrl:"img/contenedor.png",
+            iconSize:[30,30],
+            iconAnchor:[15,20]
         });
 
-        function cargarZonas() {
-            fetch(API + "/poligonos", {
-                credentials: "include"
+        function cargarZonas(){
+            fetch("../backend/apiPoligonos.php/poligonos",{
+                headers:obtenerHeaders()
             })
-            .then(function(response) {
+            .then(function(response){
+                if(response.status===401){
+                    throw new Error("Sesión no válida");
+                }
                 return response.json();
             })
-            .then(function(data) {
-                data.forEach(function(zona) {
-                    let vertices = zona.vertices.map(function(v) {
-                        return [v.latitud, v.longitud];
+            .then(function(data){
+                data.forEach(function(zona){
+                    let vertices=zona.vertices.map(function(v){
+                        return [v.latitud,v.longitud];
                     });
 
-                    if (vertices.length >= 3) {
+                    if(vertices.length>=3){
                         L.polygon(vertices).addTo(mapa);
 
-                        let centro = calcularCentro(vertices);
+                        let centro=calcularCentro(vertices);
 
-                        L.marker(centro, {
-                            icon: L.divIcon({
-                                className: "id-zona",
-                                html: "<span>" + zona.id_poligono + "</span>",
-                                iconSize: null,
-                                iconAnchor: [0, 0]
+                        L.marker(centro,{
+                            icon:L.divIcon({
+                                className:"id-zona",
+                                html:"<span>"+zona.id_poligono+"</span>",
+                                iconSize:null,
+                                iconAnchor:[0,0]
                             }),
-                            interactive: false
+                            interactive:false
                         }).addTo(mapa);
                     }
                 });
             })
-            .catch(function(error) {
-                console.error("Error al cargar las zonas:", error);
-                document.getElementById("mensajeMapa").textContent = "Error al cargar las zonas.";
+            .catch(function(error){
+                console.error("Error al cargar las zonas:",error);
+                document.getElementById("mensajeMapa").textContent="Error al cargar las zonas.";
             });
         }
 
-        function cargarContenedores() {
-            fetch(API + "/contenedores")
-            .then(function(response) {
+        function cargarContenedores(){
+            fetch("../backend/apiContenedores.php/contenedores",{
+                headers:obtenerHeaders()
+            })
+            .then(function(response){
+                if(response.status===401){
+                    throw new Error("Sesión no válida");
+                }
                 return response.json();
             })
-            .then(function(data) {
-                let tabla = document.getElementById("tablaContenedores");
-                tabla.innerHTML = "";
+            .then(function(data){
+                let tabla=document.getElementById("tablaContenedores");
+                tabla.innerHTML="";
 
-                data.forEach(function(contenedor) {
-                    if (contenedor.Latitud !== null && contenedor.Longitud !== null) {
-                        L.marker(
-                            [
-                                parseFloat(contenedor.Latitud),
-                                parseFloat(contenedor.Longitud)
-                            ],
-                            {
-                                icon: iconoContenedor
-                            }
-                        )
+                data.forEach(function(contenedor){
+                    if(contenedor.Latitud!==null&&contenedor.Longitud!==null){
+                        L.marker([
+                            parseFloat(contenedor.Latitud),
+                            parseFloat(contenedor.Longitud)
+                        ],{
+                            icon:iconoContenedor
+                        })
                         .addTo(mapa)
                         .bindPopup(
-                            "<strong>Contenedor " +
-                            contenedor.Id_Contenedor +
-                            "</strong><br>" +
-                            "Tipo: " +
-                            contenedor.Tipo +
-                            "<br>" +
-                            "Estado: " +
+                            "<strong>Contenedor "+
+                            contenedor.Id_Contenedor+
+                            "</strong><br>"+
+                            "Tipo: "+
+                            contenedor.Tipo+
+                            "<br>"+
+                            "Estado: "+
                             contenedor.Estado
                         );
                     }
 
-                    let fila = document.createElement("tr");
+                    let fila=document.createElement("tr");
 
-                    fila.innerHTML =
-                        "<td>" + contenedor.Id_Contenedor + "</td>" +
-                        "<td>" + contenedor.Latitud + ", " + contenedor.Longitud + "</td>" +
-                        "<td>" + contenedor.Tipo + "</td>" +
-                        "<td>" + contenedor.Estado + "</td>";
-
-                    tabla.appendChild(fila);
-                });
-            })
-            .catch(function(error) {
-                console.error("Error al cargar los contenedores:", error);
-            });
-        }
-
-        function cargarUsuarios() {
-            fetch(API + "/usuarios", {
-                credentials: "include"
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                let tabla = document.getElementById("tablaUsuarios");
-                tabla.innerHTML = "";
-
-                data.forEach(function(usuario) {
-                    let fila = document.createElement("tr");
-
-                    fila.innerHTML =
-                        "<td>" + usuario.ci + "</td>" +
-                        "<td>" + usuario.nombre1 + " " + (usuario.nombre2 || "") + "</td>" +
-                        "<td>" + usuario.apellido1 + " " + (usuario.apellido2 || "") + "</td>" +
-                        "<td>" + usuario.correo_e + "</td>" +
-                        "<td>" + usuario.rol + "</td>" +
-                        "<td class='acciones'>" +
-                        "<button class='btn-eliminar' onclick=\"eliminarUsuario('" + usuario.ci + "')\">Eliminar</button>" +
+                    fila.innerHTML=
+                        "<td>"+contenedor.Id_Contenedor+"</td>"+
+                        "<td>"+contenedor.Latitud+", "+contenedor.Longitud+"</td>"+
+                        "<td>"+contenedor.Tipo+"</td>"+
+                        "<td>"+contenedor.Estado+"</td>"+
+                        "<td class='acciones'>"+
+                        "<button class='btn-eliminar' onclick=\"eliminarContenedor('"+contenedor.Id_Contenedor+"')\">Eliminar</button>"+
                         "</td>";
 
                     tabla.appendChild(fila);
                 });
             })
-            .catch(function(error) {
-                console.error("Error al cargar los usuarios:", error);
+            .catch(function(error){
+                console.error("Error al cargar los contenedores:",error);
             });
         }
 
-        function cargarCamiones() {
-            fetch(API + "/camiones")
-            .then(function(response) {
+        function cargarUsuarios(){
+            fetch(API+"/usuarios",{
+                headers:obtenerHeaders()
+            })
+            .then(function(response){
+                if(response.status===401){
+                    throw new Error("Sesión no válida");
+                }
+                if(response.status===403){
+                    throw new Error("No tiene permisos");
+                }
                 return response.json();
             })
-            .then(function(data) {
-                let tabla = document.getElementById("tablaCamiones");
-                tabla.innerHTML = "";
+            .then(function(data){
+                let tabla=document.getElementById("tablaUsuarios");
+                tabla.innerHTML="";
 
-                data.forEach(function(camion) {
-                    let fila = document.createElement("tr");
+                data.forEach(function(usuario){
+                    let fila=document.createElement("tr");
 
-                    fila.innerHTML =
-                        "<td>" + camion.Matricula + "</td>" +
-                        "<td>" + camion.Tipo + "</td>" +
-                        "<td>" + camion.Estado + "</td>";
+                    fila.innerHTML=
+                        "<td>"+usuario.ci+"</td>"+
+                        "<td>"+usuario.nombre1+" "+(usuario.nombre2||"")+"</td>"+
+                        "<td>"+usuario.apellido1+" "+(usuario.apellido2||"")+"</td>"+
+                        "<td>"+usuario.correo_e+"</td>"+
+                        "<td>"+usuario.rol+"</td>"+
+                        "<td class='acciones'>"+
+                        "<button class='btn-eliminar' onclick=\"eliminarUsuario('"+usuario.ci+"')\">Eliminar</button>"+
+                        "</td>";
 
                     tabla.appendChild(fila);
                 });
             })
-            .catch(function(error) {
-                console.error("Error al cargar los camiones:", error);
+            .catch(function(error){
+                console.error("Error al cargar los usuarios:",error);
             });
         }
 
-        function registrarUsuario() {
-            let ci = document.getElementById("ciUsuario").value.trim();
-            let nombre1 = document.getElementById("nombre1Usuario").value.trim();
-            let nombre2 = document.getElementById("nombre2Usuario").value.trim();
-            let apellido1 = document.getElementById("apellido1Usuario").value.trim();
-            let apellido2 = document.getElementById("apellido2Usuario").value.trim();
-            let correo = document.getElementById("correoUsuario").value.trim();
-            let contrasena = document.getElementById("contrasenaUsuario").value;
-            let rol = document.getElementById("rolUsuario").value;
-            let mensaje = document.getElementById("mensajeUsuario");
+        function cargarCamiones(){
+            fetch("../backend/apiCamiones.php/camiones",{
+                headers:obtenerHeaders()
+            })
+            .then(function(response){
+                if(response.status===401){
+                    throw new Error("Sesión no válida");
+                }
+                return response.json();
+            })
+            .then(function(data){
+                let tabla=document.getElementById("tablaCamiones");
+                tabla.innerHTML="";
 
-            if (ci === "" || nombre1 === "" || apellido1 === "" || correo === "" || contrasena === "") {
-                mensaje.textContent = "Complete todos los campos obligatorios.";
+                data.forEach(function(camion){
+                    let fila=document.createElement("tr");
+
+                    fila.innerHTML=
+                        "<td>"+camion.matricula+"</td>"+
+                        "<td>"+camion.tipo+"</td>"+
+                        "<td>"+camion.estado+"</td>"+
+                        "<td class='acciones'>"+
+                        "<button class='btn-eliminar' onclick=\"eliminarCamion('"+camion.matricula+"')\">Eliminar</button>"+
+                        "</td>";
+
+                    tabla.appendChild(fila);
+                });
+            })
+            .catch(function(error){
+                console.error("Error al cargar los camiones:",error);
+            });
+        }
+
+        function cargarIncidencias(){
+            fetch("../backend/apiIncidencias.php/incidencias",{
+                headers:obtenerHeaders()
+            })
+            .then(function(response){
+                if(response.status===401){
+                    throw new Error("Sesión no válida");
+                }
+                return response.json();
+            })
+            .then(function(data){
+                let tabla=document.getElementById("tablaIncidencias");
+                tabla.innerHTML="";
+
+                data.forEach(function(incidencia){
+                    let fila=document.createElement("tr");
+
+                    fila.innerHTML=
+                        "<td>"+incidencia.Id_Incidencia+"</td>"+
+                        "<td>"+incidencia.Id_Contenedor+"</td>"+
+                        "<td>"+incidencia.Tipo+"</td>"+
+                        "<td>"+incidencia.Estado+"</td>"+
+                        "<td>"+(incidencia.Foto||"Sin foto")+"</td>"+
+                        "<td class='acciones'>"+
+                        "<button class='btn-eliminar' onclick=\"eliminarIncidencia('"+incidencia.Id_Incidencia+"')\">Eliminar</button>"+
+                        "</td>";
+
+                    tabla.appendChild(fila);
+                });
+            })
+            .catch(function(error){
+                console.error("Error al cargar las incidencias:",error);
+            });
+        }
+
+        async function registrarUsuario(){
+            let ci=document.getElementById("ciUsuario").value.trim();
+            let nombre1=document.getElementById("nombre1Usuario").value.trim();
+            let nombre2=document.getElementById("nombre2Usuario").value.trim();
+            let apellido1=document.getElementById("apellido1Usuario").value.trim();
+            let apellido2=document.getElementById("apellido2Usuario").value.trim();
+            let correo=document.getElementById("correoUsuario").value.trim();
+            let contrasena=document.getElementById("contrasenaUsuario").value;
+            let rol=document.getElementById("rolUsuario").value;
+            let mensaje=document.getElementById("mensajeUsuario");
+
+            if(ci===""||nombre1===""||apellido1===""||correo===""||contrasena===""){
+                mensaje.textContent="Complete todos los campos obligatorios.";
                 return;
             }
 
-            fetch(API + "/usuarios", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    ci: ci,
-                    nombre1: nombre1,
-                    nombre2: nombre2 !== "" ? nombre2 : null,
-                    apellido1: apellido1,
-                    apellido2: apellido2 !== "" ? apellido2 : null,
-                    correo_e: correo,
-                    contrasena: contrasena,
-                    rol: rol
-                })
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                if (data.error) {
-                    mensaje.textContent = data.error;
-                } else {
-                    mensaje.textContent = data.success || "Usuario registrado correctamente.";
+            try{
+                const respuesta=await fetch(API+"/usuarios",{
+                    method:"POST",
+                    headers:obtenerHeaders(),
+                    body:JSON.stringify({
+                        ci:ci,
+                        nombre1:nombre1,
+                        nombre2:nombre2!==""?nombre2:null,
+                        apellido1:apellido1,
+                        apellido2:apellido2!==""?apellido2:null,
+                        correo_e:correo,
+                        contrasena:contrasena,
+                        rol:rol
+                    })
+                });
 
-                    document.getElementById("ciUsuario").value = "";
-                    document.getElementById("nombre1Usuario").value = "";
-                    document.getElementById("nombre2Usuario").value = "";
-                    document.getElementById("apellido1Usuario").value = "";
-                    document.getElementById("apellido2Usuario").value = "";
-                    document.getElementById("correoUsuario").value = "";
-                    document.getElementById("contrasenaUsuario").value = "";
+                const data=await respuesta.json();
+
+                console.log("Respuesta del servidor:",data);
+
+                if(respuesta.ok&&!data.error){
+                    mensaje.textContent=data.success||"Usuario registrado correctamente.";
+
+                    document.getElementById("ciUsuario").value="";
+                    document.getElementById("nombre1Usuario").value="";
+                    document.getElementById("nombre2Usuario").value="";
+                    document.getElementById("apellido1Usuario").value="";
+                    document.getElementById("apellido2Usuario").value="";
+                    document.getElementById("correoUsuario").value="";
+                    document.getElementById("contrasenaUsuario").value="";
 
                     cargarUsuarios();
+
+                    setTimeout(function(){
+                        cerrarModal();
+                    },700);
+                }else{
+                    mensaje.textContent=data.error||"No se pudo registrar el usuario.";
                 }
-            })
-            .catch(function(error) {
-                console.error("Error:", error);
-                mensaje.textContent = "No se pudo conectar con el servidor.";
-            });
+            }catch(error){
+                console.error("Error:",error);
+                mensaje.textContent="No se pudo conectar con el servidor.";
+            }
         }
 
-        function registrarCamion() {
-            let matricula = document.getElementById("matricula").value.trim();
-            let tipo = document.getElementById("tipoCamion").value;
-            let estado = document.getElementById("estadoCamion").value;
-            let mensaje = document.getElementById("mensajeCamion");
+        async function registrarCamion(){
+            let matricula=document.getElementById("matricula").value.trim();
+            let tipo=document.getElementById("tipoCamion").value;
+            let estado=document.getElementById("estadoCamion").value;
+            let mensaje=document.getElementById("mensajeCamion");
 
-            if (matricula === "") {
-                mensaje.textContent = "Ingrese una matrícula.";
+            if(matricula===""){
+                mensaje.textContent="Ingrese una matrícula.";
                 return;
             }
 
-            fetch(API + "/camiones", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    matricula: matricula,
-                    tipo: tipo,
-                    estado: estado
-                })
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                if (data.error) {
-                    mensaje.textContent = data.error;
-                } else {
-                    mensaje.textContent = data.mensaje || "Camión registrado correctamente.";
-                    document.getElementById("matricula").value = "";
+            try{
+                const respuesta=await fetch("../backend/apiCamiones.php/camiones",{
+                    method:"POST",
+                    headers:obtenerHeaders(),
+                    body:JSON.stringify({
+                        matricula:matricula,
+                        tipo:tipo,
+                        estado:estado
+                    })
+                });
+
+                const data=await respuesta.json();
+
+                console.log("Respuesta del servidor:",data);
+
+                if(respuesta.ok&&!data.error){
+                    mensaje.textContent=data.mensaje||"Camión registrado correctamente.";
+                    document.getElementById("matricula").value="";
                     cargarCamiones();
+
+                    setTimeout(function(){
+                        cerrarModal();
+                    },700);
+                }else{
+                    mensaje.textContent=data.error||"No se pudo registrar el camión.";
                 }
-            })
-            .catch(function(error) {
-                console.error("Error:", error);
-                mensaje.textContent = "No se pudo conectar con el servidor.";
-            });
+            }catch(error){
+                console.error("Error:",error);
+                mensaje.textContent="No se pudo conectar con el servidor.";
+            }
         }
 
-        function eliminarUsuario(ci) {
-            if (!confirm("¿Está seguro de que desea eliminar este usuario?")) {
+        function eliminarUsuario(ci){
+            if(!confirm("¿Está seguro de que desea eliminar este usuario?")){
                 return;
             }
 
-            fetch(API + "/usuarios", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    ci: ci
+            fetch(API+"/usuarios",{
+                method:"DELETE",
+                headers:obtenerHeaders(),
+                body:JSON.stringify({
+                    ci:ci
                 })
             })
-            .then(function(response) {
+            .then(function(response){
                 return response.json();
             })
-            .then(function(data) {
-                if (data.error) {
+            .then(function(data){
+                if(data.error){
                     alert(data.error);
-                } else {
+                }else{
                     cargarUsuarios();
                 }
             })
-            .catch(function(error) {
-                console.error("Error:", error);
+            .catch(function(error){
+                console.error("Error:",error);
                 alert("No se pudo conectar con el servidor.");
             });
         }
 
-        function calcularCentro(vertices) {
-            let sumaLatitud = 0;
-            let sumaLongitud = 0;
+        function eliminarCamion(matricula){
+            if(!confirm("¿Está seguro de que desea eliminar este camión?")){
+                return;
+            }
 
-            vertices.forEach(function(punto) {
-                sumaLatitud += punto[0];
-                sumaLongitud += punto[1];
+            fetch("../backend/apiCamiones.php/camiones",{
+                method:"DELETE",
+                headers:obtenerHeaders(),
+                body:JSON.stringify({
+                    matricula:matricula
+                })
+            })
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                if(data.error){
+                    alert(data.error);
+                }else{
+                    cargarCamiones();
+                }
+            })
+            .catch(function(error){
+                console.error("Error:",error);
+                alert("No se pudo conectar con el servidor.");
+            });
+        }
+
+        function eliminarContenedor(id){
+            if(!confirm("¿Está seguro de que desea eliminar este contenedor?")){
+                return;
+            }
+
+            fetch("../backend/apiContenedores.php/contenedores",{
+                method:"DELETE",
+                headers:obtenerHeaders(),
+                body:JSON.stringify({
+                    Id_Contenedor:id
+                })
+            })
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                if(data.error){
+                    alert(data.error);
+                }else{
+                    cargarContenedores();
+                }
+            })
+            .catch(function(error){
+                console.error("Error:",error);
+                alert("No se pudo conectar con el servidor.");
+            });
+        }
+
+        function calcularCentro(vertices){
+            let sumaLatitud=0;
+            let sumaLongitud=0;
+
+            vertices.forEach(function(punto){
+                sumaLatitud+=punto[0];
+                sumaLongitud+=punto[1];
             });
 
-            return [
-                sumaLatitud / vertices.length,
-                sumaLongitud / vertices.length
+            return[
+                sumaLatitud/vertices.length,
+                sumaLongitud/vertices.length
             ];
         }
 
+        verificarSesion();
         cargarZonas();
         cargarContenedores();
         cargarUsuarios();
         cargarCamiones();
+        cargarIncidencias();
+        cambiarTabla();
+
+        const flechaScroll=document.getElementById("flechaScroll");
+
+        flechaScroll.addEventListener("click",function(){
+            window.scrollBy({
+                top:window.innerHeight,
+                behavior:"smooth"
+            });
+        });
+
+        function actualizarFlecha(){
+            const llegoAlFinal=
+                window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-10;
+
+            if(llegoAlFinal){
+                flechaScroll.style.display="none";
+            }else{
+                flechaScroll.style.display="flex";
+            }
+        }
+
+        window.addEventListener("scroll",actualizarFlecha);
+        actualizarFlecha();
     </script>
 </body>
 </html>

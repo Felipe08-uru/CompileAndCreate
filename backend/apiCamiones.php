@@ -1,19 +1,19 @@
 <?php
 require_once "config.php";
+require_once "camion.php";
 require_once "usuario.php";
 require_once "token.php";
 
 header("Content-Type: application/json; charset=UTF-8");
 
+$camionObj=new Camion($conn);
 $usuarioObj=new Usuario($conn);
 $tokenObj=new Token($conn);
-
 $method=$_SERVER["REQUEST_METHOD"];
 $endpoint=isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:"/";
 
 function obtenerToken(){
     $headers=getallheaders();
-
     if(isset($headers["Authorization"])){
         $authorization=$headers["Authorization"];
     }elseif(isset($headers["authorization"])){
@@ -21,181 +21,105 @@ function obtenerToken(){
     }else{
         return null;
     }
-
     if(strpos($authorization,"Bearer ")===0){
         return substr($authorization,7);
     }
-
     return null;
 }
 
 function autenticarUsuario($tokenObj){
     $token=obtenerToken();
-
     if($token===null||$token===""){
         http_response_code(401);
         echo json_encode(["error"=>"Token requerido"]);
         return false;
     }
-
     $ci=$tokenObj->validarToken($token);
-
     if($ci===false){
         http_response_code(401);
         echo json_encode(["error"=>"Token inválido o vencido"]);
         return false;
     }
-
     return $ci;
 }
 
 function esAdministrador($usuarioObj,$ci){
     $usuario=$usuarioObj->getUsuarioByCi($ci);
-
     if(!$usuario){
         http_response_code(401);
         echo json_encode(["error"=>"Usuario no encontrado"]);
         return false;
     }
-
     if($usuario["rol"]!=="Administrador"){
         http_response_code(403);
         echo json_encode(["error"=>"No tiene permisos"]);
         return false;
     }
-
     return true;
 }
 
 switch($method){
     case "GET":
-        if($endpoint==="/usuarios"){
-            $ci=autenticarUsuario($tokenObj);
-
-            if($ci===false){
-                break;
-            }
-
-            if(!esAdministrador($usuarioObj,$ci)){
-                break;
-            }
-
-            echo json_encode($usuarioObj->getAllUsuarios());
+        $ci=autenticarUsuario($tokenObj);
+        if($ci===false){
             break;
         }
-
-        if(preg_match('/^\/usuarios\/(.+)$/',$endpoint,$matches)){
-            $ci=autenticarUsuario($tokenObj);
-
-            if($ci===false){
-                break;
-            }
-
-            if(!esAdministrador($usuarioObj,$ci)){
-                break;
-            }
-
-            echo json_encode($usuarioObj->getUsuarioByCi($matches[1]));
+        if($endpoint==="/camiones"){
+            echo json_encode($camionObj->getAllCamiones());
             break;
         }
-
+        if(preg_match('/^\/camiones\/(.+)$/',$endpoint,$matches)){
+            echo json_encode($camionObj->getCamionByMatricula($matches[1]));
+            break;
+        }
         http_response_code(404);
         echo json_encode(["error"=>"Endpoint no encontrado"]);
         break;
 
     case "POST":
-        $data=json_decode(file_get_contents("php://input"),true);
-
-        if(!is_array($data)){
-            http_response_code(400);
-            echo json_encode(["error"=>"JSON inválido"]);
+        if($endpoint!=="/camiones"){
+            http_response_code(404);
+            echo json_encode(["error"=>"Endpoint no encontrado"]);
             break;
         }
-
-        if($endpoint==="/registro"){
-            $data["rol"]="Vecino";
-            echo $usuarioObj->addUsuario($data);
-            break;
-        }
-
-        if($endpoint==="/login"){
-            $resultado=$usuarioObj->login($data);
-
-            if(isset($resultado["success"])){
-                $usuario=$resultado["success"];
-                $token=$tokenObj->crearToken($usuario["ci"]);
-
-                if($token===false){
-                    http_response_code(500);
-                    echo json_encode(["error"=>"No se pudo generar el token"]);
-                    break;
-                }
-
-                echo json_encode([
-                    "success"=>true,
-                    "token"=>$token,
-                    "rol"=>$usuario["rol"]
-                ]);
-            }else{
-                http_response_code(401);
-                echo json_encode($resultado);
-            }
-
-            break;
-        }
-
-        if($endpoint==="/usuarios"){
-            $ci=autenticarUsuario($tokenObj);
-
-            if($ci===false){
-                break;
-            }
-
-            if(!esAdministrador($usuarioObj,$ci)){
-                break;
-            }
-
-            if(isset($data["accion"])&&$data["accion"]==="editar"){
-                echo $usuarioObj->updateUsuario($data);
-            }else{
-                echo $usuarioObj->addUsuario($data);
-            }
-
-            break;
-        }
-
-        http_response_code(404);
-        echo json_encode(["error"=>"Endpoint no encontrado"]);
-        break;
-
-    case "DELETE":
         $ci=autenticarUsuario($tokenObj);
-
         if($ci===false){
             break;
         }
-
         if(!esAdministrador($usuarioObj,$ci)){
             break;
         }
-
         $data=json_decode(file_get_contents("php://input"),true);
-
         if(!is_array($data)){
             http_response_code(400);
             echo json_encode(["error"=>"JSON inválido"]);
             break;
         }
-
-        if($endpoint==="/usuarios"){
-            echo $usuarioObj->deleteUsuario($data);
-        }else{
-            http_response_code(404);
-            echo json_encode(["error"=>"Endpoint no encontrado"]);
-        }
-
+        echo $camionObj->addCamion($data);
         break;
 
+    case "DELETE":
+        if($endpoint!=="/camiones"){
+            http_response_code(404);
+            echo json_encode(["error"=>"Endpoint no encontrado"]);
+            break;
+        }
+        $ci=autenticarUsuario($tokenObj);
+        if($ci===false){
+            break;
+        }
+        if(!esAdministrador($usuarioObj,$ci)){
+            break;
+        }
+        $data=json_decode(file_get_contents("php://input"),true);
+        if(!is_array($data)){
+            http_response_code(400);
+            echo json_encode(["error"=>"JSON inválido"]);
+            break;
+        }
+        echo $camionObj->deleteCamion($data);
+        break;
+        
     default:
         header("Allow: GET, POST, DELETE");
         http_response_code(405);

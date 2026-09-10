@@ -6,72 +6,58 @@
     <title>SiGeRU - Sistema de Gestión de Residuos Urbanos</title>
     <link rel="stylesheet" href="estilos/style.css">
 </head>
-
 <body>
-
     <div class="header">
         <div class="logo">
-            <img src="img/logoIMMNaranja.svg" alt="Logo Intendencia de Montevideo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
             <span>SiGeRU</span>
         </div>
-
-        <div class="nav">
-            <a href="#">Inicio</a>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
             <a href="#funciones">Funciones</a>
             <a href="#contacto">Contacto</a>
-        </div>
+        </nav>
     </div>
 
     <div class="hero">
         <div class="hero-text">
             <h1>Sistema de Gestión de Residuos Urbanos</h1>
-            <p>
-                Plataforma destinada a la administración de usuarios,
-                contenedores, camiones e incidencias para optimizar la
-                gestión de residuos urbanos.
-            </p>
-
+            <p>Plataforma destinada a la administración de usuarios, contenedores, camiones e incidencias para optimizar la gestión de residuos urbanos.</p>
             <div class="botones">
                 <button class="btn" onclick="mostrarLogin()">Iniciar Sesión</button>
                 <button class="btn btn-secundario" onclick="mostrarRegistro()">Registrarse</button>
             </div>
         </div>
-
         <div class="hero-img">
             <img src="img/contenedores.jpg" alt="Gestión de residuos">
         </div>
     </div>
 
     <div class="contenido" id="funciones">
-        <h2>¿Qué permite hacer SiGeRU?</h2>
-
+        <h2>Funciones del sistema</h2>
         <div class="cards">
             <div class="card">
                 <h3>Usuarios</h3>
-                <p>Administración de usuarios y roles del sistema.</p>
+                <p>Gestión y administración de los usuarios registrados en el sistema.</p>
             </div>
-
             <div class="card">
                 <h3>Contenedores</h3>
-                <p>Registrar ubicación, estado y tipo de residuos.</p>
+                <p>Registro, ubicación y seguimiento del estado de los contenedores.</p>
             </div>
-
             <div class="card">
                 <h3>Camiones</h3>
-                <p>Gestionar la flota y su disponibilidad.</p>
+                <p>Administración de los vehículos utilizados para la recolección de residuos.</p>
             </div>
-
             <div class="card">
                 <h3>Incidencias</h3>
-                <p>Registrar problemas y hacer seguimiento.</p>
+                <p>Registro y seguimiento de incidencias relacionadas con la gestión de residuos.</p>
             </div>
         </div>
     </div>
 
     <div class="footer" id="contacto">
-        <p><strong>SiGeRU</strong></p>
-        <p>Proyecto integrador de pasaje de grado</p>
-        <p>UTU 2026</p>
+        <p>SiGeRU - Sistema de Gestión de Residuos Urbanos</p>
+        <p>Proyecto educativo - UTU</p>
     </div>
 
     <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
@@ -81,23 +67,15 @@
 
         <div id="loginForm">
             <h2>Iniciar Sesión</h2>
-
             <input type="email" id="loginCorreo" placeholder="Correo electrónico">
             <input type="password" id="loginContrasena" placeholder="Contraseña">
-
             <button class="btn" onclick="iniciarSesion()">Ingresar</button>
-
             <p id="mensajeLogin"></p>
-
-            <p>
-                ¿No tienes cuenta?
-                <a href="#" onclick="mostrarRegistro(); return false;">Regístrate</a>
-            </p>
+            <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro(); return false;">Regístrate</a></p>
         </div>
 
         <div id="registroForm" style="display: none;">
             <h2>Registrarse</h2>
-
             <input type="text" id="registroCi" maxlength="8" placeholder="Cédula de identidad">
             <input type="text" id="registroNombre1" placeholder="Primer nombre">
             <input type="text" id="registroNombre2" placeholder="Segundo nombre (opcional)">
@@ -107,15 +85,9 @@
             <input type="tel" id="registroTelefono" placeholder="Teléfono">
             <input type="password" id="registroContrasena" placeholder="Contraseña">
             <input type="password" id="registroConfirmar" placeholder="Confirmar contraseña">
-
             <button class="btn btn-secundario" onclick="registrarUsuario()">Crear cuenta</button>
-
             <p id="mensajeRegistro"></p>
-
-            <p>
-                ¿Ya tienes cuenta?
-                <a href="#" onclick="mostrarLogin(); return false;">Iniciar sesión</a>
-            </p>
+            <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin(); return false;">Iniciar sesión</a></p>
         </div>
     </div>
 
@@ -124,9 +96,9 @@
         const overlay = document.getElementById("overlay");
 
         function mostrarLogin() {
+            verificarSesion();
             modal.style.display = "block";
             overlay.style.display = "block";
-
             document.getElementById("loginForm").style.display = "block";
             document.getElementById("registroForm").style.display = "none";
             document.getElementById("mensajeLogin").textContent = "";
@@ -135,7 +107,6 @@
         function mostrarRegistro() {
             modal.style.display = "block";
             overlay.style.display = "block";
-
             document.getElementById("loginForm").style.display = "none";
             document.getElementById("registroForm").style.display = "block";
             document.getElementById("mensajeRegistro").textContent = "";
@@ -146,13 +117,55 @@
             overlay.style.display = "none";
         }
 
+        
+        function verificarSesion(){
+            const token=localStorage.getItem("token");
+            const rol=localStorage.getItem("rol");
+
+            if(!token||!rol){
+                return;
+            }
+
+            let url;
+
+            if(rol==="Administrador"){
+                url="../backend/api.php/usuarios";
+            }else if(rol==="Vecino"){
+                url="../backend/apiContenedores.php/contenedores";
+            }else{
+                return;
+            }
+
+            fetch(url,{
+                headers:{
+                    "Authorization":"Bearer "+token
+                }
+            })
+            .then(function(response){
+                if(response.ok){
+                    if(rol==="Administrador"){
+                        window.location.href="administrador.html";
+                    }else if(rol==="Vecino"){
+                        window.location.href="vecino.html";
+                    }
+                }else{
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("rol");
+                }
+            })
+            .catch(function(){
+                localStorage.removeItem("token");
+                localStorage.removeItem("rol");
+            });
+        }
+
         async function iniciarSesion() {
             const correo_e = document.getElementById("loginCorreo").value.trim();
             const contrasena = document.getElementById("loginContrasena").value;
             const mensaje = document.getElementById("mensajeLogin");
 
             if (correo_e === "" || contrasena === "") {
-                mensaje.textContent = "Complete todos los campos.";
+                mensaje.textContent = "Completa todos los campos.";
                 return;
             }
 
@@ -162,7 +175,6 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    credentials: "include",
                     body: JSON.stringify({
                         correo_e: correo_e,
                         contrasena: contrasena
@@ -174,20 +186,30 @@
                 console.log("Respuesta del servidor (LOGIN):", resultado);
 
                 if (respuesta.ok && resultado.success) {
+                    localStorage.setItem("token", resultado.token);
+                    localStorage.setItem("rol", resultado.rol);
 
                     mensaje.textContent = "Inicio de sesión correcto.";
 
                     setTimeout(function() {
-                        window.location.href = "administrador.html";
+                        if (resultado.rol === "Administrador") {
+                            window.location.href = "administrador.html";
+                        } else if (resultado.rol === "Vecino") {
+                            window.location.href = "vecino.html";
+                        } else if (resultado.rol === "Operario") {
+                            window.location.href = "operario.html";
+                        } else if (resultado.rol === "Cuadrilla") {
+                            window.location.href = "cuadrilla.html";
+                        } else {
+                            mensaje.textContent = "El usuario no tiene un rol válido.";
+                        }
                     }, 500);
-
                 } else {
                     mensaje.textContent = resultado.error || "No se pudo iniciar sesión.";
                 }
-
             } catch (error) {
-                console.error("Error:", error);
-                mensaje.textContent = "No se pudo conectar con el servidor.";
+                console.error("Error en el inicio de sesión:", error);
+                mensaje.textContent = "Error de conexión con el servidor.";
             }
         }
 
@@ -204,7 +226,7 @@
             const mensaje = document.getElementById("mensajeRegistro");
 
             if (ci === "" || nombre1 === "" || apellido1 === "" || correo_e === "" || contrasena === "" || confirmar === "") {
-                mensaje.textContent = "Complete todos los campos obligatorios.";
+                mensaje.textContent = "Completa los campos obligatorios.";
                 return;
             }
 
@@ -219,25 +241,22 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    credentials: "include",
                     body: JSON.stringify({
                         ci: ci,
                         nombre1: nombre1,
-                        nombre2: nombre2 !== "" ? nombre2 : null,
+                        nombre2: nombre2,
                         apellido1: apellido1,
-                        apellido2: apellido2 !== "" ? apellido2 : null,
+                        apellido2: apellido2,
                         correo_e: correo_e,
-                        contrasena: contrasena,
-                        telefono: telefono
+                        telefono: telefono,
+                        contrasena: contrasena
                     })
                 });
 
                 const resultado = await respuesta.json();
 
-                console.log("Respuesta del servidor:", resultado);
-
                 if (respuesta.ok && resultado.success) {
-                    mensaje.textContent = resultado.success;
+                    mensaje.textContent = "Cuenta creada correctamente.";
 
                     document.getElementById("registroCi").value = "";
                     document.getElementById("registroNombre1").value = "";
@@ -253,15 +272,14 @@
                         mostrarLogin();
                     }, 1000);
                 } else {
-                    mensaje.textContent = resultado.error || "No se pudo registrar el usuario.";
+                    mensaje.textContent = resultado.error || "No se pudo crear la cuenta.";
                 }
-
             } catch (error) {
-                console.error("Error:", error);
-                mensaje.textContent = "No se pudo conectar con el servidor.";
+                console.error("Error en el registro:", error);
+                mensaje.textContent = "Error de conexión con el servidor.";
             }
         }
-    </script>
 
+    </script>
 </body>
 </html>

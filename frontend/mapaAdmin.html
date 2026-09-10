@@ -115,7 +115,7 @@
                 };
             });
 
-            fetch(API + "/poligonos", {
+            fetch("../backend/apiPoligonos.php/poligonos", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -143,35 +143,48 @@
         }
 
         function cargarZonas() {
-            fetch(API + "/poligonos")
-            .then(function(response) {
+            fetch("../backend/apiPoligonos.php/poligonos", {
+                headers: obtenerHeaders(),
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las zonas.");
+                }
+
                 return response.json();
             })
-            .then(function(data) {
-                data.forEach(function(zona) {
-                    let vertices = zona.vertices.map(function(v) {
-                        return [v.latitud, v.longitud];
+            .then(function (data) {
+                data.forEach(function (zona) {
+                    let vertices = zona.vertices.map(function (v) {
+                        return [parseFloat(v.latitud), parseFloat(v.longitud)];
                     });
 
                     if (vertices.length >= 3) {
-                        let poligonoZona = L.polygon(vertices).addTo(mapa);
+                        L.polygon(vertices, {
+                            color: "#0f4c81",
+                            fillColor: "#0f4c81",
+                            fillOpacity: 0.2,
+                            weight: 2,
+                        }).addTo(mapa);
 
-                        let centro = poligonoZona.getBounds().getCenter();
+                        let centro = calcularCentro(vertices);
 
                         L.marker(centro, {
                             icon: L.divIcon({
                                 className: "id-zona",
                                 html: "<span>" + zona.id_poligono + "</span>",
                                 iconSize: null,
-                                iconAnchor: [0, 0]
+                                iconAnchor: [0, 0],
                             }),
-                            interactive: false
+                            interactive: false,
                         }).addTo(mapa);
                     }
                 });
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error("Error al cargar las zonas:", error);
+                document.getElementById("mensajeMapa").textContent =
+                    "No se pudieron cargar las zonas.";
             });
         }
 
@@ -196,7 +209,7 @@
                 return;
             }
 
-            fetch(API + "/poligonos/" + id, {
+            fetch("../backend/apiPoligonos.php/poligonos/" + id, {
                 method: "DELETE"
             })
             .then(function(response) {
