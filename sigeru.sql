@@ -54,9 +54,12 @@ CREATE TABLE Usa (
 );
 
 CREATE TABLE Incidencia (
-    Id_Incidencia INT PRIMARY KEY,
+    Id_Incidencia INT AUTO_INCREMENT PRIMARY KEY,
     Tipo VARCHAR(50),
-    Estado VARCHAR(30)
+    Estado VARCHAR(30),
+    Id_Contenedor INT,
+    Foto VARCHAR(255),
+    FOREIGN KEY (Id_Contenedor) REFERENCES Contenedor(Id_Contenedor)
 );
 
 CREATE TABLE Reporta (
