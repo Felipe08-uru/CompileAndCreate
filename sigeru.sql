@@ -111,10 +111,14 @@ CREATE TABLE centrodeacopio (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE centro_herramientas (
+CREATE TABLE maquinaria (
+  Id_Maquinaria int(11) NOT NULL AUTO_INCREMENT,
   ID int(11) NOT NULL,
-  Herramienta varchar(100) NOT NULL,
-  PRIMARY KEY (ID, Herramienta),
+  Nombre varchar(100) NOT NULL,
+  Cantidad int(11) NOT NULL DEFAULT 1,
+  Estado varchar(30) NOT NULL DEFAULT 'Operativa',
+  PRIMARY KEY (Id_Maquinaria),
+  KEY ID (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
@@ -213,19 +217,36 @@ CREATE TABLE usa (
   FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
 );
 
+CREATE TABLE registro_camion (
+  Id_Registro int(11) NOT NULL AUTO_INCREMENT,
+  Matricula varchar(10) NOT NULL,
+  CI char(8) NOT NULL,
+  ID int(11) NOT NULL,
+  Fecha datetime NOT NULL DEFAULT current_timestamp(),
+  Tipo_Carga varchar(50) NOT NULL,
+  Cantidad_Carga decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (Id_Registro),
+  KEY Matricula (Matricula),
+  KEY CI (CI),
+  KEY ID (ID),
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula),
+  FOREIGN KEY (CI) REFERENCES operario (CI),
+  FOREIGN KEY (ID) REFERENCES centro (ID)
+);
+
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
-('12341234', 'ejemplo', NULL, 'ejemplo', NULL, '$2y$10$DqMBrLzZQIQWLxJau4rwcOOJKVsBx2JFa/ZbSYiK5RkdpVvkBuIqa', 'Administrador', 'ejemplo@gmail.com'),
-('12344321', 'Cuadrillin', NULL, 'Cuadrilla', NULL, '$2y$10$UYKWRcHi7oQv2g0Mlu/OFOniViD8qmFHe1x.g7N6Ix6h70JTcXe/i', 'Cuadrilla', 'cuadrilla@gmail.com'),
-('44444444', 'aoeu', NULL, 'aoeu', NULL, '$2y$10$9PEbmZNXu6v8Oofrq8hVROEhJuTnIYvMMQH9gmyLnBjZDPdXNLQ9C', 'Vecino', 'aoeu@gmail.com');
+('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Administrador', 'admin@gmail.com'),
+('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Vecino', 'vecino@gmail.com'),
+('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Operario', 'operario@gmail.com');
 
 INSERT INTO administrador (CI) VALUES
 ('12341234');
 
-INSERT INTO cuadrilla (CI) VALUES
-('12344321');
-
 INSERT INTO vecino (CI) VALUES
 ('44444444');
+
+INSERT INTO operario (CI) VALUES
+('55555555');
 
 INSERT INTO vecino_tel (CI, Tel) VALUES
 ('44444444', '091632224');
@@ -261,3 +282,19 @@ INSERT INTO poligono_vertices (Id_Poligono, Orden, Latitud, Longitud) VALUES
 (4, 2, -34.9043753, -56.1960340),
 (4, 3, -34.9038826, -56.1892962),
 (4, 4, -34.9077012, -56.1888885);
+
+INSERT INTO camion (Matricula, Estado, Tipo) VALUES
+('SBI1234', 'Disponible', 'Compactador'),
+('SBJ5678', 'Disponible', 'Volqueta');
+
+INSERT INTO centro (ID, Servicio, ContAlmacenados, Capacidad, CamAlmacenados) VALUES
+(1, 'Cent. Felipe Cardozo', 250, 600, 12);
+
+INSERT INTO centrodeacopio (ID) VALUES
+(1);
+
+INSERT INTO maquinaria (ID, Nombre, Cantidad, Estado) VALUES
+(1, 'Gato hidráulico', 2, 'Operativa');
+
+INSERT INTO registro_camion (Matricula, CI, ID, Tipo_Carga, Cantidad_Carga) VALUES
+('SBI1234', '55555555', 1, 'Orgánico', 350.00);
