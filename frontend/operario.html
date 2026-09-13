@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel del Operario</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="operario.html">Operario</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1>Panel del Operario</h1>
+        <p>Registre la llegada de camiones a su centro de acopio y gestione la maquinaria disponible.</p>
+    </div>
+
+    <main class="panelContenedor">
+        <div class="panel">
+            <h2>Registrar llegada de camión</h2>
+            <p>Indique la matrícula del camión que llegó y la carga que trajo.</p>
+            <button type="button" class="btn" onclick="mostrarCamion()">Registrar llegada</button>
+        </div>
+
+        <div class="panel">
+            <h2>Agregar maquinaria</h2>
+            <p>Registre una nueva máquina o herramienta disponible en el centro.</p>
+            <button type="button" class="btn btn-secundario" onclick="mostrarMaquinaria()">Agregar maquinaria</button>
+        </div>
+    </main>
+
+    <div class="contenido">
+        <h2>Registros de camiones</h2>
+        <div class="carta">
+            <p>Camiones recibidos en su centro de acopio.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Matrícula</th>
+                        <th>Tipo de camión</th>
+                        <th>Centro</th>
+                        <th>Tipo de carga</th>
+                        <th>Cantidad (kg)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaRegistros">
+                </tbody>
+            </table>
+
+            <p id="mensajeRegistros"></p>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Maquinaria del centro</h2>
+        <div class="carta">
+            <p>Máquinas y herramientas disponibles en el centro de acopio.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Centro</th>
+                        <th>Nombre</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaMaquinaria">
+                </tbody>
+            </table>
+
+            <p id="mensajeMaquinariaTabla"></p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel del Operario</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+        <div id="camionForm" style="display:none;">
+            <h2 id="tituloCamionForm">Registrar llegada de camión</h2>
+
+            <label for="idRegistro" style="display:none;"></label>
+            <input type="hidden" id="idRegistro" value="">
+
+            <label for="centroCamion">Centro de acopio</label>
+            <select id="centroCamion"></select>
+
+            <label for="matriculaCamion">Matrícula del camión</label>
+            <select id="matriculaCamion"></select>
+
+            <label for="tipoCargaCamion">Tipo de carga</label>
+            <select id="tipoCargaCamion">
+                <option value="Reciclable">Reciclable</option>
+                <option value="Residuos mezclados">Residuos mezclados</option>
+            </select>
+
+            <label for="cantidadCargaCamion">Cantidad de carga (kg, opcional)</label>
+            <input type="number" id="cantidadCargaCamion" min="0" step="0.01" placeholder="Ej: 350">
+
+            <button type="button" class="btn" id="btnGuardarRegistro" onclick="guardarRegistro()">Registrar llegada</button>
+            <p id="mensajeCamion"></p>
+        </div>
+
+        <div id="maquinariaForm" style="display:none;">
+            <h2 id="tituloMaquinariaForm">Agregar maquinaria</h2>
+
+            <label for="idMaquinaria" style="display:none;"></label>
+            <input type="hidden" id="idMaquinaria" value="">
+
+            <label for="centroMaquinaria">Centro de acopio</label>
+            <select id="centroMaquinaria"></select>
+
+            <label for="nombreMaquinaria">Nombre de la máquina</label>
+            <input type="text" id="nombreMaquinaria" placeholder="Ej: Cargadora frontal">
+
+            <label for="cantidadMaquinaria">Cantidad</label>
+            <input type="number" id="cantidadMaquinaria" min="1" step="1" value="1">
+
+            <label for="estadoMaquinaria">Estado</label>
+            <select id="estadoMaquinaria">
+                <option value="Operativa">Operativa</option>
+                <option value="En mantenimiento">En mantenimiento</option>
+                <option value="Fuera de servicio">Fuera de servicio</option>
+            </select>
+
+            <button type="button" class="btn" id="btnGuardarMaquinaria" onclick="guardarMaquinaria()">Agregar maquinaria</button>
+            <p id="mensajeMaquinaria"></p>
+        </div>
+    </div>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
+    <script type="module" src="js/operario.js"></script>
+</body>
+</html>

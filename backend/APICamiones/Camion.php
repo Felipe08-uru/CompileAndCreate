@@ -3,64 +3,103 @@
 class Camion{
 
     private $conn;
-    private $table = "camion";
+    private $table = "Camion";
 
     public function __construct($db){
         $this->conn = $db;
-
-        if(session_status() == PHP_SESSION_NONE){
-            session_start();
-        }
-
-        if(!isset($_SESSION['camiones'])){
-            $_SESSION['camiones'] = [];
-        }
     }
 
     public function getAllCamiones(){
-        return $_SESSION['camiones'];
+        $sql = "SELECT Matricula, Tipo, Estado FROM $this->table";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     public function getCamionByMatricula($matricula){
-        foreach($_SESSION['camiones'] as $camion){
-            if($camion['matricula'] == $matricula){
-                return $camion;
-            }
-        }
+        $sql = "SELECT Matricula, Tipo, Estado FROM $this->table WHERE Matricula = ?";
 
-        return null;
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $matricula);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->fetch_assoc();
+    }
+
+    public function existeCamion($matricula){
+        $sql = "SELECT Matricula FROM $this->table WHERE Matricula = ?";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $matricula);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
     }
 
     public function addCamion($data){
-        $camion = [
-            "tipo" => $data['tipo'],
-            "estado" => $data['estado'],
-            "matricula" => $data['matricula']
-        ];
+        if(!isset($data["matricula"]) || trim($data["matricula"]) === ""){
+            return json_encode([
+                "error" => "Debe indicar la matrícula del camión"
+            ]);
+        }
 
-        $_SESSION['camiones'][] = $camion;
+        $matricula = trim($data["matricula"]);
+        $tipo = isset($data["tipo"]) ? $data["tipo"] : "Residuos mezclados";
+        $estado = isset($data["estado"]) ? $data["estado"] : "Disponible";
+
+        if($this->existeCamion($matricula)){
+            return json_encode([
+                "error" => "Ya existe un camión con esa matrícula"
+            ]);
+        }
+
+        $sql = "INSERT INTO $this->table (Matricula, Tipo, Estado) VALUES (?, ?, ?)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("sss", $matricula, $tipo, $estado);
+
+        if($stmt->execute()){
+            return json_encode([
+                "mensaje" => "Camión agregado"
+            ]);
+        }
 
         return json_encode([
-            "mensaje"=>"Camión agregado"
+            "error" => "No se pudo registrar el camión"
         ]);
     }
 
     public function deleteCamion($data){
-        $matricula = $data['matricula'];
+        if(!isset($data["matricula"])){
+            return json_encode([
+                "error" => "Debe indicar la matrícula del camión"
+            ]);
+        }
 
-        foreach($_SESSION['camiones'] as $i => $camion){
-            if($camion['matricula'] == $matricula){
-                unset($_SESSION['camiones'][$i]);
-                $_SESSION['camiones'] = array_values($_SESSION['camiones']);
+        $matricula = $data["matricula"];
 
-                return json_encode([
-                    "mensaje"=>"Camión eliminado"
-                ]);
-            }
+        $sql = "DELETE FROM $this->table WHERE Matricula = ?";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $matricula);
+        $stmt->execute();
+
+        if($stmt->affected_rows > 0){
+            return json_encode([
+                "mensaje" => "Camión eliminado"
+            ]);
         }
 
         return json_encode([
-            "error"=>"Camión no encontrado"
+            "error" => "Camión no encontrado"
         ]);
     }
 

@@ -4,6 +4,8 @@ import { getCamiones, crearCamion, eliminarCamion } from "./APICamiones.js";
 import { getContenedores, eliminarContenedor } from "./APIContenedores.js";
 import { getIncidencias, eliminarIncidencia } from "./APIIncidencias.js";
 import { getPoligonos } from "./APIPoligonos.js";
+import { getCentros, crearCentro, eliminarCentro } from "./APICentros.js";
+import { activarFlechaScroll } from "./scrollFlecha.js";
 
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
@@ -13,6 +15,7 @@ function mostrarCamion() {
     overlay.style.display = "block";
     document.getElementById("camionForm").style.display = "block";
     document.getElementById("usuarioForm").style.display = "none";
+    document.getElementById("centroForm").style.display = "none";
     document.getElementById("mensajeCamion").textContent = "";
 }
 
@@ -21,7 +24,17 @@ function mostrarUsuario() {
     overlay.style.display = "block";
     document.getElementById("camionForm").style.display = "none";
     document.getElementById("usuarioForm").style.display = "block";
+    document.getElementById("centroForm").style.display = "none";
     document.getElementById("mensajeUsuario").textContent = "";
+}
+
+function mostrarCentro() {
+    modal.style.display = "block";
+    overlay.style.display = "block";
+    document.getElementById("camionForm").style.display = "none";
+    document.getElementById("usuarioForm").style.display = "none";
+    document.getElementById("centroForm").style.display = "block";
+    document.getElementById("mensajeCentro").textContent = "";
 }
 
 function cerrarModal() {
@@ -29,6 +42,7 @@ function cerrarModal() {
     overlay.style.display = "none";
     document.getElementById("camionForm").style.display = "none";
     document.getElementById("usuarioForm").style.display = "none";
+    document.getElementById("centroForm").style.display = "none";
 }
 
 function cambiarTabla() {
@@ -37,16 +51,19 @@ function cambiarTabla() {
     let camiones = document.getElementById("tablaCamionesContainer");
     let contenedores = document.getElementById("tablaContenedoresContainer");
     let incidencias = document.getElementById("tablaIncidenciasContainer");
+    let centros = document.getElementById("tablaCentrosContainer");
 
     usuarios.classList.remove("activa");
     camiones.classList.remove("activa");
     contenedores.classList.remove("activa");
     incidencias.classList.remove("activa");
+    centros.classList.remove("activa");
 
     if (seleccion === "usuarios") usuarios.classList.add("activa");
     if (seleccion === "camiones") camiones.classList.add("activa");
     if (seleccion === "contenedores") contenedores.classList.add("activa");
     if (seleccion === "incidencias") incidencias.classList.add("activa");
+    if (seleccion === "centros") centros.classList.add("activa");
 }
 
 let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
@@ -192,11 +209,11 @@ async function cargarCamiones() {
         let fila = document.createElement("tr");
 
         fila.innerHTML =
-            "<td>" + camion.matricula + "</td>" +
-            "<td>" + camion.tipo + "</td>" +
-            "<td>" + camion.estado + "</td>" +
+            "<td>" + camion.Matricula + "</td>" +
+            "<td>" + camion.Tipo + "</td>" +
+            "<td>" + camion.Estado + "</td>" +
             "<td class='acciones'>" +
-            "<button class='btn-eliminar' onclick=\"eliminarCamionUI('" + camion.matricula + "')\">Eliminar</button>" +
+            "<button class='btn-eliminar' onclick=\"eliminarCamionUI('" + camion.Matricula + "')\">Eliminar</button>" +
             "</td>";
 
         tabla.appendChild(fila);
@@ -225,6 +242,34 @@ async function cargarIncidencias() {
             "<td>" + (incidencia.Foto || "Sin foto") + "</td>" +
             "<td class='acciones'>" +
             "<button class='btn-eliminar' onclick=\"eliminarIncidenciaUI('" + incidencia.Id_Incidencia + "')\">Eliminar</button>" +
+            "</td>";
+
+        tabla.appendChild(fila);
+    });
+}
+
+async function cargarCentros() {
+    const { ok, data } = await getCentros();
+
+    if (!ok) {
+        console.error("Sesión no válida");
+        return;
+    }
+
+    let tabla = document.getElementById("tablaCentros");
+    tabla.innerHTML = "";
+
+    data.forEach(function (centro) {
+        let fila = document.createElement("tr");
+
+        fila.innerHTML =
+            "<td>" + centro.ID + "</td>" +
+            "<td>" + centro.Servicio + "</td>" +
+            "<td>" + centro.Capacidad + "</td>" +
+            "<td>" + centro.ContAlmacenados + "</td>" +
+            "<td>" + centro.CamAlmacenados + "</td>" +
+            "<td class='acciones'>" +
+            "<button class='btn-eliminar' onclick=\"eliminarCentroUI('" + centro.ID + "')\">Eliminar</button>" +
             "</td>";
 
         tabla.appendChild(fila);
@@ -319,6 +364,50 @@ async function manejarRegistroCamion() {
     }
 }
 
+async function manejarRegistroCentro() {
+    let servicio = document.getElementById("servicioCentro").value.trim();
+    let capacidad = document.getElementById("capacidadCentro").value;
+    let contAlmacenados = document.getElementById("contAlmacenadosCentro").value;
+    let camAlmacenados = document.getElementById("camAlmacenadosCentro").value;
+    let mensaje = document.getElementById("mensajeCentro");
+
+    if (servicio === "") {
+        mensaje.textContent = "Ingrese el servicio que presta el centro.";
+        return;
+    }
+
+    try {
+        const { ok, data } = await crearCentro({
+            servicio,
+            capacidad,
+            cont_almacenados: contAlmacenados,
+            cam_almacenados: camAlmacenados
+        });
+
+        console.log("Respuesta del servidor:", data);
+
+        if (ok && !data.error) {
+            mensaje.textContent = data.mensaje || "Centro registrado correctamente.";
+
+            document.getElementById("servicioCentro").value = "";
+            document.getElementById("capacidadCentro").value = "";
+            document.getElementById("contAlmacenadosCentro").value = "";
+            document.getElementById("camAlmacenadosCentro").value = "";
+
+            cargarCentros();
+
+            setTimeout(function () {
+                cerrarModal();
+            }, 700);
+        } else {
+            mensaje.textContent = data.error || "No se pudo registrar el centro.";
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        mensaje.textContent = "No se pudo conectar con el servidor.";
+    }
+}
+
 async function eliminarUsuarioUI(ci) {
     if (!confirm("¿Está seguro de que desea eliminar este usuario?")) return;
 
@@ -367,17 +456,31 @@ async function eliminarIncidenciaUI(id) {
     }
 }
 
-// Se exponen al scope global porque el HTML las llama con atributos onclick.
+async function eliminarCentroUI(id) {
+    if (!confirm("¿Está seguro de que desea eliminar este centro?")) return;
+
+    const { data } = await eliminarCentro(id);
+
+    if (data.error) {
+        alert(data.error);
+    } else {
+        cargarCentros();
+    }
+}
+
 window.mostrarCamion = mostrarCamion;
 window.mostrarUsuario = mostrarUsuario;
+window.mostrarCentro = mostrarCentro;
 window.cerrarModal = cerrarModal;
 window.cambiarTabla = cambiarTabla;
 window.registrarUsuario = manejarRegistroUsuario;
 window.registrarCamion = manejarRegistroCamion;
+window.registrarCentro = manejarRegistroCentro;
 window.eliminarUsuarioUI = eliminarUsuarioUI;
 window.eliminarCamionUI = eliminarCamionUI;
 window.eliminarContenedorUI = eliminarContenedorUI;
 window.eliminarIncidenciaUI = eliminarIncidenciaUI;
+window.eliminarCentroUI = eliminarCentroUI;
 window.cerrarSesion = () => cerrarSesion("index.html");
 
 verificarSesion("Administrador", "index.html");
@@ -386,20 +489,7 @@ cargarContenedores();
 cargarUsuarios();
 cargarCamiones();
 cargarIncidencias();
+cargarCentros();
 cambiarTabla();
 
-const flechaScroll = document.getElementById("flechaScroll");
-
-flechaScroll.addEventListener("click", function () {
-    window.scrollBy({ top: window.innerHeight, behavior: "smooth" });
-});
-
-function actualizarFlecha() {
-    const llegoAlFinal =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 10;
-
-    flechaScroll.style.display = llegoAlFinal ? "none" : "flex";
-}
-
-window.addEventListener("scroll", actualizarFlecha);
-actualizarFlecha();
+activarFlechaScroll();

@@ -56,4 +56,22 @@ function esAdministrador($usuarioObj, $ci) {
 
     return true;
 }
+
+function esOperario($usuarioObj, $ci) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario) {
+        http_response_code(401);
+        echo json_encode(["error" => "Usuario no encontrado"]);
+        return false;
+    }
+
+    if ($usuario["rol"] !== "Operario") {
+        http_response_code(403);
+        echo json_encode(["error" => "No tiene permisos"]);
+        return false;
+    }
+
+    return true;
+}
 ?>

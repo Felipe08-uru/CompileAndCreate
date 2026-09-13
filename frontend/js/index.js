@@ -1,6 +1,8 @@
 import { iniciarSesion, registrarUsuario } from "./APIUsuarios.js";
 import { getUsuarios } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
+import { getRegistros } from "./APIRegistroCamion.js";
+import { activarFlechaScroll } from "./scrollFlecha.js";
 
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
@@ -41,6 +43,8 @@ async function verificarSesionExistente() {
         comprobacion = await getUsuarios();
     } else if (rol === "Vecino") {
         comprobacion = await getContenedores();
+    } else if (rol === "Operario") {
+        comprobacion = await getRegistros();
     } else {
         return;
     }
@@ -50,6 +54,8 @@ async function verificarSesionExistente() {
             window.location.href = "administrador.html";
         } else if (rol === "Vecino") {
             window.location.href = "vecino.html";
+        } else if (rol === "Operario") {
+            window.location.href = "operario.html";
         }
     } else {
         localStorage.removeItem("token");
@@ -172,3 +178,5 @@ window.mostrarRegistro = mostrarRegistro;
 window.cerrarModal = cerrarModal;
 window.iniciarSesion = manejarInicioSesion;
 window.registrarUsuario = manejarRegistro;
+
+activarFlechaScroll();

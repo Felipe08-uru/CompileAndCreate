@@ -2,6 +2,7 @@ import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getPoligonos } from "./APIPoligonos.js";
 import { getContenedores } from "./APIContenedores.js";
 import { crearIncidencia } from "./APIIncidencias.js";
+import { activarFlechaScroll } from "./scrollFlecha.js";
 
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
@@ -182,7 +183,6 @@ async function registrarIncidencia() {
     }
 }
 
-// Se exponen al scope global porque el HTML (y los popups de Leaflet) las llaman con atributos onclick.
 window.mostrarIncidencia = mostrarIncidencia;
 window.cerrarModal = cerrarModal;
 window.registrarIncidencia = registrarIncidencia;
@@ -191,3 +191,4 @@ window.cerrarSesion = () => cerrarSesion("index.html");
 cargarZonas();
 cargarContenedores();
 verificarSesion("Vecino", "index.html");
+activarFlechaScroll();

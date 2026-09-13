@@ -55,12 +55,18 @@
     </main>
 
     <div class="contenido">
-        <h2>Gestión de Usuarios</h2>
+        <h2>Gestión de Usuarios y Centros</h2>
         <div class="panelContenedor">
-            <div class="panel panel-completo">
+            <div class="panel">
                 <h2>Registrar Usuario</h2>
                 <p>Registre un nuevo usuario del sistema indicando sus datos personales, correo, contraseña y rol.</p>
                 <button type="button" class="btn" onclick="mostrarUsuario()">Registrar Usuario</button>
+            </div>
+
+            <div class="panel">
+                <h2>Registrar Centro de Acopio</h2>
+                <p>Registre un nuevo centro de acopio indicando el servicio que presta y su capacidad.</p>
+                <button type="button" class="btn btn-secundario" onclick="mostrarCentro()">Registrar Centro</button>
             </div>
         </div>
     </div>
@@ -77,6 +83,7 @@
             <option value="camiones">Camiones</option>
             <option value="contenedores">Contenedores</option>
             <option value="incidencias">Incidencias</option>
+            <option value="centros">Centros de acopio</option>
         </select>
 
         <div id="tablaUsuariosContainer" class="tabla-container">
@@ -158,6 +165,26 @@
             </table>
         </div>
 
+        <div id="tablaCentrosContainer" class="tabla-container">
+            <h3>Centros de acopio registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Servicio</th>
+                        <th>Capacidad</th>
+                        <th>Contenedores almacenados</th>
+                        <th>Camiones almacenados</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaCentros">
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </div>
 
@@ -180,8 +207,8 @@
 
             <label for="tipoCamion">Tipo</label>
             <select id="tipoCamion" name="tipoCamion">
-                <option value="Residuos mezclados">Residuos mezclados</option>
-                <option value="Reciclables">Reciclables</option>
+                <option value="Compactador">Compactador</option>
+                <option value="Volqueta">Volqueta</option>
             </select>
 
             <label for="estadoCamion">Estado</label>
@@ -229,6 +256,25 @@
 
             <button type="button" class="btn" onclick="registrarUsuario()">Registrar Usuario</button>
             <p id="mensajeUsuario"></p>
+        </div>
+
+        <div id="centroForm" style="display:none;">
+            <h2>Registrar Centro de Acopio</h2>
+
+            <label for="servicioCentro">Servicio</label>
+            <input type="text" id="servicioCentro" name="servicioCentro" placeholder="Ej: Clasificación">
+
+            <label for="capacidadCentro">Capacidad</label>
+            <input type="number" id="capacidadCentro" name="capacidadCentro" min="0" placeholder="Ej: 600">
+
+            <label for="contAlmacenadosCentro">Contenedores almacenados</label>
+            <input type="number" id="contAlmacenadosCentro" name="contAlmacenadosCentro" min="0" placeholder="Ej: 0">
+
+            <label for="camAlmacenadosCentro">Camiones almacenados</label>
+            <input type="number" id="camAlmacenadosCentro" name="camAlmacenadosCentro" min="0" placeholder="Ej: 0">
+
+            <button type="button" class="btn" onclick="registrarCentro()">Registrar Centro</button>
+            <p id="mensajeCentro"></p>
         </div>
     </div>
 

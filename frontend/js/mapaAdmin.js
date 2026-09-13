@@ -146,7 +146,6 @@ async function eliminarZona() {
     }
 }
 
-// Se exponen al scope global porque el HTML las llama con atributos onclick.
 window.limpiarZona = limpiarZona;
 window.guardarZona = guardarZona;
 window.mostrarModalEliminar = mostrarModalEliminar;

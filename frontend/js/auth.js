@@ -1,5 +1,6 @@
 import { getUsuarios } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
+import { getRegistros } from "./APIRegistroCamion.js";
 
 export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
     const token = localStorage.getItem("token");
@@ -10,8 +11,15 @@ export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
         return;
     }
 
-    const comprobacion =
-        rolEsperado === "Administrador" ? await getUsuarios() : await getContenedores();
+    let comprobacion;
+
+    if (rolEsperado === "Administrador") {
+        comprobacion = await getUsuarios();
+    } else if (rolEsperado === "Operario") {
+        comprobacion = await getRegistros();
+    } else {
+        comprobacion = await getContenedores();
+    }
 
     if (!comprobacion.ok) {
         cerrarSesion(redirigirA);
