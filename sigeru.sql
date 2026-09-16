@@ -1,7 +1,7 @@
-CREATE DATABASE sigeru;
+CREATE DATABASE IF NOT EXISTS sigeru;
 USE sigeru;
 
-CREATE TABLE usuario (
+CREATE TABLE IF NOT EXISTS usuario (
   ci char(8) NOT NULL,
   nombre1 varchar(50) NOT NULL,
   nombre2 varchar(50) DEFAULT NULL,
@@ -14,14 +14,14 @@ CREATE TABLE usuario (
   UNIQUE KEY correo_e (correo_e)
 );
 
-CREATE TABLE camion (
+CREATE TABLE IF NOT EXISTS camion (
   Matricula varchar(10) NOT NULL,
   Estado varchar(30) DEFAULT NULL,
   Tipo varchar(50) DEFAULT NULL,
   PRIMARY KEY (Matricula)
 );
 
-CREATE TABLE contenedor (
+CREATE TABLE IF NOT EXISTS contenedor (
   Id_Contenedor int(11) NOT NULL,
   Tipo varchar(50) DEFAULT NULL,
   Estado varchar(30) DEFAULT NULL,
@@ -41,12 +41,12 @@ CREATE TABLE incidencia (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE poligono (
+CREATE TABLE IF NOT EXISTS poligono (
   Id_Poligono int(11) NOT NULL,
   PRIMARY KEY (Id_Poligono)
 );
 
-CREATE TABLE poligono_vertices (
+CREATE TABLE IF NOT EXISTS poligono_vertices (
   Id_Poligono int(11) NOT NULL,
   Orden int(11) NOT NULL,
   Latitud decimal(10,7) DEFAULT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE poligono_vertices (
   FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
 );
 
-CREATE TABLE access_token (
+CREATE TABLE IF NOT EXISTS access_token (
   token char(64) NOT NULL,
   ci char(8) NOT NULL,
   fecha_creado datetime NOT NULL DEFAULT current_timestamp(),
@@ -65,38 +65,38 @@ CREATE TABLE access_token (
   FOREIGN KEY (ci) REFERENCES usuario (ci)
 );
 
-CREATE TABLE administrador (
+CREATE TABLE IF NOT EXISTS administrador (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
   FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE cuadrilla (
+CREATE TABLE IF NOT EXISTS cuadrilla (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
   FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE operario (
+CREATE TABLE IF NOT EXISTS operario (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
   FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE vecino (
+CREATE TABLE IF NOT EXISTS vecino (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
   FOREIGN KEY (CI) REFERENCES usuario (ci)
 );
 
-CREATE TABLE vecino_tel (
+CREATE TABLE IF NOT EXISTS vecino_tel (
   CI char(8) NOT NULL,
   Tel varchar(20) NOT NULL,
   PRIMARY KEY (CI, Tel),
   FOREIGN KEY (CI) REFERENCES vecino (CI)
 );
 
-CREATE TABLE centro (
+CREATE TABLE IF NOT EXISTS centro (
   ID int(11) NOT NULL,
   Servicio varchar(100) DEFAULT NULL,
   ContAlmacenados int(11) DEFAULT NULL,
@@ -105,13 +105,13 @@ CREATE TABLE centro (
   PRIMARY KEY (ID)
 );
 
-CREATE TABLE centrodeacopio (
+CREATE TABLE IF NOT EXISTS centrodeacopio (
   ID int(11) NOT NULL,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE maquinaria (
+CREATE TABLE IF NOT EXISTS maquinaria (
   Id_Maquinaria int(11) NOT NULL AUTO_INCREMENT,
   ID int(11) NOT NULL,
   Nombre varchar(100) NOT NULL,
@@ -122,18 +122,18 @@ CREATE TABLE maquinaria (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE vertedero (
+CREATE TABLE IF NOT EXISTS vertedero (
   ID int(11) NOT NULL,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE metodo (
+CREATE TABLE IF NOT EXISTS metodo (
   Id_Metodo int(11) NOT NULL,
   PRIMARY KEY (Id_Metodo)
 );
 
-CREATE TABLE ruta (
+CREATE TABLE IF NOT EXISTS ruta (
   Id_Contenedor int(11) NOT NULL,
   Id_Poligono int(11) DEFAULT NULL,
   Trayecto text DEFAULT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE ruta (
   FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
 );
 
-CREATE TABLE al (
+CREATE TABLE IF NOT EXISTS al (
   Id_Incidencia int(11) NOT NULL,
   Id_Contenedor int(11) NOT NULL,
   PRIMARY KEY (Id_Incidencia, Id_Contenedor),
@@ -153,7 +153,7 @@ CREATE TABLE al (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE circula (
+CREATE TABLE IF NOT EXISTS circula (
   CI char(8) NOT NULL,
   Id_Contenedor int(11) NOT NULL,
   PRIMARY KEY (CI, Id_Contenedor),
@@ -162,7 +162,7 @@ CREATE TABLE circula (
   FOREIGN KEY (Id_Contenedor) REFERENCES ruta (Id_Contenedor)
 );
 
-CREATE TABLE recoge (
+CREATE TABLE IF NOT EXISTS recoge (
   Id_Contenedor int(11) NOT NULL,
   Matricula varchar(10) NOT NULL,
   PRIMARY KEY (Id_Contenedor, Matricula),
@@ -171,7 +171,7 @@ CREATE TABLE recoge (
   FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
 );
 
-CREATE TABLE reporta (
+CREATE TABLE IF NOT EXISTS reporta (
   CI char(8) NOT NULL,
   Id_Incidencia int(11) NOT NULL,
   PRIMARY KEY (CI, Id_Incidencia),
@@ -180,7 +180,7 @@ CREATE TABLE reporta (
   FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia)
 );
 
-CREATE TABLE reporta_centro (
+CREATE TABLE IF NOT EXISTS reporta_centro (
   CI char(8) NOT NULL,
   ID int(11) NOT NULL,
   Cant_Residuos int(11) DEFAULT NULL,
@@ -190,7 +190,7 @@ CREATE TABLE reporta_centro (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE termina (
+CREATE TABLE IF NOT EXISTS termina (
   ID int(11) NOT NULL,
   Id_Contenedor int(11) NOT NULL,
   PRIMARY KEY (ID, Id_Contenedor),
@@ -199,7 +199,7 @@ CREATE TABLE termina (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE tiene (
+CREATE TABLE IF NOT EXISTS tiene (
   Id_Metodo int(11) NOT NULL,
   ID int(11) NOT NULL,
   PRIMARY KEY (Id_Metodo, ID),
@@ -208,7 +208,7 @@ CREATE TABLE tiene (
   FOREIGN KEY (ID) REFERENCES centrodeacopio (ID)
 );
 
-CREATE TABLE usa (
+CREATE TABLE IF NOT EXISTS usa (
   CI char(8) NOT NULL,
   Matricula varchar(10) NOT NULL,
   PRIMARY KEY (CI, Matricula),
@@ -217,7 +217,7 @@ CREATE TABLE usa (
   FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
 );
 
-CREATE TABLE registro_camion (
+CREATE TABLE IF NOT EXISTS registro_camion (
   Id_Registro int(11) NOT NULL AUTO_INCREMENT,
   Matricula varchar(10) NOT NULL,
   CI char(8) NOT NULL,
