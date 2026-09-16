@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS contenedor (
   PRIMARY KEY (Id_Contenedor)
 );
 
-CREATE TABLE incidencia (
+CREATE TABLE IF NOT EXISTS incidencia (
   Id_Incidencia int(11) NOT NULL AUTO_INCREMENT,
   Tipo varchar(50) DEFAULT NULL,
   Estado varchar(30) DEFAULT NULL,
