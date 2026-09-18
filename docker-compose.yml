@@ -1,19 +1,19 @@
-version: "3.9"
+
  
 services:
   web:
     build: .
     ports:
-      - "6967:80"
+      - "8083:80"
     depends_on:
       - db
     networks:
       - red_logs
  
   db:
-    image: mysql:8.4
+    image: mysql:8.0.34
     ports:
-    - "3307:3306"
+    - "3303:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 
       MYSQL_DATABASE: sigeru
