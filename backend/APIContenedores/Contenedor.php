@@ -3,7 +3,7 @@
 class Contenedor{
 
     private $conn;
-    private $table = "Contenedor";
+    private $table = "contenedor";
 
     public function __construct($db){
         $this->conn = $db;

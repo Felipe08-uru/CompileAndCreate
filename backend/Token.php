@@ -9,7 +9,7 @@ class Token {
         $token = bin2hex(random_bytes(32));
         $fechaCreado = date("Y-m-d H:i:s");
         $fechaVencimiento = date("Y-m-d H:i:s", strtotime("+12 hours"));
-        $sql = "INSERT INTO Access_Token
+        $sql = "INSERT INTO access_token
                 (token, CI, fecha_creado, fecha_vencimiento)
                 VALUES (?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
@@ -28,7 +28,7 @@ class Token {
 
     public function validarToken($token) {
         $sql = "SELECT CI
-                FROM Access_Token
+                FROM access_token
                 WHERE token = ?
                 AND fecha_vencimiento > NOW()";
 
@@ -43,7 +43,7 @@ class Token {
     }
 
     public function eliminarToken($token) {
-        $sql = "DELETE FROM Access_Token
+        $sql = "DELETE FROM access_token
                 WHERE token = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("s", $token);

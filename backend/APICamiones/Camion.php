@@ -3,14 +3,14 @@
 class Camion{
 
     private $conn;
-    private $table = "Camion";
+    private $table = "camion";
 
     public function __construct($db){
         $this->conn = $db;
     }
 
     public function getAllCamiones(){
-        $sql = "SELECT Matricula, Tipo, Estado FROM $this->table";
+        $sql = "SELECT matricula, tipo, estado FROM $this->table";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -33,7 +33,7 @@ class Camion{
     }
 
     public function existeCamion($matricula){
-        $sql = "SELECT Matricula FROM $this->table WHERE Matricula = ?";
+        $sql = "SELECT matricula FROM $this->table WHERE Matricula = ?";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("s", $matricula);
@@ -45,15 +45,15 @@ class Camion{
     }
 
     public function addCamion($data){
-        if(!isset($data["matricula"]) || trim($data["matricula"]) === ""){
+        if(!isset($data["Matricula"]) || trim($data["Matricula"]) === ""){
             return json_encode([
                 "error" => "Debe indicar la matrícula del camión"
             ]);
         }
 
-        $matricula = trim($data["matricula"]);
-        $tipo = isset($data["tipo"]) ? $data["tipo"] : "Residuos mezclados";
-        $estado = isset($data["estado"]) ? $data["estado"] : "Disponible";
+        $matricula = trim($data["Matricula"]);
+        $tipo = isset($data["Tipo"]) ? $data["Tipo"] : "Residuos mezclados";
+        $estado = isset($data["Estado"]) ? $data["Estado"] : "Disponible";
 
         if($this->existeCamion($matricula)){
             return json_encode([
@@ -84,7 +84,7 @@ class Camion{
             ]);
         }
 
-        $matricula = $data["matricula"];
+        $matricula = $data["Matricula"];
 
         $sql = "DELETE FROM $this->table WHERE Matricula = ?";
 

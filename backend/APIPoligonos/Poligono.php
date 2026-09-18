@@ -12,7 +12,7 @@ class Poligono{
 
         $poligonos = [];
 
-        $sql = "SELECT * FROM Poligono";
+        $sql = "SELECT * FROM poligono";
         $result = mysqli_query($this->conn, $sql);
 
         while($poligono = mysqli_fetch_assoc($result)){
@@ -21,7 +21,7 @@ class Poligono{
 
             $sqlVertices = "
                 SELECT Orden, Latitud, Longitud
-                FROM Poligono_Vertices
+                FROM poligono_vertices
                 WHERE Id_Poligono = $id
                 ORDER BY Orden
             ";
@@ -66,7 +66,7 @@ class Poligono{
 
         $sqlId = "
             SELECT COALESCE(MAX(Id_Poligono), 0) + 1 AS nuevo_id
-            FROM Poligono
+            FROM poligono
         ";
 
         $resultId = mysqli_query($this->conn, $sqlId);
@@ -78,7 +78,7 @@ class Poligono{
 
         try{
             $sql = "
-                INSERT INTO Poligono (Id_Poligono)
+                INSERT INTO poligono (Id_Poligono)
                 VALUES ($id)
             ";
 
@@ -94,7 +94,7 @@ class Poligono{
                 $longitud = floatval($vertice["longitud"]);
 
                 $sqlVertice = "
-                    INSERT INTO Poligono_Vertices
+                    INSERT INTO poligono_vertices
                     (
                         Id_Poligono,
                         Orden,
@@ -143,7 +143,7 @@ class Poligono{
         try{
 
             $sqlVertices = "
-                DELETE FROM Poligono_Vertices
+                DELETE FROM poligono_vertices
                 WHERE Id_Poligono = $id
             ";
 
@@ -152,7 +152,7 @@ class Poligono{
             }
 
             $sqlPoligono = "
-                DELETE FROM Poligono
+                DELETE FROM poligono
                 WHERE Id_Poligono = $id
             ";
 

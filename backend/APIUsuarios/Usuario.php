@@ -1,7 +1,7 @@
 <?php
 class Usuario {
     private $conn;
-    private $table = "Usuario";
+    private $table = "usuario";
 
     public function __construct($conn) {
         $this->conn = $conn;
@@ -227,7 +227,7 @@ class Usuario {
         $contrasena = $data["contrasena"];
 
         $sql = "SELECT *
-                FROM Usuario
+                FROM usuario
                 WHERE correo_e = ?";
 
         $stmt = $this->conn->prepare($sql);

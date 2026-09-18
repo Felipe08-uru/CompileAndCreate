@@ -3,7 +3,7 @@
 class Maquinaria {
 
     private $conn;
-    private $table = "Maquinaria";
+    private $table = "maquinaria";
 
     public function __construct($db){
         $this->conn = $db;

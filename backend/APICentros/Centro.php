@@ -3,7 +3,7 @@
 class Centro {
 
     private $conn;
-    private $table = "Centro";
+    private $table = "centro";
 
     public function __construct($db){
         $this->conn = $db;
@@ -12,7 +12,7 @@ class Centro {
     public function getAllCentros(){
         $sql = "SELECT c.ID, c.Servicio, c.Capacidad, c.ContAlmacenados, c.CamAlmacenados
                 FROM $this->table c
-                INNER JOIN CentroDeAcopio cda ON cda.ID = c.ID
+                INNER JOIN centrodeacopio cda ON cda.ID = c.ID
                 ORDER BY c.ID";
 
         $stmt = $this->conn->prepare($sql);
@@ -56,7 +56,7 @@ class Centro {
             ]);
         }
 
-        $sqlSubtipo = "INSERT INTO CentroDeAcopio (ID) VALUES (?)";
+        $sqlSubtipo = "INSERT INTO centrodeacopio (ID) VALUES (?)";
         $stmtSubtipo = $this->conn->prepare($sqlSubtipo);
         $stmtSubtipo->bind_param("i", $id);
         $stmtSubtipo->execute();
@@ -69,7 +69,7 @@ class Centro {
 
     public function deleteCentro($id){
         try{
-            $sqlSubtipo = "DELETE FROM CentroDeAcopio WHERE ID = ?";
+            $sqlSubtipo = "DELETE FROM centrodeacopio WHERE ID = ?";
             $stmtSubtipo = $this->conn->prepare($sqlSubtipo);
             $stmtSubtipo->bind_param("i", $id);
             $stmtSubtipo->execute();

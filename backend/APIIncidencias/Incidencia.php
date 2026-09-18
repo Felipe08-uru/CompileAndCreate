@@ -7,7 +7,7 @@ class Incidencia{
     }
 
     public function getAllIncidencias(){
-        $sql="SELECT * FROM Incidencia";
+        $sql="SELECT * FROM incidencia";
         $resultado=$this->conn->query($sql);
         $incidencias=[];
 
@@ -19,7 +19,7 @@ class Incidencia{
     }
 
     public function getIncidenciaById($id){
-        $stmt=$this->conn->prepare("SELECT * FROM Incidencia WHERE Id_Incidencia=?");
+        $stmt=$this->conn->prepare("SELECT * FROM incidencia WHERE Id_Incidencia=?");
         $stmt->bind_param("i",$id);
         $stmt->execute();
         $resultado=$stmt->get_result();
@@ -32,7 +32,7 @@ class Incidencia{
     }
 
     public function addIncidencia($data){
-        $stmt=$this->conn->prepare("INSERT INTO Incidencia(Tipo,Estado,Id_Contenedor,Foto) VALUES(?,?,?,?)");
+        $stmt=$this->conn->prepare("INSERT INTO incidencia(Tipo,Estado,Id_Contenedor,Foto) VALUES(?,?,?,?)");
         $stmt->bind_param(
             "ssis",
             $data["Tipo"],

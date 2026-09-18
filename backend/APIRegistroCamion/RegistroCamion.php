@@ -3,7 +3,7 @@
 class RegistroCamion {
 
     private $conn;
-    private $table = "Registro_Camion";
+    private $table = "registro_camion";
 
     public function __construct($db){
         $this->conn = $db;
