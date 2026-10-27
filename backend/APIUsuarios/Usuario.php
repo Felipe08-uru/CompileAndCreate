@@ -99,7 +99,7 @@ class Usuario {
         try {
             $this->conn->begin_transaction();
 
-            $sql = "INSERT INTO Usuario
+            $sql = "INSERT INTO usuario
                     (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -121,14 +121,14 @@ class Usuario {
 
             if ($rol === "Vecino") {
 
-                $sqlVecino = "INSERT INTO Vecino (CI) VALUES (?)";
+                $sqlVecino = "INSERT INTO vecino (CI) VALUES (?)";
 
                 $stmtVecino = $this->conn->prepare($sqlVecino);
                 $stmtVecino->bind_param("s", $ci);
                 $stmtVecino->execute();
 
                 if ($telefono !== null) {
-                    $sqlTelefono = "INSERT INTO Vecino_Tel (CI, Tel) VALUES (?, ?)";
+                    $sqlTelefono = "INSERT INTO vecino_tel (CI, Tel) VALUES (?, ?)";
 
                     $stmtTelefono = $this->conn->prepare($sqlTelefono);
                     $stmtTelefono->bind_param("ss", $ci, $telefono);
@@ -138,7 +138,7 @@ class Usuario {
 
             elseif ($rol === "Operario") {
 
-                $sqlOperario = "INSERT INTO Operario (CI) VALUES (?)";
+                $sqlOperario = "INSERT INTO operario (CI) VALUES (?)";
 
                 $stmtOperario = $this->conn->prepare($sqlOperario);
                 $stmtOperario->bind_param("s", $ci);
@@ -147,7 +147,7 @@ class Usuario {
 
             elseif ($rol === "Administrador") {
 
-                $sqlAdministrador = "INSERT INTO Administrador (CI) VALUES (?)";
+                $sqlAdministrador = "INSERT INTO administrador (CI) VALUES (?)";
 
                 $stmtAdministrador = $this->conn->prepare($sqlAdministrador);
                 $stmtAdministrador->bind_param("s", $ci);
@@ -156,7 +156,7 @@ class Usuario {
 
             elseif ($rol === "Cuadrilla") {
 
-                $sqlCuadrilla = "INSERT INTO Cuadrilla (CI) VALUES (?)";
+                $sqlCuadrilla = "INSERT INTO cuadrilla (CI) VALUES (?)";
 
                 $stmtCuadrilla = $this->conn->prepare($sqlCuadrilla);
                 $stmtCuadrilla->bind_param("s", $ci);
@@ -194,7 +194,7 @@ class Usuario {
         $correo_e = $data["correo_e"];
         $rol = $data["rol"];
 
-        $sql = "UPDATE Usuario SET
+        $sql = "UPDATE usuario SET
                 nombre1='$nombre1',
                 nombre2='$nombre2',
                 apellido1='$apellido1',
@@ -279,7 +279,7 @@ class Usuario {
         $ci = $data["ci"];
 
         try {
-            $sql = "DELETE FROM Usuario WHERE ci = ?";
+            $sql = "DELETE FROM usuario WHERE ci = ?";
 
             $stmt = $this->conn->prepare($sql);
             $stmt->bind_param("s", $ci);

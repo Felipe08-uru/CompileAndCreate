@@ -1,3 +1,4 @@
+import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { getPoligonos } from "./APIPoligonos.js";
 import { getContenedores, crearContenedor, eliminarContenedor } from "./APIContenedores.js";
 
@@ -60,7 +61,10 @@ async function guardarContenedor() {
     } else {
         limpiarContenedor();
         document.getElementById("mensajeMapa").textContent =
-            "Contenedor " + data.id_contenedor + " guardado correctamente.";
+            "Contenedor " + data.id_contenedor + " guardado correctamente. " +
+            (data.id_poligono !== null && data.id_poligono !== undefined
+                ? "Pertenece a la zona " + data.id_poligono + "."
+                : "No está dentro de ninguna zona: se relacionará con la primera zona que se cree sobre él.");
         cargarContenedores();
     }
 }
@@ -76,7 +80,7 @@ async function cargarZonas() {
         });
 
         if (vertices.length >= 3) {
-            let poligonoZona = L.polygon(vertices).addTo(mapa);
+            let poligonoZona = L.polygon(vertices, ESTILO_ZONA).addTo(mapa);
             let centro = poligonoZona.getBounds().getCenter();
 
             L.marker(centro, {
@@ -110,6 +114,9 @@ async function cargarContenedores() {
                         "</strong><br>" +
                         "Tipo: " +
                         contenedor.Tipo +
+                        "<br>" +
+                        "Zona: " +
+                        (contenedor.Id_Poligono !== null ? contenedor.Id_Poligono : "sin zona") +
                         "<br>" +
                         "Estado: " +
                         contenedor.Estado

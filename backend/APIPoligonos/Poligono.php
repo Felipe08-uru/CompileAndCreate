@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../Geo/Geometria.php";
 
 class Poligono{
 
@@ -8,47 +9,142 @@ class Poligono{
         $this->conn = $db;
     }
 
+    /**
+     * Devuelve todos los vértices agrupados por polígono: [id => [vertices...]].
+     */
+    private function cargarVertices(){
+        $sql = "SELECT Id_Poligono, Orden, Latitud, Longitud
+                FROM poligono_vertices
+                ORDER BY Id_Poligono, Orden";
+
+        $result = $this->conn->query($sql);
+
+        $mapa = [];
+
+        while($fila = $result->fetch_assoc()){
+            $mapa[intval($fila["Id_Poligono"])][] = [
+                "orden" => intval($fila["Orden"]),
+                "latitud" => floatval($fila["Latitud"]),
+                "longitud" => floatval($fila["Longitud"])
+            ];
+        }
+
+        return $mapa;
+    }
+
     public function getAllPoligonos(){
+
+        $vertices = $this->cargarVertices();
+
+        $sql = "SELECT p.Id_Poligono, COUNT(c.Id_Contenedor) AS total_contenedores
+                FROM poligono p
+                LEFT JOIN contenedor c ON c.Id_Poligono = p.Id_Poligono
+                GROUP BY p.Id_Poligono
+                ORDER BY p.Id_Poligono";
+
+        $result = $this->conn->query($sql);
 
         $poligonos = [];
 
-        $sql = "SELECT * FROM poligono";
-        $result = mysqli_query($this->conn, $sql);
+        while($poligono = $result->fetch_assoc()){
 
-        while($poligono = mysqli_fetch_assoc($result)){
-
-            $id = $poligono["Id_Poligono"];
-
-            $sqlVertices = "
-                SELECT Orden, Latitud, Longitud
-                FROM poligono_vertices
-                WHERE Id_Poligono = $id
-                ORDER BY Orden
-            ";
-
-            $resultVertices = mysqli_query(
-                $this->conn,
-                $sqlVertices
-            );
-
-            $vertices = [];
-
-            while($vertice = mysqli_fetch_assoc($resultVertices)){
-
-                $vertices[] = [
-                    "orden" => intval($vertice["Orden"]),
-                    "latitud" => floatval($vertice["Latitud"]),
-                    "longitud" => floatval($vertice["Longitud"])
-                ];
-            }
+            $id = intval($poligono["Id_Poligono"]);
 
             $poligonos[] = [
-                "id_poligono" => intval($id),
-                "vertices" => $vertices
+                "id_poligono" => $id,
+                "total_contenedores" => intval($poligono["total_contenedores"]),
+                "vertices" => isset($vertices[$id]) ? $vertices[$id] : []
             ];
         }
 
         return $poligonos;
+    }
+
+    public function getPoligonoPorId($id){
+
+        $id = intval($id);
+        $vertices = $this->cargarVertices();
+
+        if(!isset($vertices[$id])){
+            return null;
+        }
+
+        return [
+            "id_poligono" => $id,
+            "vertices" => $vertices[$id]
+        ];
+    }
+
+    /**
+     * Busca la zona que contiene un punto. Si lo contienen varias gana la de
+     * menor ID. Devuelve null si el punto no está dentro de ninguna zona.
+     */
+    public function buscarPoligonoQueContiene($latitud, $longitud){
+
+        $vertices = $this->cargarVertices();
+
+        foreach($vertices as $idPoligono => $lista){
+            if(Geometria::puntoEnPoligono($latitud, $longitud, $lista)){
+                return intval($idPoligono);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Relaciona con una zona a todos los contenedores que todavía no tienen
+     * una y que caen dentro de algún polígono. Devuelve cuántos se relacionaron.
+     */
+    public function asignarContenedoresSinZona(){
+
+        $vertices = $this->cargarVertices();
+
+        if(count($vertices) === 0){
+            return 0;
+        }
+
+        $sql = "SELECT Id_Contenedor, Latitud, Longitud
+                FROM contenedor
+                WHERE Id_Poligono IS NULL
+                AND Latitud IS NOT NULL
+                AND Longitud IS NOT NULL";
+
+        $result = $this->conn->query($sql);
+        $pendientes = $result->fetch_all(MYSQLI_ASSOC);
+
+        if(count($pendientes) === 0){
+            return 0;
+        }
+
+        $stmt = $this->conn->prepare(
+            "UPDATE contenedor SET Id_Poligono = ? WHERE Id_Contenedor = ?"
+        );
+
+        $asignados = 0;
+
+        foreach($pendientes as $contenedor){
+
+            $latitud = floatval($contenedor["Latitud"]);
+            $longitud = floatval($contenedor["Longitud"]);
+
+            foreach($vertices as $idPoligono => $lista){
+
+                if(Geometria::puntoEnPoligono($latitud, $longitud, $lista)){
+
+                    $idZona = intval($idPoligono);
+                    $idContenedor = intval($contenedor["Id_Contenedor"]);
+
+                    $stmt->bind_param("ii", $idZona, $idContenedor);
+                    $stmt->execute();
+
+                    $asignados++;
+                    break;
+                }
+            }
+        }
+
+        return $asignados;
     }
 
     public function addPoligono($data){
@@ -64,27 +160,38 @@ class Poligono{
             ]);
         }
 
-        $sqlId = "
-            SELECT COALESCE(MAX(Id_Poligono), 0) + 1 AS nuevo_id
-            FROM poligono
-        ";
+        foreach($data["vertices"] as $vertice){
+            if(
+                !is_array($vertice) ||
+                !isset($vertice["latitud"]) ||
+                !isset($vertice["longitud"]) ||
+                !is_numeric($vertice["latitud"]) ||
+                !is_numeric($vertice["longitud"])
+            ){
+                return json_encode([
+                    "error" => "Los vértices del polígono son inválidos"
+                ]);
+            }
+        }
 
-        $resultId = mysqli_query($this->conn, $sqlId);
-        $fila = mysqli_fetch_assoc($resultId);
+        $sqlId = "SELECT COALESCE(MAX(Id_Poligono), 0) + 1 AS nuevo_id FROM poligono";
+
+        $resultId = $this->conn->query($sqlId);
+        $fila = $resultId->fetch_assoc();
 
         $id = intval($fila["nuevo_id"]);
 
-        mysqli_begin_transaction($this->conn);
+        $this->conn->begin_transaction();
 
         try{
-            $sql = "
-                INSERT INTO poligono (Id_Poligono)
-                VALUES ($id)
-            ";
+            $stmt = $this->conn->prepare("INSERT INTO poligono (Id_Poligono) VALUES (?)");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
 
-            if(!mysqli_query($this->conn, $sql)){
-                throw new Exception(mysqli_error($this->conn));
-            }
+            $stmtVertice = $this->conn->prepare(
+                "INSERT INTO poligono_vertices (Id_Poligono, Orden, Latitud, Longitud)
+                 VALUES (?, ?, ?, ?)"
+            );
 
             $orden = 1;
 
@@ -93,78 +200,77 @@ class Poligono{
                 $latitud = floatval($vertice["latitud"]);
                 $longitud = floatval($vertice["longitud"]);
 
-                $sqlVertice = "
-                    INSERT INTO poligono_vertices
-                    (
-                        Id_Poligono,
-                        Orden,
-                        Latitud,
-                        Longitud
-                    )
-                    VALUES
-                    (
-                        $id,
-                        $orden,
-                        $latitud,
-                        $longitud
-                    )
-                ";
-
-                if(!mysqli_query($this->conn, $sqlVertice)){
-                    throw new Exception(mysqli_error($this->conn));
-                }
+                $stmtVertice->bind_param("iidd", $id, $orden, $latitud, $longitud);
+                $stmtVertice->execute();
 
                 $orden++;
             }
 
+            // Los contenedores que estaban sin zona y quedan dentro del nuevo
+            // polígono pasan a pertenecer a él.
+            $asignados = $this->asignarContenedoresSinZona();
 
-            mysqli_commit($this->conn);
+            $this->conn->commit();
 
             return json_encode([
                 "mensaje" => "Zona guardada correctamente",
-                "id_poligono" => $id
+                "id_poligono" => $id,
+                "contenedores_asignados" => $asignados
             ]);
 
         }catch(Exception $e){
 
-            mysqli_rollback($this->conn);
+            $this->conn->rollback();
 
             return json_encode([
                 "error" => $e->getMessage()
             ]);
         }
     }
+
     public function deletePoligono($id){
 
         $id = intval($id);
 
-        mysqli_begin_transaction($this->conn);
+        $this->conn->begin_transaction();
 
         try{
 
-            $sqlVertices = "
-                DELETE FROM poligono_vertices
-                WHERE Id_Poligono = $id
-            ";
+            $stmtExiste = $this->conn->prepare("SELECT Id_Poligono FROM poligono WHERE Id_Poligono = ?");
+            $stmtExiste->bind_param("i", $id);
+            $stmtExiste->execute();
 
-            if(!mysqli_query($this->conn, $sqlVertices)){
-                throw new Exception(mysqli_error($this->conn));
-            }
-
-            $sqlPoligono = "
-                DELETE FROM poligono
-                WHERE Id_Poligono = $id
-            ";
-
-            if(!mysqli_query($this->conn, $sqlPoligono)){
-                throw new Exception(mysqli_error($this->conn));
-            }
-
-            if(mysqli_affected_rows($this->conn) === 0){
+            if($stmtExiste->get_result()->num_rows === 0){
                 throw new Exception("No existe una zona con ese ID");
             }
 
-            mysqli_commit($this->conn);
+            // Los contenedores quedan sin zona.
+            $stmt = $this->conn->prepare("UPDATE contenedor SET Id_Poligono = NULL WHERE Id_Poligono = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            // Los camiones dejan de estar relacionados con la zona y se
+            // eliminan las rutas que le pertenecían (con sus paradas).
+            $stmt = $this->conn->prepare("DELETE FROM recoge WHERE Id_Poligono = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            $stmt = $this->conn->prepare("DELETE FROM ruta WHERE Id_Poligono = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            $stmt = $this->conn->prepare("DELETE FROM poligono_vertices WHERE Id_Poligono = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            $stmt = $this->conn->prepare("DELETE FROM poligono WHERE Id_Poligono = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            // Si otra zona también abarca a esos contenedores, pasan a ella.
+            $this->asignarContenedoresSinZona();
+
+            $this->conn->commit();
 
             return json_encode([
                 "mensaje" => "Zona eliminada correctamente"
@@ -172,7 +278,7 @@ class Poligono{
 
         }catch(Exception $e){
 
-            mysqli_rollback($this->conn);
+            $this->conn->rollback();
 
             return json_encode([
                 "error" => $e->getMessage()

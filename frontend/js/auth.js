@@ -1,6 +1,7 @@
 import { getUsuarios } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
 import { getRegistros } from "./APIRegistroCamion.js";
+import { getMiAsignacion } from "./APIAsignaciones.js";
 
 export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
     const token = localStorage.getItem("token");
@@ -17,6 +18,8 @@ export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
         comprobacion = await getUsuarios();
     } else if (rolEsperado === "Operario") {
         comprobacion = await getRegistros();
+    } else if (rolEsperado === "Cuadrilla") {
+        comprobacion = await getMiAsignacion();
     } else {
         comprobacion = await getContenedores();
     }

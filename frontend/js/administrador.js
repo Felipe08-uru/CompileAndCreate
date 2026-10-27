@@ -1,3 +1,4 @@
+import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getUsuarios, crearUsuario, eliminarUsuario } from "./APIUsuarios.js";
 import { getCamiones, crearCamion, eliminarCamion } from "./APICamiones.js";
@@ -5,66 +6,105 @@ import { getContenedores, eliminarContenedor } from "./APIContenedores.js";
 import { getIncidencias, eliminarIncidencia } from "./APIIncidencias.js";
 import { getPoligonos } from "./APIPoligonos.js";
 import { getCentros, crearCentro, eliminarCentro } from "./APICentros.js";
+import { getAsignaciones, asignarCamionACuadrilla } from "./APIAsignaciones.js";
+import { getRutas, crearRuta, asignarCamionARuta, eliminarRuta } from "./APIRutas.js";
 import { activarFlechaScroll } from "./scrollFlecha.js";
 
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
 
-function mostrarCamion() {
+const FORMULARIOS = ["camionForm", "usuarioForm", "centroForm", "cuadrillaCamionForm", "rutaForm", "rutaCamionForm"];
+
+function abrirFormulario(idFormulario) {
     modal.style.display = "block";
     overlay.style.display = "block";
-    document.getElementById("camionForm").style.display = "block";
-    document.getElementById("usuarioForm").style.display = "none";
-    document.getElementById("centroForm").style.display = "none";
+
+    FORMULARIOS.forEach(function (id) {
+        document.getElementById(id).style.display = id === idFormulario ? "block" : "none";
+    });
+}
+
+function mostrarCamion() {
+    abrirFormulario("camionForm");
     document.getElementById("mensajeCamion").textContent = "";
 }
 
 function mostrarUsuario() {
-    modal.style.display = "block";
-    overlay.style.display = "block";
-    document.getElementById("camionForm").style.display = "none";
-    document.getElementById("usuarioForm").style.display = "block";
-    document.getElementById("centroForm").style.display = "none";
+    abrirFormulario("usuarioForm");
     document.getElementById("mensajeUsuario").textContent = "";
 }
 
 function mostrarCentro() {
-    modal.style.display = "block";
-    overlay.style.display = "block";
-    document.getElementById("camionForm").style.display = "none";
-    document.getElementById("usuarioForm").style.display = "none";
-    document.getElementById("centroForm").style.display = "block";
+    abrirFormulario("centroForm");
     document.getElementById("mensajeCentro").textContent = "";
 }
 
 function cerrarModal() {
     modal.style.display = "none";
     overlay.style.display = "none";
-    document.getElementById("camionForm").style.display = "none";
-    document.getElementById("usuarioForm").style.display = "none";
-    document.getElementById("centroForm").style.display = "none";
+
+    FORMULARIOS.forEach(function (id) {
+        document.getElementById(id).style.display = "none";
+    });
 }
+
+const TABLAS = {
+    usuarios: "tablaUsuariosContainer",
+    camiones: "tablaCamionesContainer",
+    contenedores: "tablaContenedoresContainer",
+    incidencias: "tablaIncidenciasContainer",
+    centros: "tablaCentrosContainer",
+    asignaciones: "tablaAsignacionesContainer",
+    rutas: "tablaRutasContainer"
+};
 
 function cambiarTabla() {
-    let seleccion = document.getElementById("selectorTabla").value;
-    let usuarios = document.getElementById("tablaUsuariosContainer");
-    let camiones = document.getElementById("tablaCamionesContainer");
-    let contenedores = document.getElementById("tablaContenedoresContainer");
-    let incidencias = document.getElementById("tablaIncidenciasContainer");
-    let centros = document.getElementById("tablaCentrosContainer");
+    const seleccion = document.getElementById("selectorTabla").value;
 
-    usuarios.classList.remove("activa");
-    camiones.classList.remove("activa");
-    contenedores.classList.remove("activa");
-    incidencias.classList.remove("activa");
-    centros.classList.remove("activa");
-
-    if (seleccion === "usuarios") usuarios.classList.add("activa");
-    if (seleccion === "camiones") camiones.classList.add("activa");
-    if (seleccion === "contenedores") contenedores.classList.add("activa");
-    if (seleccion === "incidencias") incidencias.classList.add("activa");
-    if (seleccion === "centros") centros.classList.add("activa");
+    Object.keys(TABLAS).forEach(function (clave) {
+        const contenedor = document.getElementById(TABLAS[clave]);
+        contenedor.classList.toggle("activa", clave === seleccion);
+    });
 }
+
+function irATabla(clave) {
+    const selector = document.getElementById("selectorTabla");
+    selector.value = clave;
+    cambiarTabla();
+    selector.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function setResumen(id, valor) {
+    const elemento = document.getElementById(id);
+    if (elemento) elemento.textContent = valor;
+}
+
+function esc(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto === null || texto === undefined ? "" : String(texto);
+    return div.innerHTML;
+}
+
+function etiquetaEstado(estado) {
+    const clase = "estado-" + String(estado).toLowerCase().replace(/\s+/g, "-");
+    return "<span class='etiqueta-estado " + clase + "'>" + esc(estado) + "</span>";
+}
+
+function formatearFecha(valor) {
+    if (!valor) return "-";
+
+    const fecha = new Date(String(valor).replace(" ", "T"));
+
+    if (isNaN(fecha.getTime())) return valor;
+
+    return fecha.toLocaleString("es-UY", { dateStyle: "short", timeStyle: "short" });
+}
+
+// Datos que se reutilizan en el formulario de asignación.
+let zonasCache = [];
+let cuadrillasCache = [];
+let asignacionesCache = [];
+let rutasCache = [];
 
 let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
 
@@ -98,13 +138,15 @@ async function cargarZonas() {
         return;
     }
 
+    zonasCache = data;
+
     data.forEach(function (zona) {
         let vertices = zona.vertices.map(function (v) {
             return [v.latitud, v.longitud];
         });
 
         if (vertices.length >= 3) {
-            L.polygon(vertices).addTo(mapa);
+            L.polygon(vertices, ESTILO_ZONA).addTo(mapa);
 
             let centro = calcularCentro(vertices);
 
@@ -129,6 +171,8 @@ async function cargarContenedores() {
         return;
     }
 
+    setResumen("resContenedores", data.length);
+
     let tabla = document.getElementById("tablaContenedores");
     tabla.innerHTML = "";
 
@@ -146,6 +190,9 @@ async function cargarContenedores() {
                         "Tipo: " +
                         contenedor.Tipo +
                         "<br>" +
+                        "Zona: " +
+                        (contenedor.Id_Poligono !== null ? contenedor.Id_Poligono : "sin zona") +
+                        "<br>" +
                         "Estado: " +
                         contenedor.Estado
                 );
@@ -157,6 +204,7 @@ async function cargarContenedores() {
             "<td>" + contenedor.Id_Contenedor + "</td>" +
             "<td>" + contenedor.Latitud + ", " + contenedor.Longitud + "</td>" +
             "<td>" + contenedor.Tipo + "</td>" +
+            "<td>" + (contenedor.Id_Poligono !== null ? "Zona " + contenedor.Id_Poligono : "Sin zona") + "</td>" +
             "<td>" + contenedor.Estado + "</td>" +
             "<td class='acciones'>" +
             "<button class='btn-eliminar' onclick=\"eliminarContenedorUI('" + contenedor.Id_Contenedor + "')\">Eliminar</button>" +
@@ -173,6 +221,14 @@ async function cargarUsuarios() {
         console.error(status === 403 ? "No tiene permisos" : "Sesión no válida");
         return;
     }
+
+    setResumen("resUsuarios", data.length);
+
+    cuadrillasCache = data.filter(function (usuario) {
+        return usuario.rol === "Cuadrilla";
+    });
+
+    mostrarCuadrillasYCamiones();
 
     let tabla = document.getElementById("tablaUsuarios");
     tabla.innerHTML = "";
@@ -202,6 +258,8 @@ async function cargarCamiones() {
         return;
     }
 
+    setResumen("resCamiones", data.length);
+
     let tabla = document.getElementById("tablaCamiones");
     tabla.innerHTML = "";
 
@@ -227,6 +285,8 @@ async function cargarIncidencias() {
         console.error("Sesión no válida");
         return;
     }
+
+    setResumen("resIncidencias", data.filter(function (i) { return i.estado === "Pendiente" || i.Estado === "Pendiente"; }).length);
 
     let tabla = document.getElementById("tablaIncidencias");
     tabla.innerHTML = "";
@@ -351,6 +411,7 @@ async function manejarRegistroCamion() {
             mensaje.textContent = data.mensaje || "Camión registrado correctamente.";
             document.getElementById("matricula").value = "";
             cargarCamiones();
+            cargarAsignaciones();
 
             setTimeout(function () {
                 cerrarModal();
@@ -429,6 +490,7 @@ async function eliminarCamionUI(matricula) {
         alert(data.error);
     } else {
         cargarCamiones();
+        cargarAsignaciones();
     }
 }
 
@@ -468,9 +530,372 @@ async function eliminarCentroUI(id) {
     }
 }
 
+async function cargarAsignaciones() {
+    const { ok, data } = await getAsignaciones();
+
+    if (!ok) {
+        console.error("No se pudieron cargar las asignaciones");
+        return;
+    }
+
+    asignacionesCache = data;
+    mostrarCuadrillasYCamiones();
+}
+
+// Tabla "Cuadrillas y camiones": una fila por cuadrilla con el camión que usa.
+function mostrarCuadrillasYCamiones() {
+    const tabla = document.getElementById("tablaAsignaciones");
+    tabla.innerHTML = "";
+
+    document.getElementById("mensajeAsignaciones").textContent =
+        cuadrillasCache.length === 0 ? "No hay cuadrillas registradas." : "";
+
+    cuadrillasCache.forEach(function (cuadrilla) {
+        const asignacion = asignacionesCache.find(function (a) {
+            return a.CI_Cuadrilla === cuadrilla.ci;
+        });
+
+        let rutaActual = "Sin ruta";
+        let acciones =
+            "<button class='btn-editar' onclick=\"mostrarCuadrillaCamion('" + esc(cuadrilla.ci) + "')\">Asignar camión</button>";
+
+        if (asignacion && asignacion.Id_Ruta_Activa !== null) {
+            rutaActual =
+                "#" + asignacion.Id_Ruta_Activa + " " + etiquetaEstado(asignacion.Estado_Ruta) +
+                "<br>" + asignacion.Paradas_Hechas + " de " + asignacion.Paradas_Total + " contenedores";
+
+            acciones +=
+                "<button class='btn-editar' onclick=\"verRutaUI(" + asignacion.Id_Ruta_Activa + ")\">Ver ruta</button>";
+        }
+
+        if (asignacion) {
+            acciones +=
+                "<button class='btn-eliminar' onclick=\"quitarCamionUI('" + esc(cuadrilla.ci) + "')\">Quitar camión</button>";
+        }
+
+        const fila = document.createElement("tr");
+
+        fila.innerHTML =
+            "<td>" + esc(cuadrilla.nombre1 + " " + cuadrilla.apellido1) + " (" + esc(cuadrilla.ci) + ")</td>" +
+            "<td>" + (asignacion ? esc(asignacion.Matricula) : "Sin camión") + "</td>" +
+            "<td>" + (asignacion ? esc(asignacion.Tipo) : "-") + "</td>" +
+            "<td>" + rutaActual + "</td>" +
+            "<td class='acciones'>" + acciones + "</td>";
+
+        tabla.appendChild(fila);
+    });
+}
+
+async function cargarRutas() {
+    const { ok, data } = await getRutas();
+
+    if (!ok) {
+        console.error("No se pudieron cargar las rutas");
+        return;
+    }
+
+    setResumen("resRutas", data.filter(function (r) { return r.Estado !== "Finalizada"; }).length);
+
+    rutasCache = data;
+
+    const tabla = document.getElementById("tablaRutas");
+    tabla.innerHTML = "";
+
+    data.forEach(function (ruta) {
+        const fila = document.createElement("tr");
+
+        let acciones = "<button class='btn-editar' onclick=\"verRutaUI(" + ruta.Id_Ruta + ")\">Ver</button>";
+
+        if (ruta.Estado === "Pendiente") {
+            acciones +=
+                "<button class='btn-editar' onclick=\"mostrarRutaCamion(" + ruta.Id_Ruta + ")\">" +
+                (ruta.Matricula ? "Cambiar camión" : "Asignar camión") + "</button>";
+        }
+
+        acciones +=
+            "<button class='btn-eliminar' onclick=\"eliminarRutaUI(" + ruta.Id_Ruta + ")\">Eliminar</button>";
+
+        fila.innerHTML =
+            "<td>" + ruta.Id_Ruta + "</td>" +
+            "<td>Zona " + ruta.Id_Poligono + "</td>" +
+            "<td>" + esc(ruta.Tipo) + "</td>" +
+            "<td>" + (ruta.Matricula ? esc(ruta.Matricula) : "<em>Sin camión</em>") + "</td>" +
+            "<td>" + (ruta.Nombre_Cuadrilla ? esc(ruta.Nombre_Cuadrilla) : "-") + "</td>" +
+            "<td>" + etiquetaEstado(ruta.Estado) + "</td>" +
+            "<td>" + ruta.Paradas_Hechas + " de " + ruta.Paradas_Total + "</td>" +
+            "<td>" + ruta.Peso_Total + "</td>" +
+            "<td>" + formatearFecha(ruta.Fecha_Creacion) + "</td>" +
+            "<td class='acciones'>" + acciones + "</td>";
+
+        tabla.appendChild(fila);
+    });
+}
+
+function llenarSelect(select, opciones, valorSeleccionado) {
+    select.innerHTML = "";
+
+    opciones.forEach(function (opcion) {
+        const elemento = document.createElement("option");
+        elemento.value = opcion.valor;
+        elemento.textContent = opcion.texto;
+        select.appendChild(elemento);
+    });
+
+    if (valorSeleccionado !== undefined && valorSeleccionado !== null) {
+        select.value = String(valorSeleccionado);
+    }
+}
+
+function textoCamion(asignacion) {
+    let texto = asignacion.Matricula + " (" + asignacion.Tipo + ")";
+
+    if (asignacion.Nombre_Cuadrilla) {
+        texto += " - lo usa " + asignacion.Nombre_Cuadrilla;
+    }
+
+    return texto;
+}
+
+// ---------------------------------------------------------------------
+// Asignar camión a una cuadrilla (solo administrador)
+// ---------------------------------------------------------------------
+
+function actualizarCamionActual() {
+    const ci = document.getElementById("ccCuadrilla").value;
+    const actual = asignacionesCache.find(function (a) { return a.CI_Cuadrilla === ci; });
+
+    document.getElementById("ccCamion").value = actual ? actual.Matricula : "";
+}
+
+function mostrarCuadrillaCamion(ci) {
+    if (cuadrillasCache.length === 0) {
+        alert("Primero debe registrar al menos una cuadrilla.");
+        return;
+    }
+
+    abrirFormulario("cuadrillaCamionForm");
+    document.getElementById("mensajeCuadrillaCamion").textContent = "";
+
+    llenarSelect(
+        document.getElementById("ccCuadrilla"),
+        cuadrillasCache.map(function (usuario) {
+            return {
+                valor: usuario.ci,
+                texto: usuario.nombre1 + " " + usuario.apellido1 + " (" + usuario.ci + ")"
+            };
+        }),
+        ci
+    );
+
+    llenarSelect(
+        document.getElementById("ccCamion"),
+        [{ valor: "", texto: "Sin camión" }].concat(
+            asignacionesCache.map(function (a) {
+                return { valor: a.Matricula, texto: textoCamion(a) };
+            })
+        )
+    );
+
+    actualizarCamionActual();
+}
+
+async function guardarCuadrillaCamionUI() {
+    const mensaje = document.getElementById("mensajeCuadrillaCamion");
+
+    const ci = document.getElementById("ccCuadrilla").value;
+    const matricula = document.getElementById("ccCamion").value;
+
+    if (ci === "") {
+        mensaje.textContent = "Seleccione una cuadrilla.";
+        return;
+    }
+
+    const { ok, data } = await asignarCamionACuadrilla(ci, matricula !== "" ? matricula : null);
+
+    if (ok && !data.error) {
+        mensaje.textContent = data.mensaje || "Camión asignado correctamente.";
+        await cargarAsignaciones();
+        cargarRutas();
+
+        setTimeout(function () {
+            cerrarModal();
+        }, 700);
+    } else {
+        mensaje.textContent = data.error || "No se pudo asignar el camión.";
+    }
+}
+
+async function quitarCamionUI(ci) {
+    if (!confirm("¿Quitarle el camión a esta cuadrilla?")) return;
+
+    const { data } = await asignarCamionACuadrilla(ci, null);
+
+    if (data.error) {
+        alert(data.error);
+    } else {
+        await cargarAsignaciones();
+        cargarRutas();
+    }
+}
+
+// ---------------------------------------------------------------------
+// Crear ruta y asignarle camión (solo administrador)
+// ---------------------------------------------------------------------
+
+// Un camión puede hacer rutas de su tipo o de incidencias.
+function camionesParaTipo(tipoRuta) {
+    return asignacionesCache.filter(function (a) {
+        return tipoRuta === "Incidencias" || a.Tipo === tipoRuta;
+    });
+}
+
+function actualizarCamionesRuta() {
+    const tipo = document.getElementById("rutaTipo").value;
+
+    llenarSelect(
+        document.getElementById("rutaCamion"),
+        [{ valor: "", texto: "Sin camión por ahora" }].concat(
+            camionesParaTipo(tipo).map(function (a) {
+                return { valor: a.Matricula, texto: textoCamion(a) };
+            })
+        )
+    );
+}
+
+function mostrarRuta() {
+    if (zonasCache.length === 0) {
+        alert("Primero debe registrar al menos una zona.");
+        return;
+    }
+
+    abrirFormulario("rutaForm");
+    document.getElementById("mensajeRuta").textContent = "";
+
+    llenarSelect(
+        document.getElementById("rutaZona"),
+        zonasCache.map(function (zona) {
+            return {
+                valor: zona.id_poligono,
+                texto: "Zona " + zona.id_poligono + " (" + zona.total_contenedores + " contenedores)"
+            };
+        })
+    );
+
+    actualizarCamionesRuta();
+}
+
+async function crearRutaUI() {
+    const mensaje = document.getElementById("mensajeRuta");
+
+    const zona = document.getElementById("rutaZona").value;
+    const tipo = document.getElementById("rutaTipo").value;
+    const matricula = document.getElementById("rutaCamion").value;
+
+    if (zona === "") {
+        mensaje.textContent = "Seleccione una zona.";
+        return;
+    }
+
+    mensaje.textContent = "Creando ruta...";
+
+    const { ok, data } = await crearRuta(zona, tipo, matricula !== "" ? matricula : null);
+
+    if (ok && !data.error) {
+        mensaje.textContent =
+            "Ruta creada con " + data.total_paradas + " contenedores " +
+            "(recorrido estimado en línea recta: " + (data.distancia_estimada_m / 1000).toFixed(2) + " km).";
+
+        await cargarRutas();
+        cargarAsignaciones();
+
+        setTimeout(function () {
+            cerrarModal();
+        }, 1200);
+    } else {
+        mensaje.textContent = data.error || "No se pudo crear la ruta.";
+    }
+}
+
+let rutaEnEdicion = null;
+
+function mostrarRutaCamion(idRuta) {
+    const ruta = rutasCache.find(function (r) { return r.Id_Ruta === idRuta; });
+
+    if (!ruta) return;
+
+    rutaEnEdicion = ruta;
+
+    abrirFormulario("rutaCamionForm");
+    document.getElementById("mensajeRutaCamion").textContent = "";
+
+    document.getElementById("rutaCamionDetalle").textContent =
+        "Ruta #" + ruta.Id_Ruta + " · Zona " + ruta.Id_Poligono + " · " + ruta.Tipo;
+
+    llenarSelect(
+        document.getElementById("rcCamion"),
+        [{ valor: "", texto: "Sin camión" }].concat(
+            camionesParaTipo(ruta.Tipo).map(function (a) {
+                return { valor: a.Matricula, texto: textoCamion(a) };
+            })
+        ),
+        ruta.Matricula ? ruta.Matricula : ""
+    );
+}
+
+async function guardarRutaCamionUI() {
+    const mensaje = document.getElementById("mensajeRutaCamion");
+
+    if (rutaEnEdicion === null) return;
+
+    const matricula = document.getElementById("rcCamion").value;
+
+    const { ok, data } = await asignarCamionARuta(rutaEnEdicion.Id_Ruta, matricula !== "" ? matricula : null);
+
+    if (ok && !data.error) {
+        mensaje.textContent = data.mensaje || "Camión asignado correctamente.";
+        await cargarRutas();
+        cargarAsignaciones();
+
+        setTimeout(function () {
+            cerrarModal();
+        }, 700);
+    } else {
+        mensaje.textContent = data.error || "No se pudo asignar el camión.";
+    }
+}
+
+function verRutaUI(idRuta) {
+    window.location.href = "mapaRuta.html?id=" + idRuta;
+}
+
+async function eliminarRutaUI(idRuta) {
+    if (!confirm("¿Está seguro de que desea eliminar esta ruta? Se perderán los pesos registrados.")) return;
+
+    const { data } = await eliminarRuta(idRuta);
+
+    if (data.error) {
+        alert(data.error);
+    } else {
+        cargarRutas();
+        cargarAsignaciones();
+    }
+}
+
 window.mostrarCamion = mostrarCamion;
 window.mostrarUsuario = mostrarUsuario;
 window.mostrarCentro = mostrarCentro;
+window.mostrarCuadrillaCamion = mostrarCuadrillaCamion;
+window.actualizarCamionActual = actualizarCamionActual;
+window.guardarCuadrillaCamionUI = guardarCuadrillaCamionUI;
+window.quitarCamionUI = quitarCamionUI;
+window.mostrarRuta = mostrarRuta;
+window.actualizarCamionesRuta = actualizarCamionesRuta;
+window.crearRutaUI = crearRutaUI;
+window.mostrarRutaCamion = mostrarRutaCamion;
+window.guardarRutaCamionUI = guardarRutaCamionUI;
+window.verRutaUI = verRutaUI;
+window.eliminarRutaUI = eliminarRutaUI;
+window.irATabla = irATabla;
 window.cerrarModal = cerrarModal;
 window.cambiarTabla = cambiarTabla;
 window.registrarUsuario = manejarRegistroUsuario;
@@ -490,6 +915,8 @@ cargarUsuarios();
 cargarCamiones();
 cargarIncidencias();
 cargarCentros();
+cargarAsignaciones();
+cargarRutas();
 cambiarTabla();
 
 activarFlechaScroll();

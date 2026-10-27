@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiGeRU - Panel de Administración</title>
     <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
@@ -32,9 +33,9 @@
             <div id="mapa"></div>
 
             <div class="controles-mapa">
-                <button class="btn" type="button" onclick="guardarZona()">Guardar zona</button>
-                <button class="btn btn-secundario" type="button" onclick="limpiarZona()">Limpiar</button>
-                <button class="btn btn-terciario" type="button" onclick="mostrarModalEliminar()">Eliminar zona</button>
+                <button class="btn" type="button" data-menu="Guardar zona" data-menu-grupo="Zona" onclick="guardarZona()">Guardar zona</button>
+                <button class="btn btn-secundario" type="button" data-menu="Limpiar puntos" onclick="limpiarZona()">Limpiar</button>
+                <button class="btn btn-terciario" type="button" data-menu="Eliminar zona" onclick="mostrarModalEliminar()">Eliminar zona</button>
             </div>
 
             <p id="mensajeMapa"></p>
@@ -58,5 +59,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="js/mapaAdmin.js"></script>
+    <script src="js/menu.js" defer></script>
 </body>
 </html>

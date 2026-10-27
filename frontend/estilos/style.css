@@ -16,15 +16,18 @@ body{
 
 .header{
     background:#0f4c81;
-    padding:20px 8%;
-    overflow:hidden;
+    padding:16px 8%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
 }
 
 .logo{
-    float:left;
     background:white;
     padding:8px 18px;
-    border-radius:6px;
+    border-radius:4px;
 }
 
 .logo img{
@@ -41,19 +44,57 @@ body{
 }
 
 .nav{
-    float:right;
-    margin-top:22px;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
 }
 
 .nav a{
     color:white;
     text-decoration:none;
-    margin-left:25px;
     font-weight:bold;
+    padding:9px 16px;
+    border-radius:4px;
 }
 
 .nav a:hover{
-    text-decoration:underline;
+    background:rgba(255,255,255,.16);
+    text-decoration:none;
+}
+
+/* Botón "Cerrar sesión" */
+.nav button{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-left:10px;
+    padding:9px 18px;
+    background:rgba(255,255,255,.12);
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    border:2px solid rgba(255,255,255,.75);
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.nav button::before{
+    content:"";
+    width:16px;
+    height:16px;
+    background:currentColor;
+    -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3zm6.6 4.6L15.2 9l2.6 2.6H9v2h8.8L15.2 16l1.4 1.4L21.9 12l-5.3-5.4z'/></svg>") center/contain no-repeat;
+    mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3zm6.6 4.6L15.2 9l2.6 2.6H9v2h8.8L15.2 16l1.4 1.4L21.9 12l-5.3-5.4z'/></svg>") center/contain no-repeat;
+}
+
+.nav button:hover{
+    background:#d64545;
+    border-color:#d64545;
+}
+
+.nav button:active{
+    transform:scale(.97);
 }
 
 /*=========================
@@ -94,8 +135,7 @@ body{
 .hero-img img{
     width:90%;
     max-width:500px;
-    border-radius:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    border-radius:4px;
 }
 
 /*=========================
@@ -112,10 +152,9 @@ body{
     border:none;
     padding:15px 30px;
     font-size:16px;
-    border-radius:8px;
+    border-radius:4px;
     cursor:pointer;
     margin-right:15px;
-    transition:.3s;
 }
 
 .btn:hover{
@@ -162,11 +201,9 @@ body{
     padding:30px;
     background:white;
     border-top:5px solid #2f855a;
-    border-radius:10px;
-    box-shadow:0 5px 15px rgba(0,0,0,.1);
+    border-radius:4px;
     text-align:center;
     vertical-align:top;
-    transition:.3s;
 }
 
 .card h3{
@@ -219,8 +256,7 @@ body{
     max-width:90%;
     background:white;
     padding:30px;
-    border-radius:10px;
-    box-shadow:0 10px 30px rgba(0,0,0,.3);
+    border-radius:4px;
     z-index:1001;
 }
 
@@ -236,7 +272,7 @@ body{
     padding:12px;
     margin-bottom:15px;
     border:1px solid #ccc;
-    border-radius:6px;
+    border-radius:4px;
     font-size:15px;
 }
 
@@ -290,11 +326,11 @@ body{
     align-items: center;
 
     z-index: 1000;
-
-    transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 .flecha-scroll:hover {
     transform: translateY(5px);
     background-color: #f0f0f0;
 }
+
+.nav a:hover{ background:none; text-decoration:underline; }

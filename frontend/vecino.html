@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>SiGeRU - Panel del Vecino</title>
         <link rel="stylesheet" href="estilos/admin.css" />
+        <link rel="stylesheet" href="estilos/menu.css">
         <link
             rel="stylesheet"
             href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -26,7 +27,7 @@
             <p>Consulte las zonas de recolección y los contenedores registrados.</p>
         </div>
 
-        <div class="contenido">
+        <div class="contenido" data-menu="Vista general" data-menu-grupo="Mapa">
             <h2>Vista general</h2>
             <div class="carta">
                 <p>
@@ -38,7 +39,7 @@
             </div>
         </div>
 
-        <div class="contenido">
+        <div class="contenido" data-menu="Cómo registrar una incidencia">
             <h2>Incidencias</h2>
             <div class="carta">
                 <p>
@@ -108,5 +109,6 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
         <script type="module" src="js/vecino.js"></script>
-    </body>
+        <script src="js/menu.js" defer></script>
+</body>
 </html>

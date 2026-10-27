@@ -1,3 +1,4 @@
+import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getPoligonos } from "./APIPoligonos.js";
 import { getContenedores } from "./APIContenedores.js";
@@ -64,12 +65,7 @@ async function cargarZonas() {
         });
 
         if (vertices.length >= 3) {
-            L.polygon(vertices, {
-                color: "#0f4c81",
-                fillColor: "#0f4c81",
-                fillOpacity: 0.2,
-                weight: 2
-            }).addTo(mapa);
+            L.polygon(vertices, ESTILO_ZONA).addTo(mapa);
 
             let centro = calcularCentro(vertices);
 

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de Cuadrilla</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="cuadrilla.html">Cuadrilla</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <section class="hero-cuadrilla">
+        <div class="hero-cuadrilla-texto">
+            <span class="hero-etiqueta">Panel de Cuadrilla</span>
+            <h1>Su jornada de recolección</h1>
+            <p>Consulte su camión, abra el mapa de la ruta que le asignó el administrador y registre el peso de cada contenedor a medida que lo recoge.</p>
+        </div>
+    </section>
+
+    <div class="contenido" data-menu="Mi camión y mi avance" data-menu-grupo="Mi jornada">
+        <div class="tarjetas-resumen" id="tarjetasResumen">
+            <div class="tarjeta-dato"><span>Cargando...</span></div>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Ruta actual">
+        <h2>Ruta actual</h2>
+        <div class="carta carta-ruta" id="cartaRuta">
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Rutas anteriores">
+        <h2>Rutas anteriores</h2>
+        <div class="carta">
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Tipo de ruta</th>
+                            <th>Zona</th>
+                            <th>Contenedores</th>
+                            <th>Peso total (kg)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaHistorial">
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="mensajeHistorial"></p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel de Cuadrilla</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
+    <script type="module" src="js/cuadrilla.js"></script>
+    <script src="js/menu.js" defer></script>
+</body>
+</html>

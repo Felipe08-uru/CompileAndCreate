@@ -14,8 +14,8 @@ class RegistroCamion {
                        r.Tipo_Carga, r.Cantidad_Carga,
                        c.Tipo AS Tipo_Camion, ce.Servicio AS Servicio_Centro
                 FROM $this->table r
-                INNER JOIN Camion c ON c.Matricula = r.Matricula
-                INNER JOIN Centro ce ON ce.ID = r.ID
+                INNER JOIN camion c ON c.Matricula = r.Matricula
+                INNER JOIN centro ce ON ce.ID = r.ID
                 ORDER BY r.Fecha DESC";
 
         $stmt = $this->conn->prepare($sql);
@@ -31,8 +31,8 @@ class RegistroCamion {
                        r.Tipo_Carga, r.Cantidad_Carga,
                        c.Tipo AS Tipo_Camion, ce.Servicio AS Servicio_Centro
                 FROM $this->table r
-                INNER JOIN Camion c ON c.Matricula = r.Matricula
-                INNER JOIN Centro ce ON ce.ID = r.ID
+                INNER JOIN camion c ON c.Matricula = r.Matricula
+                INNER JOIN centro ce ON ce.ID = r.ID
                 WHERE r.CI = ?
                 ORDER BY r.Fecha DESC";
 
@@ -63,7 +63,7 @@ class RegistroCamion {
             ? floatval($data["cantidad_carga"])
             : null;
 
-        $sqlCamion = "SELECT Matricula FROM Camion WHERE Matricula = ?";
+        $sqlCamion = "SELECT Matricula FROM camion WHERE Matricula = ?";
         $stmtCamion = $this->conn->prepare($sqlCamion);
         $stmtCamion->bind_param("s", $matricula);
         $stmtCamion->execute();

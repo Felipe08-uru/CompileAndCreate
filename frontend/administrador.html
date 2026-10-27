@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiGeRU - Panel de Administración</title>
     <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
@@ -20,53 +21,87 @@
         </nav>
     </header>
 
-    <div class="titulo">
-        <h1>Panel de Administración</h1>
-    </div>
+    <section class="hero-admin">
+        <div class="hero-admin-texto">
+            <span class="hero-etiqueta">Administrador</span>
+            <h1>Panel de Administración</h1>
+            <p>Gestione zonas, flota, usuarios y centros, y organice las rutas de recolección desde un solo lugar.</p>
+        </div>
+    </section>
 
     <div class="contenido">
+        <div class="tarjetas-resumen tarjetas-5">
+            <div class="tarjeta-dato"><div><span>Usuarios</span><strong id="resUsuarios">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Camiones</span><strong id="resCamiones">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Contenedores</span><strong id="resContenedores">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Incidencias pendientes</span><strong id="resIncidencias">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Rutas sin finalizar</span><strong id="resRutas">-</strong></div></div>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Vista general" data-menu-grupo="Resumen">
         <h2>Vista general</h2>
         <div class="carta" id="vistaGeneral">
-            <p>Visualización de las zonas de recolección registradas.</p>
+            <p>Zonas de recolección registradas.</p>
             <div id="mapa"></div>
             <p id="mensajeMapa"></p>
         </div>
     </div>
 
     <div class="contenido">
-        <h2>Gestión de zonas</h2>
-        <div class="carta">
-            <a href="mapaAdmin.html" class="btn">Gestionar zonas</a>
+        <h2>Zonas, flota y contenedores</h2>
+        <div class="grilla-acciones">
+            <div class="tarjeta-accion">
+                <h3>Zonas</h3>
+                <p>Dibuje y administre los polígonos de recolección.</p>
+                <a data-menu="Gestionar zonas" data-menu-grupo="Zonas, flota y contenedores" href="mapaAdmin.html" class="btn">Gestionar zonas</a>
+            </div>
+
+            <div class="tarjeta-accion">
+                <h3>Camiones</h3>
+                <p>Registre un camión con su matrícula, tipo (residuos mezclados o reciclables) y estado.</p>
+                <button type="button" class="btn" data-menu="Registrar camión" onclick="mostrarCamion()">Registrar camión</button>
+            </div>
+
+            <div class="tarjeta-accion">
+                <h3>Contenedores</h3>
+                <p>Elija la ubicación en el mapa y registre sus datos.</p>
+                <a data-menu="Añadir contenedor" href="mapaContenedores.html" class="btn btn-secundario">Añadir contenedor</a>
+            </div>
         </div>
     </div>
 
-    <main class="panelContenedor">
-        <div class="panel">
-            <h2>Registrar Camión</h2>
-            <p>Registre un nuevo camión indicando su matrícula, tipo y estado.</p>
-            <button type="button" class="btn" onclick="mostrarCamion()">Registrar Camión</button>
-        </div>
-
-        <div class="panel">
-            <h2>Registrar Contenedor</h2>
-            <p>Seleccione la ubicación del contenedor y registre sus datos desde el mapa.</p>
-            <a href="mapaContenedores.html" class="btn btn-secundario">Añadir Contenedor</a>
-        </div>
-    </main>
-
     <div class="contenido">
-        <h2>Gestión de Usuarios y Centros</h2>
-        <div class="panelContenedor">
-            <div class="panel">
-                <h2>Registrar Usuario</h2>
-                <p>Registre un nuevo usuario del sistema indicando sus datos personales, correo, contraseña y rol.</p>
-                <button type="button" class="btn" onclick="mostrarUsuario()">Registrar Usuario</button>
+        <h2>Personas y centros</h2>
+        <div class="grilla-acciones grilla-2">
+            <div class="tarjeta-accion">
+                <h3>Usuarios</h3>
+                <p>Registre un usuario indicando sus datos, correo, contraseña y rol.</p>
+                <button type="button" class="btn" data-menu="Registrar usuario" data-menu-grupo="Personas y centros" onclick="mostrarUsuario()">Registrar usuario</button>
             </div>
 
-            <div class="panel">
-                <h2>Registrar Centro de Acopio</h2>
-                <p>Registre un nuevo centro de acopio indicando el servicio que presta y su capacidad.</p>
-                <button type="button" class="btn btn-secundario" onclick="mostrarCentro()">Registrar Centro</button>
+            <div class="tarjeta-accion">
+                <h3>Centros de acopio</h3>
+                <p>Registre un centro indicando su servicio y su capacidad.</p>
+                <button type="button" class="btn btn-secundario" data-menu="Registrar centro de acopio" onclick="mostrarCentro()">Registrar centro</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Rutas y asignaciones</h2>
+        <div class="grilla-acciones grilla-2">
+            <div class="tarjeta-accion destacada">
+                <h3>Camión de la cuadrilla</h3>
+                <p>Asigne a cada cuadrilla el camión que va a usar.</p>
+                <button type="button" class="btn" data-menu="Asignar camión a cuadrilla" data-menu-grupo="Rutas y asignaciones" onclick="mostrarCuadrillaCamion()">Asignar camión a cuadrilla</button>
+            </div>
+
+            <div class="tarjeta-accion destacada">
+                <h3>Rutas</h3>
+                <p>Cree la ruta de una zona (residuos mezclados, reciclables o incidencias) y asígnele un camión.</p>
+                <button type="button" class="btn" data-menu="Crear ruta" onclick="mostrarRuta()">Crear ruta</button>
+                <button type="button" class="btn btn-terciario-claro" data-menu="Ver rutas" onclick="irATabla('rutas')">Ver rutas</button>
             </div>
         </div>
     </div>
@@ -79,11 +114,13 @@
         <label for="selectorTabla">Seleccionar registro:</label>
 
         <select id="selectorTabla" onchange="cambiarTabla()">
-            <option value="usuarios">Usuarios</option>
-            <option value="camiones">Camiones</option>
-            <option value="contenedores">Contenedores</option>
-            <option value="incidencias">Incidencias</option>
-            <option value="centros">Centros de acopio</option>
+            <option value="usuarios" data-menu="Usuarios" data-menu-grupo="Ver registros">Usuarios</option>
+            <option value="camiones" data-menu="Camiones">Camiones</option>
+            <option value="contenedores" data-menu="Contenedores">Contenedores</option>
+            <option value="incidencias" data-menu="Incidencias">Incidencias</option>
+            <option value="centros" data-menu="Centros de acopio">Centros de acopio</option>
+            <option value="asignaciones" data-menu="Cuadrillas y camiones">Cuadrillas y camiones</option>
+            <option value="rutas" data-menu="Rutas">Rutas</option>
         </select>
 
         <div id="tablaUsuariosContainer" class="tabla-container">
@@ -135,6 +172,7 @@
                         <th>ID</th>
                         <th>Ubicación</th>
                         <th>Tipo de residuo</th>
+                        <th>Zona</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -185,6 +223,55 @@
             </table>
         </div>
 
+        <div id="tablaAsignacionesContainer" class="tabla-container">
+            <h3>Cuadrillas y camiones</h3>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cuadrilla</th>
+                            <th>Camión</th>
+                            <th>Tipo de camión</th>
+                            <th>Ruta actual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaAsignaciones">
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="mensajeAsignaciones"></p>
+        </div>
+
+        <div id="tablaRutasContainer" class="tabla-container">
+            <h3>Rutas</h3>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Zona</th>
+                            <th>Tipo</th>
+                            <th>Camión</th>
+                            <th>Cuadrilla</th>
+                            <th>Estado</th>
+                            <th>Avance</th>
+                            <th>Peso total (kg)</th>
+                            <th>Creada</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaRutas">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -207,8 +294,8 @@
 
             <label for="tipoCamion">Tipo</label>
             <select id="tipoCamion" name="tipoCamion">
-                <option value="Compactador">Compactador</option>
-                <option value="Volqueta">Volqueta</option>
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
             </select>
 
             <label for="estadoCamion">Estado</label>
@@ -276,6 +363,50 @@
             <button type="button" class="btn" onclick="registrarCentro()">Registrar Centro</button>
             <p id="mensajeCentro"></p>
         </div>
+
+        <div id="cuadrillaCamionForm" style="display:none;">
+            <h2>Asignar camión a cuadrilla</h2>
+
+            <label for="ccCuadrilla">Cuadrilla</label>
+            <select id="ccCuadrilla" onchange="actualizarCamionActual()"></select>
+
+            <label for="ccCamion">Camión</label>
+            <select id="ccCamion"></select>
+
+            <button type="button" class="btn" onclick="guardarCuadrillaCamionUI()">Guardar</button>
+            <p id="mensajeCuadrillaCamion"></p>
+        </div>
+
+        <div id="rutaForm" style="display:none;">
+            <h2>Crear ruta</h2>
+
+            <label for="rutaZona">Zona</label>
+            <select id="rutaZona"></select>
+
+            <label for="rutaTipo">Tipo de ruta</label>
+            <select id="rutaTipo" onchange="actualizarCamionesRuta()">
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
+                <option value="Incidencias">Incidencias</option>
+            </select>
+
+            <label for="rutaCamion">Camión (opcional, se puede asignar después)</label>
+            <select id="rutaCamion"></select>
+
+            <button type="button" class="btn" onclick="crearRutaUI()">Crear ruta</button>
+            <p id="mensajeRuta"></p>
+        </div>
+
+        <div id="rutaCamionForm" style="display:none;">
+            <h2>Asignar camión a la ruta</h2>
+            <p id="rutaCamionDetalle"></p>
+
+            <label for="rcCamion">Camión</label>
+            <select id="rcCamion"></select>
+
+            <button type="button" class="btn" onclick="guardarRutaCamionUI()">Guardar</button>
+            <p id="mensajeRutaCamion"></p>
+        </div>
     </div>
 
     <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
@@ -284,5 +415,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="js/administrador.js"></script>
+    <script src="js/menu.js" defer></script>
 </body>
 </html>

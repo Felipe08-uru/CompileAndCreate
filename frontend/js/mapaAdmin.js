@@ -1,3 +1,4 @@
+import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { getPoligonos, crearPoligono, eliminarPoligono } from "./APIPoligonos.js";
 
 let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
@@ -21,7 +22,7 @@ mapa.on("click", function (e) {
     }
 
     if (puntos.length >= 3) {
-        poligono = L.polygon(puntos).addTo(mapa);
+        poligono = L.polygon(puntos, ESTILO_ZONA).addTo(mapa);
     }
 });
 
@@ -57,7 +58,16 @@ async function guardarZona() {
     if (data.error) {
         document.getElementById("mensajeMapa").textContent = data.error;
     } else {
-        document.getElementById("mensajeMapa").textContent = "Zona guardada correctamente.";
+        let texto = "Zona " + data.id_poligono + " guardada correctamente.";
+
+        if (data.contenedores_asignados > 0) {
+            texto += " " + data.contenedores_asignados +
+                (data.contenedores_asignados === 1
+                    ? " contenedor que no tenía zona quedó relacionado con ella."
+                    : " contenedores que no tenían zona quedaron relacionados con ella.");
+        }
+
+        document.getElementById("mensajeMapa").textContent = texto;
         limpiarZona();
         cargarZonas();
     }
@@ -89,12 +99,7 @@ async function cargarZonas() {
         });
 
         if (vertices.length >= 3) {
-            L.polygon(vertices, {
-                color: "#0f4c81",
-                fillColor: "#0f4c81",
-                fillOpacity: 0.2,
-                weight: 2
-            }).addTo(mapa);
+            L.polygon(vertices, ESTILO_ZONA).addTo(mapa);
 
             let centro = calcularCentro(vertices);
 

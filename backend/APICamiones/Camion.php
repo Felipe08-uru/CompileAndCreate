@@ -5,12 +5,35 @@ class Camion{
     private $conn;
     private $table = "camion";
 
+    // Un camión solo puede ser de uno de estos dos tipos. El tipo define
+    // qué rutas puede hacer (ver Asignacion y Ruta).
+    const TIPOS_PERMITIDOS = ["Residuos mezclados", "Reciclables"];
+
+    const ESTADOS_PERMITIDOS = ["Disponible", "En servicio", "Fuera de servicio"];
+
     public function __construct($db){
         $this->conn = $db;
     }
 
+    /**
+     * Lee un campo del JSON aceptando tanto "matricula" como "Matricula".
+     */
+    private function leerCampo($data, $nombre){
+        if(isset($data[$nombre])){
+            return $data[$nombre];
+        }
+
+        $capitalizado = ucfirst($nombre);
+
+        if(isset($data[$capitalizado])){
+            return $data[$capitalizado];
+        }
+
+        return null;
+    }
+
     public function getAllCamiones(){
-        $sql = "SELECT matricula, tipo, estado FROM $this->table";
+        $sql = "SELECT Matricula, Tipo, Estado FROM $this->table ORDER BY Matricula";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -33,7 +56,7 @@ class Camion{
     }
 
     public function existeCamion($matricula){
-        $sql = "SELECT matricula FROM $this->table WHERE Matricula = ?";
+        $sql = "SELECT Matricula FROM $this->table WHERE Matricula = ?";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("s", $matricula);
@@ -45,15 +68,40 @@ class Camion{
     }
 
     public function addCamion($data){
-        if(!isset($data["Matricula"]) || trim($data["Matricula"]) === ""){
+        $matricula = $this->leerCampo($data, "matricula");
+
+        if($matricula === null || trim($matricula) === ""){
             return json_encode([
                 "error" => "Debe indicar la matrícula del camión"
             ]);
         }
 
-        $matricula = trim($data["Matricula"]);
-        $tipo = isset($data["Tipo"]) ? $data["Tipo"] : "Residuos mezclados";
-        $estado = isset($data["Estado"]) ? $data["Estado"] : "Disponible";
+        $matricula = trim($matricula);
+
+        if(strlen($matricula) > 10){
+            return json_encode([
+                "error" => "La matrícula no puede tener más de 10 caracteres"
+            ]);
+        }
+
+        $tipo = $this->leerCampo($data, "tipo");
+
+        if($tipo === null || !in_array(trim($tipo), self::TIPOS_PERMITIDOS, true)){
+            return json_encode([
+                "error" => "El tipo de camión debe ser: Residuos mezclados o Reciclables"
+            ]);
+        }
+
+        $tipo = trim($tipo);
+
+        $estado = $this->leerCampo($data, "estado");
+        $estado = ($estado === null || trim($estado) === "") ? "Disponible" : trim($estado);
+
+        if(!in_array($estado, self::ESTADOS_PERMITIDOS, true)){
+            return json_encode([
+                "error" => "El estado del camión es inválido"
+            ]);
+        }
 
         if($this->existeCamion($matricula)){
             return json_encode([
@@ -78,29 +126,37 @@ class Camion{
     }
 
     public function deleteCamion($data){
-        if(!isset($data["matricula"])){
+        $matricula = $this->leerCampo($data, "matricula");
+
+        if($matricula === null || trim($matricula) === ""){
             return json_encode([
                 "error" => "Debe indicar la matrícula del camión"
             ]);
         }
 
-        $matricula = $data["Matricula"];
+        try{
+            $sql = "DELETE FROM $this->table WHERE Matricula = ?";
 
-        $sql = "DELETE FROM $this->table WHERE Matricula = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bind_param("s", $matricula);
+            $stmt->execute();
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("s", $matricula);
-        $stmt->execute();
+            if($stmt->affected_rows > 0){
+                return json_encode([
+                    "mensaje" => "Camión eliminado"
+                ]);
+            }
 
-        if($stmt->affected_rows > 0){
             return json_encode([
-                "mensaje" => "Camión eliminado"
+                "error" => "Camión no encontrado"
+            ]);
+
+        }catch(mysqli_sql_exception $e){
+            // El camión tiene registros de llegadas a un centro asociados.
+            return json_encode([
+                "error" => "No se puede eliminar: el camión tiene registros asociados"
             ]);
         }
-
-        return json_encode([
-            "error" => "Camión no encontrado"
-        ]);
     }
 
 }

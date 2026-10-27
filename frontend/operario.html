@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiGeRU - Panel del Operario</title>
     <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
 </head>
 <body>
     <header class="header">
@@ -28,17 +29,17 @@
         <div class="panel">
             <h2>Registrar llegada de camión</h2>
             <p>Indique la matrícula del camión que llegó y la carga que trajo.</p>
-            <button type="button" class="btn" onclick="mostrarCamion()">Registrar llegada</button>
+            <button type="button" class="btn" data-menu="Registrar llegada de camión" data-menu-grupo="Acciones" onclick="mostrarCamion()">Registrar llegada</button>
         </div>
 
         <div class="panel">
             <h2>Agregar maquinaria</h2>
             <p>Registre una nueva máquina o herramienta disponible en el centro.</p>
-            <button type="button" class="btn btn-secundario" onclick="mostrarMaquinaria()">Agregar maquinaria</button>
+            <button type="button" class="btn btn-secundario" data-menu="Agregar maquinaria" onclick="mostrarMaquinaria()">Agregar maquinaria</button>
         </div>
     </main>
 
-    <div class="contenido">
+    <div class="contenido" data-menu="Registros de camiones" data-menu-grupo="Registros">
         <h2>Registros de camiones</h2>
         <div class="carta">
             <p>Camiones recibidos en su centro de acopio.</p>
@@ -65,7 +66,7 @@
         </div>
     </div>
 
-    <div class="contenido">
+    <div class="contenido" data-menu="Maquinaria del centro">
         <h2>Maquinaria del centro</h2>
         <div class="carta">
             <p>Máquinas y herramientas disponibles en el centro de acopio.</p>
@@ -158,5 +159,6 @@
     </button>
 
     <script type="module" src="js/operario.js"></script>
+    <script src="js/menu.js" defer></script>
 </body>
 </html>

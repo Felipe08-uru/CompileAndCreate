@@ -19,10 +19,23 @@ export async function apiRequest(endpoint, method = "GET", body = null) {
 
     const response = await fetch(`${baseUrl}${endpoint}`, config);
 
+    // Se lee como texto para poder informar qué devolvió el servidor si no es JSON
+    // (por ejemplo un error de PHP o de Apache), en vez de mostrar un objeto vacío.
+    const texto = await response.text();
     let data = {};
+
     try {
-        data = await response.json();
+        data = JSON.parse(texto);
     } catch (e) {
+        console.error("Respuesta no válida del servidor (HTTP " + response.status + "):", texto);
+
+        data = {
+            error: "El servidor devolvió una respuesta inválida (HTTP " + response.status + "). Revise el log de errores de PHP.",
+            respuesta: texto.slice(0, 500)
+        };
+    }
+
+    if (data === null || typeof data !== "object") {
         data = {};
     }
 

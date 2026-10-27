@@ -55,7 +55,7 @@ class Incidencia{
     }
 
     public function deleteIncidencia($id){
-        $stmt=$this->conn->prepare("DELETE FROM Incidencia WHERE Id_Incidencia=?");
+        $stmt=$this->conn->prepare("DELETE FROM incidencia WHERE Id_Incidencia=?");
         $stmt->bind_param("i",$id);
 
         if($stmt->execute()){

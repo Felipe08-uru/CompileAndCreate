@@ -74,4 +74,31 @@ function esOperario($usuarioObj, $ci) {
 
     return true;
 }
+/**
+ * Devuelve los datos del usuario autenticado si su rol está entre los permitidos.
+ * Si no, ya responde el error JSON correspondiente y devuelve false.
+ *
+ * @param Usuario $usuarioObj
+ * @param string $ci
+ * @param array $rolesPermitidos Ej: ["Administrador", "Cuadrilla"]
+ * @return array|false
+ */
+function obtenerUsuarioConRol($usuarioObj, $ci, $rolesPermitidos) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario) {
+        http_response_code(401);
+        echo json_encode(["error" => "Usuario no encontrado"]);
+        return false;
+    }
+
+    if (!in_array($usuario["rol"], $rolesPermitidos, true)) {
+        http_response_code(403);
+        echo json_encode(["error" => "No tiene permisos"]);
+        return false;
+    }
+
+    return $usuario;
+}
+
 ?>

@@ -1,7 +1,23 @@
-CREATE DATABASE IF NOT EXISTS sigeru;
+-- ============================================================================
+-- SiGeRU - Base de datos COMPLETA (esquema + datos iniciales de prueba)
+-- ============================================================================
+-- Este script reconstruye todo desde cero cada vez que se ejecuta: elimina la
+-- base de datos "sigeru" (si existe) y la vuelve a crear con todas las tablas y
+-- los datos de prueba. Se pierde cualquier dato que hubiera antes.
+-- Sirve igual para una máquina nueva, para el contenedor de docker-compose
+-- (docker-entrypoint-initdb.d) o para importarlo a mano.
+-- Contraseña de TODOS los usuarios de prueba: 1234
+-- ============================================================================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP DATABASE IF EXISTS sigeru;
+CREATE DATABASE sigeru CHARACTER SET utf8mb4;
 USE sigeru;
 
-CREATE TABLE IF NOT EXISTS usuario (
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE usuario (
   ci char(8) NOT NULL,
   nombre1 varchar(50) NOT NULL,
   nombre2 varchar(50) DEFAULT NULL,
@@ -14,23 +30,46 @@ CREATE TABLE IF NOT EXISTS usuario (
   UNIQUE KEY correo_e (correo_e)
 );
 
-CREATE TABLE IF NOT EXISTS camion (
+-- Un camión solo puede ser de uno de dos tipos. Esto permite armar rutas
+-- distintas para cada tipo de camión.
+CREATE TABLE camion (
   Matricula varchar(10) NOT NULL,
   Estado varchar(30) DEFAULT NULL,
-  Tipo varchar(50) DEFAULT NULL,
-  PRIMARY KEY (Matricula)
+  Tipo varchar(50) NOT NULL DEFAULT 'Residuos mezclados',
+  PRIMARY KEY (Matricula),
+  CONSTRAINT chk_camion_tipo CHECK (Tipo IN ('Residuos mezclados', 'Reciclables'))
 );
 
-CREATE TABLE IF NOT EXISTS contenedor (
+CREATE TABLE poligono (
+  Id_Poligono int(11) NOT NULL,
+  PRIMARY KEY (Id_Poligono)
+);
+
+CREATE TABLE poligono_vertices (
+  Id_Poligono int(11) NOT NULL,
+  Orden int(11) NOT NULL,
+  Latitud decimal(10,7) DEFAULT NULL,
+  Longitud decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (Id_Poligono, Orden),
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
+);
+
+-- Cada contenedor pertenece a la zona (polígono) en la que está ubicado.
+-- Si no cae dentro de ninguna zona queda en NULL y, cuando se cree un
+-- polígono que lo abarque, el sistema lo relaciona automáticamente.
+CREATE TABLE contenedor (
   Id_Contenedor int(11) NOT NULL,
   Tipo varchar(50) DEFAULT NULL,
   Estado varchar(30) DEFAULT NULL,
   Latitud decimal(10,7) DEFAULT NULL,
   Longitud decimal(10,7) DEFAULT NULL,
-  PRIMARY KEY (Id_Contenedor)
+  Id_Poligono int(11) DEFAULT NULL,
+  PRIMARY KEY (Id_Contenedor),
+  KEY Id_Poligono (Id_Poligono),
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS incidencia (
+CREATE TABLE incidencia (
   Id_Incidencia int(11) NOT NULL AUTO_INCREMENT,
   Tipo varchar(50) DEFAULT NULL,
   Estado varchar(30) DEFAULT NULL,
@@ -41,62 +80,48 @@ CREATE TABLE IF NOT EXISTS incidencia (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE IF NOT EXISTS poligono (
-  Id_Poligono int(11) NOT NULL,
-  PRIMARY KEY (Id_Poligono)
-);
-
-CREATE TABLE IF NOT EXISTS poligono_vertices (
-  Id_Poligono int(11) NOT NULL,
-  Orden int(11) NOT NULL,
-  Latitud decimal(10,7) DEFAULT NULL,
-  Longitud decimal(10,7) DEFAULT NULL,
-  PRIMARY KEY (Id_Poligono, Orden),
-  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
-);
-
-CREATE TABLE IF NOT EXISTS access_token (
+CREATE TABLE access_token (
   token char(64) NOT NULL,
   ci char(8) NOT NULL,
   fecha_creado datetime NOT NULL DEFAULT current_timestamp(),
   fecha_vencimiento datetime NOT NULL,
   PRIMARY KEY (token),
   KEY ci (ci),
-  FOREIGN KEY (ci) REFERENCES usuario (ci)
+  FOREIGN KEY (ci) REFERENCES usuario (ci) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS administrador (
+CREATE TABLE administrador (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
-  FOREIGN KEY (CI) REFERENCES usuario (ci)
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS cuadrilla (
+CREATE TABLE cuadrilla (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
-  FOREIGN KEY (CI) REFERENCES usuario (ci)
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS operario (
+CREATE TABLE operario (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
-  FOREIGN KEY (CI) REFERENCES usuario (ci)
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS vecino (
+CREATE TABLE vecino (
   CI char(8) NOT NULL,
   PRIMARY KEY (CI),
-  FOREIGN KEY (CI) REFERENCES usuario (ci)
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS vecino_tel (
+CREATE TABLE vecino_tel (
   CI char(8) NOT NULL,
   Tel varchar(20) NOT NULL,
   PRIMARY KEY (CI, Tel),
-  FOREIGN KEY (CI) REFERENCES vecino (CI)
+  FOREIGN KEY (CI) REFERENCES vecino (CI) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS centro (
+CREATE TABLE centro (
   ID int(11) NOT NULL,
   Servicio varchar(100) DEFAULT NULL,
   ContAlmacenados int(11) DEFAULT NULL,
@@ -105,13 +130,13 @@ CREATE TABLE IF NOT EXISTS centro (
   PRIMARY KEY (ID)
 );
 
-CREATE TABLE IF NOT EXISTS centrodeacopio (
+CREATE TABLE centrodeacopio (
   ID int(11) NOT NULL,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE IF NOT EXISTS maquinaria (
+CREATE TABLE maquinaria (
   Id_Maquinaria int(11) NOT NULL AUTO_INCREMENT,
   ID int(11) NOT NULL,
   Nombre varchar(100) NOT NULL,
@@ -122,29 +147,57 @@ CREATE TABLE IF NOT EXISTS maquinaria (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE IF NOT EXISTS vertedero (
+CREATE TABLE vertedero (
   ID int(11) NOT NULL,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE IF NOT EXISTS metodo (
+CREATE TABLE metodo (
   Id_Metodo int(11) NOT NULL,
   PRIMARY KEY (Id_Metodo)
 );
 
-CREATE TABLE IF NOT EXISTS ruta (
-  Id_Contenedor int(11) NOT NULL,
-  Id_Poligono int(11) DEFAULT NULL,
-  Trayecto text DEFAULT NULL,
-  Cantidad_Contenedores int(11) DEFAULT NULL,
-  PRIMARY KEY (Id_Contenedor),
+-- ----------------------------------------------------------------------------
+-- Rutas
+-- Una ruta pertenece a UNA zona (polígono) y recorre únicamente los
+-- contenedores de esa zona. Tipo: 'Residuos mezclados', 'Reciclables' o
+-- 'Incidencias' (esta última puede hacerla un camión de cualquier tipo).
+-- ----------------------------------------------------------------------------
+CREATE TABLE ruta (
+  Id_Ruta int(11) NOT NULL AUTO_INCREMENT,
+  Id_Poligono int(11) NOT NULL,
+  Tipo varchar(30) NOT NULL,
+  Matricula varchar(10) DEFAULT NULL,
+  Estado varchar(20) NOT NULL DEFAULT 'Pendiente',
+  Fecha_Creacion datetime NOT NULL DEFAULT current_timestamp(),
+  Fecha_Fin datetime DEFAULT NULL,
+  PRIMARY KEY (Id_Ruta),
   KEY Id_Poligono (Id_Poligono),
-  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor),
-  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono)
+  KEY Matricula (Matricula),
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono) ON DELETE CASCADE,
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula) ON DELETE SET NULL,
+  CONSTRAINT chk_ruta_tipo CHECK (Tipo IN ('Residuos mezclados', 'Reciclables', 'Incidencias')),
+  CONSTRAINT chk_ruta_estado CHECK (Estado IN ('Pendiente', 'En curso', 'Finalizada'))
 );
 
-CREATE TABLE IF NOT EXISTS al (
+-- Paradas de la ruta, en el orden optimizado en que se deben recorrer.
+-- Peso: kilos informados por la cuadrilla al recoger el contenedor.
+CREATE TABLE ruta_parada (
+  Id_Ruta int(11) NOT NULL,
+  Orden int(11) NOT NULL,
+  Id_Contenedor int(11) NOT NULL,
+  Estado varchar(20) NOT NULL DEFAULT 'Pendiente',
+  Peso decimal(10,2) DEFAULT NULL,
+  Fecha_Recoleccion datetime DEFAULT NULL,
+  PRIMARY KEY (Id_Ruta, Orden),
+  KEY Id_Contenedor (Id_Contenedor),
+  FOREIGN KEY (Id_Ruta) REFERENCES ruta (Id_Ruta) ON DELETE CASCADE,
+  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor) ON DELETE CASCADE,
+  CONSTRAINT chk_parada_estado CHECK (Estado IN ('Pendiente', 'Recogido'))
+);
+
+CREATE TABLE al (
   Id_Incidencia int(11) NOT NULL,
   Id_Contenedor int(11) NOT NULL,
   PRIMARY KEY (Id_Incidencia, Id_Contenedor),
@@ -153,34 +206,51 @@ CREATE TABLE IF NOT EXISTS al (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE IF NOT EXISTS circula (
+-- Cuadrilla que realizó/realiza cada ruta (historial).
+CREATE TABLE circula (
   CI char(8) NOT NULL,
-  Id_Contenedor int(11) NOT NULL,
-  PRIMARY KEY (CI, Id_Contenedor),
-  KEY Id_Contenedor (Id_Contenedor),
-  FOREIGN KEY (CI) REFERENCES cuadrilla (CI),
-  FOREIGN KEY (Id_Contenedor) REFERENCES ruta (Id_Contenedor)
+  Id_Ruta int(11) NOT NULL,
+  PRIMARY KEY (CI, Id_Ruta),
+  KEY Id_Ruta (Id_Ruta),
+  FOREIGN KEY (CI) REFERENCES cuadrilla (CI) ON DELETE CASCADE,
+  FOREIGN KEY (Id_Ruta) REFERENCES ruta (Id_Ruta) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS recoge (
-  Id_Contenedor int(11) NOT NULL,
+-- Antes "recoge" relacionaba contenedor-camión. Ahora relaciona el camión con
+-- la ZONA en la que trabaja y con el tipo de ruta que hace (la asigna el
+-- administrador). Un camión trabaja en una sola zona/tipo de ruta a la vez.
+CREATE TABLE recoge (
   Matricula varchar(10) NOT NULL,
-  PRIMARY KEY (Id_Contenedor, Matricula),
-  KEY Matricula (Matricula),
-  FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor),
-  FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
+  Id_Poligono int(11) NOT NULL,
+  Tipo_Ruta varchar(30) NOT NULL,
+  PRIMARY KEY (Matricula),
+  KEY Id_Poligono (Id_Poligono),
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula) ON DELETE CASCADE,
+  FOREIGN KEY (Id_Poligono) REFERENCES poligono (Id_Poligono) ON DELETE CASCADE,
+  CONSTRAINT chk_recoge_tipo CHECK (Tipo_Ruta IN ('Residuos mezclados', 'Reciclables', 'Incidencias'))
 );
 
-CREATE TABLE IF NOT EXISTS reporta (
+-- Camión que usa cada cuadrilla (la asigna el administrador).
+-- Una cuadrilla usa un camión y un camión lo usa una cuadrilla.
+CREATE TABLE usa (
+  CI char(8) NOT NULL,
+  Matricula varchar(10) NOT NULL,
+  PRIMARY KEY (CI),
+  UNIQUE KEY Matricula (Matricula),
+  FOREIGN KEY (CI) REFERENCES cuadrilla (CI) ON DELETE CASCADE,
+  FOREIGN KEY (Matricula) REFERENCES camion (Matricula) ON DELETE CASCADE
+);
+
+CREATE TABLE reporta (
   CI char(8) NOT NULL,
   Id_Incidencia int(11) NOT NULL,
   PRIMARY KEY (CI, Id_Incidencia),
   KEY Id_Incidencia (Id_Incidencia),
-  FOREIGN KEY (CI) REFERENCES usuario (ci),
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE,
   FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia)
 );
 
-CREATE TABLE IF NOT EXISTS reporta_centro (
+CREATE TABLE reporta_centro (
   CI char(8) NOT NULL,
   ID int(11) NOT NULL,
   Cant_Residuos int(11) DEFAULT NULL,
@@ -190,7 +260,7 @@ CREATE TABLE IF NOT EXISTS reporta_centro (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
-CREATE TABLE IF NOT EXISTS termina (
+CREATE TABLE termina (
   ID int(11) NOT NULL,
   Id_Contenedor int(11) NOT NULL,
   PRIMARY KEY (ID, Id_Contenedor),
@@ -199,7 +269,7 @@ CREATE TABLE IF NOT EXISTS termina (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
-CREATE TABLE IF NOT EXISTS tiene (
+CREATE TABLE tiene (
   Id_Metodo int(11) NOT NULL,
   ID int(11) NOT NULL,
   PRIMARY KEY (Id_Metodo, ID),
@@ -208,16 +278,7 @@ CREATE TABLE IF NOT EXISTS tiene (
   FOREIGN KEY (ID) REFERENCES centrodeacopio (ID)
 );
 
-CREATE TABLE IF NOT EXISTS usa (
-  CI char(8) NOT NULL,
-  Matricula varchar(10) NOT NULL,
-  PRIMARY KEY (CI, Matricula),
-  KEY Matricula (Matricula),
-  FOREIGN KEY (CI) REFERENCES cuadrilla (CI),
-  FOREIGN KEY (Matricula) REFERENCES camion (Matricula)
-);
-
-CREATE TABLE IF NOT EXISTS registro_camion (
+CREATE TABLE registro_camion (
   Id_Registro int(11) NOT NULL AUTO_INCREMENT,
   Matricula varchar(10) NOT NULL,
   CI char(8) NOT NULL,
@@ -234,11 +295,17 @@ CREATE TABLE IF NOT EXISTS registro_camion (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
+-- ============================================================================
+-- Datos de prueba
+-- ============================================================================
+
 -- las contraseñas de todos estos usuarios es: 1234
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
 ('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Administrador', 'admin@gmail.com'),
 ('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Vecino', 'vecino@gmail.com'),
-('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Operario', 'operario@gmail.com');
+('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Operario', 'operario@gmail.com'),
+('66666666', 'Cuadrilla', NULL, 'Uno', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Cuadrilla', 'cuadrilla@gmail.com'),
+('77777777', 'Cuadrilla', NULL, 'Dos', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Cuadrilla', 'cuadrilla2@gmail.com');
 
 INSERT INTO administrador (CI) VALUES
 ('12341234');
@@ -249,18 +316,12 @@ INSERT INTO vecino (CI) VALUES
 INSERT INTO operario (CI) VALUES
 ('55555555');
 
+INSERT INTO cuadrilla (CI) VALUES
+('66666666'),
+('77777777');
+
 INSERT INTO vecino_tel (CI, Tel) VALUES
 ('44444444', '091632224');
-
-INSERT INTO contenedor (Id_Contenedor, Tipo, Estado, Latitud, Longitud) VALUES
-(1, 'Residuos mezclados', 'Nuevo', -34.8970236, -56.1618465),
-(2, 'Reciclables', 'Nuevo', -34.9007677, -56.1628137),
-(4, 'Residuos mezclados', 'Nuevo', -34.9041993, -56.1605104),
-(5, 'Reciclables', 'Nuevo', -34.9059371, -56.1914033);
-
-INSERT INTO incidencia (Id_Incidencia, Tipo, Estado, Id_Contenedor, Foto) VALUES
-(1, 'Contenedor lleno', 'Pendiente', 5, 'incidencia_6aa2d0c5ca7e0.jpg'),
-(2, 'Contenedor roto', 'Pendiente', 2, 'incidencia_6aa2e3790d573.jpg');
 
 INSERT INTO poligono (Id_Poligono) VALUES
 (2),
@@ -284,9 +345,43 @@ INSERT INTO poligono_vertices (Id_Poligono, Orden, Latitud, Longitud) VALUES
 (4, 3, -34.9038826, -56.1892962),
 (4, 4, -34.9077012, -56.1888885);
 
+-- Id_Poligono = zona en la que está parado cada contenedor.
+INSERT INTO contenedor (Id_Contenedor, Tipo, Estado, Latitud, Longitud, Id_Poligono) VALUES
+(1, 'Residuos mezclados', 'Nuevo', -34.8970236, -56.1618465, 2),
+(2, 'Reciclables', 'Nuevo', -34.9007677, -56.1628137, 2),
+(4, 'Residuos mezclados', 'Nuevo', -34.9041993, -56.1605104, 3),
+(5, 'Reciclables', 'Nuevo', -34.9059371, -56.1914033, 4),
+(6, 'Residuos mezclados', 'Nuevo', -34.9006021, -56.1636210, 2),
+(7, 'Residuos mezclados', 'Nuevo', -34.8984261, -56.1641291, 2),
+(8, 'Reciclables', 'Nuevo', -34.8991915, -56.1622287, 2),
+(9, 'Reciclables', 'Nuevo', -34.9023705, -56.1613102, 2),
+(10, 'Residuos mezclados', 'Nuevo', -34.9022916, -56.1640107, 2),
+(11, 'Reciclables', 'Nuevo', -34.9064217, -56.1552279, 3),
+(12, 'Reciclables', 'Nuevo', -34.9054685, -56.1594555, 3),
+(13, 'Residuos mezclados', 'Nuevo', -34.9037108, -56.1605077, 3),
+(14, 'Reciclables', 'Nuevo', -34.9071466, -56.1553333, 3),
+(15, 'Residuos mezclados', 'Nuevo', -34.9074003, -56.1918782, 4),
+(16, 'Residuos mezclados', 'Nuevo', -34.9054330, -56.1933730, 4),
+(17, 'Reciclables', 'Nuevo', -34.9058244, -56.1955853, 4);
+
+INSERT INTO incidencia (Id_Incidencia, Tipo, Estado, Id_Contenedor, Foto) VALUES
+(1, 'Contenedor lleno', 'Pendiente', 5, 'incidencia_6aa2d0c5ca7e0.jpg'),
+(2, 'Contenedor roto', 'Pendiente', 2, 'incidencia_6aa2e3790d573.jpg');
+
 INSERT INTO camion (Matricula, Estado, Tipo) VALUES
-('SBI1234', 'Disponible', 'Compactador'),
-('SBJ5678', 'Disponible', 'Volqueta');
+('SBI1234', 'Disponible', 'Residuos mezclados'),
+('SBJ5678', 'Disponible', 'Reciclables');
+
+-- Asignaciones (las hace el administrador desde su panel):
+--   camión -> zona + tipo de ruta   (tabla recoge)
+--   cuadrilla -> camión             (tabla usa)
+INSERT INTO recoge (Matricula, Id_Poligono, Tipo_Ruta) VALUES
+('SBI1234', 2, 'Residuos mezclados'),
+('SBJ5678', 3, 'Reciclables');
+
+INSERT INTO usa (CI, Matricula) VALUES
+('66666666', 'SBI1234'),
+('77777777', 'SBJ5678');
 
 INSERT INTO centro (ID, Servicio, ContAlmacenados, Capacidad, CamAlmacenados) VALUES
 (1, 'Cent. Felipe Cardozo', 250, 600, 12);
