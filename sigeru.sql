@@ -1,14 +1,3 @@
--- ============================================================================
--- SiGeRU - Base de datos COMPLETA (esquema + datos iniciales de prueba)
--- ============================================================================
--- Este script reconstruye todo desde cero cada vez que se ejecuta: elimina la
--- base de datos "sigeru" (si existe) y la vuelve a crear con todas las tablas y
--- los datos de prueba. Se pierde cualquier dato que hubiera antes.
--- Sirve igual para una máquina nueva, para el contenedor de docker-compose
--- (docker-entrypoint-initdb.d) o para importarlo a mano.
--- Contraseña de TODOS los usuarios de prueba: 1234
--- ============================================================================
-
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP DATABASE IF EXISTS sigeru;
@@ -30,8 +19,6 @@ CREATE TABLE usuario (
   UNIQUE KEY correo_e (correo_e)
 );
 
--- Un camión solo puede ser de uno de dos tipos. Esto permite armar rutas
--- distintas para cada tipo de camión.
 CREATE TABLE camion (
   Matricula varchar(10) NOT NULL,
   Estado varchar(30) DEFAULT NULL,
@@ -158,12 +145,6 @@ CREATE TABLE metodo (
   PRIMARY KEY (Id_Metodo)
 );
 
--- ----------------------------------------------------------------------------
--- Rutas
--- Una ruta pertenece a UNA zona (polígono) y recorre únicamente los
--- contenedores de esa zona. Tipo: 'Residuos mezclados', 'Reciclables' o
--- 'Incidencias' (esta última puede hacerla un camión de cualquier tipo).
--- ----------------------------------------------------------------------------
 CREATE TABLE ruta (
   Id_Ruta int(11) NOT NULL AUTO_INCREMENT,
   Id_Poligono int(11) NOT NULL,
@@ -181,8 +162,6 @@ CREATE TABLE ruta (
   CONSTRAINT chk_ruta_estado CHECK (Estado IN ('Pendiente', 'En curso', 'Finalizada'))
 );
 
--- Paradas de la ruta, en el orden optimizado en que se deben recorrer.
--- Peso: kilos informados por la cuadrilla al recoger el contenedor.
 CREATE TABLE ruta_parada (
   Id_Ruta int(11) NOT NULL,
   Orden int(11) NOT NULL,
@@ -206,7 +185,6 @@ CREATE TABLE al (
   FOREIGN KEY (Id_Contenedor) REFERENCES contenedor (Id_Contenedor)
 );
 
--- Cuadrilla que realizó/realiza cada ruta (historial).
 CREATE TABLE circula (
   CI char(8) NOT NULL,
   Id_Ruta int(11) NOT NULL,
@@ -216,9 +194,6 @@ CREATE TABLE circula (
   FOREIGN KEY (Id_Ruta) REFERENCES ruta (Id_Ruta) ON DELETE CASCADE
 );
 
--- Antes "recoge" relacionaba contenedor-camión. Ahora relaciona el camión con
--- la ZONA en la que trabaja y con el tipo de ruta que hace (la asigna el
--- administrador). Un camión trabaja en una sola zona/tipo de ruta a la vez.
 CREATE TABLE recoge (
   Matricula varchar(10) NOT NULL,
   Id_Poligono int(11) NOT NULL,
@@ -230,8 +205,6 @@ CREATE TABLE recoge (
   CONSTRAINT chk_recoge_tipo CHECK (Tipo_Ruta IN ('Residuos mezclados', 'Reciclables', 'Incidencias'))
 );
 
--- Camión que usa cada cuadrilla (la asigna el administrador).
--- Una cuadrilla usa un camión y un camión lo usa una cuadrilla.
 CREATE TABLE usa (
   CI char(8) NOT NULL,
   Matricula varchar(10) NOT NULL,
@@ -295,11 +268,6 @@ CREATE TABLE registro_camion (
   FOREIGN KEY (ID) REFERENCES centro (ID)
 );
 
--- ============================================================================
--- Datos de prueba
--- ============================================================================
-
--- las contraseñas de todos estos usuarios es: 1234
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
 ('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Administrador', 'admin@gmail.com'),
 ('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Vecino', 'vecino@gmail.com'),
@@ -345,7 +313,6 @@ INSERT INTO poligono_vertices (Id_Poligono, Orden, Latitud, Longitud) VALUES
 (4, 3, -34.9038826, -56.1892962),
 (4, 4, -34.9077012, -56.1888885);
 
--- Id_Poligono = zona en la que está parado cada contenedor.
 INSERT INTO contenedor (Id_Contenedor, Tipo, Estado, Latitud, Longitud, Id_Poligono) VALUES
 (1, 'Residuos mezclados', 'Nuevo', -34.8970236, -56.1618465, 2),
 (2, 'Reciclables', 'Nuevo', -34.9007677, -56.1628137, 2),
@@ -372,9 +339,6 @@ INSERT INTO camion (Matricula, Estado, Tipo) VALUES
 ('SBI1234', 'Disponible', 'Residuos mezclados'),
 ('SBJ5678', 'Disponible', 'Reciclables');
 
--- Asignaciones (las hace el administrador desde su panel):
---   camión -> zona + tipo de ruta   (tabla recoge)
---   cuadrilla -> camión             (tabla usa)
 INSERT INTO recoge (Matricula, Id_Poligono, Tipo_Ruta) VALUES
 ('SBI1234', 2, 'Residuos mezclados'),
 ('SBJ5678', 3, 'Reciclables');
