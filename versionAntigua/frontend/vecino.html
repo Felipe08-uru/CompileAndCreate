@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SiGeRU - Panel del Vecino</title>
+        <link rel="stylesheet" href="estilos/admin.css" />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <img src="img/logoIMMNaranja.svg" alt="Logo" /> <span>SiGeRU</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html">Inicio</a> <a href="vecino.html">Vecino</a>
+                <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+            </nav>
+        </header>
+
+        <div class="titulo">
+            <h1>Panel del Vecino</h1>
+            <p>Consulte las zonas de recolección y los contenedores registrados.</p>
+        </div>
+
+        <div class="contenido">
+            <h2>Vista general</h2>
+            <div class="carta">
+                <p>
+                    Visualización de las zonas de recolección y los contenedores
+                    registrados.
+                </p>
+                <div id="mapa"></div>
+                <p id="mensajeMapa"></p>
+            </div>
+        </div>
+
+        <div class="contenido">
+            <h2>Incidencias</h2>
+            <div class="carta">
+                <p>
+                    Para registrar una incidencia, seleccione un contenedor en el mapa
+                    y presione el botón "Registrar incidencia".
+                </p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><strong>SiGeRU</strong></p>
+            <p>Panel del Vecino</p>
+            <p>Proyecto Integrador - UTU 2026</p>
+        </footer>
+
+        <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+        <div id="modal" class="modal">
+            <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+            <div id="incidenciaForm">
+                <h2>Registrar Incidencia</h2>
+
+                <label for="idContenedor">ID del contenedor</label>
+                <input type="text" id="idContenedor" name="idContenedor" readonly />
+
+                <label for="tipoIncidencia">Tipo de incidencia</label>
+                <select id="tipoIncidencia" name="tipoIncidencia">
+                    <option value="">Seleccione una incidencia</option>
+                    <option value="Contenedor lleno">Contenedor lleno</option>
+                    <option value="Contenedor roto">Contenedor roto</option>
+                    <option value="Contenedor volcado">Contenedor volcado</option>
+                    <option value="Contenedor vandalizado">Contenedor vandalizado</option>
+                    <option value="Basura alrededor">Basura alrededor</option>
+                    <option value="Mal olor">Mal olor</option>
+                    <option value="Otro">Otro</option>
+                </select>
+
+                <label for="foto">Foto de la incidencia</label>
+                <input
+                    type="file"
+                    id="foto"
+                    name="foto"
+                    accept="image/jpeg,image/png,image/gif"
+                />
+
+                <p class="ayuda-foto">
+                    Formatos permitidos: JPG, PNG o GIF. Máximo 5 MB.
+                </p>
+
+                <button
+                    type="button"
+                    class="btn"
+                    id="btnIncidencia"
+                    onclick="registrarIncidencia()"
+                >
+                    Registrar incidencia
+                </button>
+
+                <p id="mensajeIncidencia"></p>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+            const API_CONTENEDORES = "../backend/apiContenedores.php";
+            const API_POLIGONOS = "../backend/apiPoligonos.php";
+            const API_INCIDENCIAS = "../backend/apiIncidencias.php";
+
+            const modal = document.getElementById("modal");
+            const overlay = document.getElementById("overlay");
+
+            function obtenerHeaders() {
+                const token = localStorage.getItem("token");
+                const headers = {};
+
+                if (token) {
+                    headers["Authorization"] = "Bearer " + token;
+                }
+
+                return headers;
+            }
+
+            function verificarSesion(){
+                const token=localStorage.getItem("token");
+                const rol=localStorage.getItem("rol");
+
+                if(!token||rol!=="Vecino"){
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("rol");
+                    window.location.href="index.html";
+                    return;
+                }
+
+                fetch("../backend/apiContenedores.php/contenedores",{
+                    headers:{
+                        "Authorization":"Bearer "+token
+                    }
+                })
+                .then(function(response){
+                    if(!response.ok){
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("rol");
+                        window.location.href="index.html";
+                    }
+                })
+                .catch(function(){
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("rol");
+                    window.location.href="index.html";
+                });
+            }
+
+            function mostrarIncidencia(idContenedor) {
+                modal.style.display = "block";
+                overlay.style.display = "block";
+
+                document.getElementById("idContenedor").value = idContenedor;
+                document.getElementById("tipoIncidencia").value = "";
+                document.getElementById("foto").value = "";
+                document.getElementById("mensajeIncidencia").textContent = "";
+            }
+
+            function cerrarModal() {
+                modal.style.display = "none";
+                overlay.style.display = "none";
+                document.getElementById("tipoIncidencia").value = "";
+                document.getElementById("foto").value = "";
+                document.getElementById("mensajeIncidencia").textContent = "";
+            }
+
+            function cerrarSesion(){
+                localStorage.removeItem("token");
+                window.location.href="index.html";
+            }
+
+            let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap contributors",
+            }).addTo(mapa);
+
+            let iconoContenedor = L.icon({
+                iconUrl: "img/contenedor.png",
+                iconSize: [30, 30],
+                iconAnchor: [15, 20],
+                popupAnchor: [0, -20],
+            });
+
+            function cargarZonas() {
+                fetch(API_POLIGONOS + "/poligonos", {
+                    headers: obtenerHeaders(),
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Error al obtener las zonas.");
+                        }
+
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        data.forEach(function (zona) {
+                            let vertices = zona.vertices.map(function (v) {
+                                return [parseFloat(v.latitud), parseFloat(v.longitud)];
+                            });
+
+                            if (vertices.length >= 3) {
+                                L.polygon(vertices, {
+                                    color: "#0f4c81",
+                                    fillColor: "#0f4c81",
+                                    fillOpacity: 0.2,
+                                    weight: 2,
+                                }).addTo(mapa);
+
+                                let centro = calcularCentro(vertices);
+
+                                L.marker(centro, {
+                                    icon: L.divIcon({
+                                        className: "id-zona",
+                                        html: "<span>" + zona.id_poligono + "</span>",
+                                        iconSize: null,
+                                        iconAnchor: [0, 0],
+                                    }),
+                                    interactive: false,
+                                }).addTo(mapa);
+                            }
+                        });
+                    })
+                    .catch(function (error) {
+                        console.error("Error al cargar las zonas:", error);
+                        document.getElementById("mensajeMapa").textContent =
+                            "No se pudieron cargar las zonas.";
+                    });
+            }
+
+            function cargarContenedores() {
+                fetch(API_CONTENEDORES + "/contenedores", {
+                    headers: obtenerHeaders(),
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Error al obtener los contenedores.");
+                        }
+
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        data.forEach(function (contenedor) {
+                            if (
+                                contenedor.Latitud !== null &&
+                                contenedor.Longitud !== null
+                            ) {
+                                let marcador = L.marker(
+                                    [
+                                        parseFloat(contenedor.Latitud),
+                                        parseFloat(contenedor.Longitud),
+                                    ],
+                                    {
+                                        icon: iconoContenedor,
+                                    }
+                                ).addTo(mapa);
+
+                                marcador.bindPopup(
+                                    "<strong>Contenedor " +
+                                        contenedor.Id_Contenedor +
+                                        "</strong><br>" +
+                                        "Tipo: " +
+                                        contenedor.Tipo +
+                                        "<br>" +
+                                        "Estado: " +
+                                        contenedor.Estado +
+                                        "<br><br>" +
+                                        "<button class='btn-mapa' onclick='mostrarIncidencia(" +
+                                        contenedor.Id_Contenedor +
+                                        ")'>" +
+                                        "Registrar incidencia" +
+                                        "</button>"
+                                );
+                            }
+                        });
+                    })
+                    .catch(function (error) {
+                        console.error("Error al cargar los contenedores:", error);
+                        document.getElementById("mensajeMapa").textContent =
+                            "No se pudieron cargar los contenedores.";
+                    });
+            }
+
+            function registrarIncidencia() {
+                let idContenedor = document.getElementById("idContenedor").value.trim();
+                let tipoIncidencia = document.getElementById("tipoIncidencia").value;
+                let foto = document.getElementById("foto").files[0];
+                let mensaje = document.getElementById("mensajeIncidencia");
+                let boton = document.getElementById("btnIncidencia");
+
+                if (idContenedor === "") {
+                    mensaje.textContent = "No se seleccionó ningún contenedor.";
+                    return;
+                }
+
+                if (tipoIncidencia === "") {
+                    mensaje.textContent = "Seleccione el tipo de incidencia.";
+                    return;
+                }
+
+                if (!foto) {
+                    mensaje.textContent = "Seleccione una fotografía.";
+                    return;
+                }
+
+                let tiposPermitidos = ["image/jpeg", "image/png", "image/gif"];
+
+                if (!tiposPermitidos.includes(foto.type)) {
+                    mensaje.textContent = "La imagen debe ser JPG, PNG o GIF.";
+                    return;
+                }
+
+                if (foto.size > 5 * 1024 * 1024) {
+                    mensaje.textContent = "La imagen no puede superar los 5 MB.";
+                    return;
+                }
+
+                let formulario = new FormData();
+
+                formulario.append("idContenedor", idContenedor);
+                formulario.append("tipoIncidencia", tipoIncidencia);
+                formulario.append("foto", foto);
+
+                boton.disabled = true;
+                boton.textContent = "Registrando...";
+                mensaje.textContent = "";
+
+                fetch(API_INCIDENCIAS + "/incidencias", {
+                    method: "POST",
+                    headers: obtenerHeaders(),
+                    body: formulario,
+                })
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return {
+                                ok: response.ok,
+                                data: data,
+                            };
+                        });
+                    })
+                    .then(function (resultado) {
+                        if (resultado.ok && !resultado.data.error) {
+                            mensaje.textContent =
+                                resultado.data.mensaje ||
+                                "La incidencia fue registrada correctamente.";
+
+                            document.getElementById("tipoIncidencia").value = "";
+                            document.getElementById("foto").value = "";
+
+                            setTimeout(function () {
+                                cerrarModal();
+                            }, 1000);
+                        } else {
+                            mensaje.textContent =
+                                resultado.data.error ||
+                                "No se pudo registrar la incidencia.";
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error("Error:", error);
+                        mensaje.textContent =
+                            "No se pudo conectar con el servidor.";
+                    })
+                    .finally(function () {
+                        boton.disabled = false;
+                        boton.textContent = "Registrar incidencia";
+                    });
+            }
+
+            function calcularCentro(vertices) {
+                let sumaLatitud = 0;
+                let sumaLongitud = 0;
+
+                vertices.forEach(function (punto) {
+                    sumaLatitud += punto[0];
+                    sumaLongitud += punto[1];
+                });
+
+                return [
+                    sumaLatitud / vertices.length,
+                    sumaLongitud / vertices.length,
+                ];
+            }
+
+            cargarZonas();
+            cargarContenedores();
+            verificarSesion();
+        </script>
+    </body>
+</html>

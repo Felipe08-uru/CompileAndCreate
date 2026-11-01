@@ -1,0 +1,104 @@
+<?php
+function obtenerToken() {
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
+
+    $authorization = null;
+
+    if (isset($headers["Authorization"])) {
+        $authorization = $headers["Authorization"];
+    } elseif (isset($headers["authorization"])) {
+        $authorization = $headers["authorization"];
+    } else {
+        return null;
+    }
+
+    if (strpos($authorization, "Bearer ") === 0) {
+        return substr($authorization, 7);
+    }
+
+    return null;
+}
+
+function autenticarUsuario($tokenObj) {
+    $token = obtenerToken();
+
+    if ($token === null || $token === "") {
+        http_response_code(401);
+        echo json_encode(["error" => "Token requerido"]);
+        return false;
+    }
+
+    $ci = $tokenObj->validarToken($token);
+
+    if ($ci === false) {
+        http_response_code(401);
+        echo json_encode(["error" => "Token inválido o vencido"]);
+        return false;
+    }
+
+    return $ci;
+}
+
+function esAdministrador($usuarioObj, $ci) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario) {
+        http_response_code(401);
+        echo json_encode(["error" => "Usuario no encontrado"]);
+        return false;
+    }
+
+    if ($usuario["rol"] !== "Administrador") {
+        http_response_code(403);
+        echo json_encode(["error" => "No tiene permisos"]);
+        return false;
+    }
+
+    return true;
+}
+
+function esOperario($usuarioObj, $ci) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario) {
+        http_response_code(401);
+        echo json_encode(["error" => "Usuario no encontrado"]);
+        return false;
+    }
+
+    if ($usuario["rol"] !== "Operario") {
+        http_response_code(403);
+        echo json_encode(["error" => "No tiene permisos"]);
+        return false;
+    }
+
+    return true;
+}
+/**
+ * Devuelve los datos del usuario autenticado si su rol está entre los permitidos.
+ * Si no, ya responde el error JSON correspondiente y devuelve false.
+ *
+ * @param Usuario $usuarioObj
+ * @param string $ci
+ * @param array $rolesPermitidos Ej: ["Administrador", "Cuadrilla"]
+ * @return array|false
+ */
+function obtenerUsuarioConRol($usuarioObj, $ci, $rolesPermitidos) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario) {
+        http_response_code(401);
+        echo json_encode(["error" => "Usuario no encontrado"]);
+        return false;
+    }
+
+    if (!in_array($usuario["rol"], $rolesPermitidos, true)) {
+        http_response_code(403);
+        echo json_encode(["error" => "No tiene permisos"]);
+        return false;
+    }
+
+    return $usuario;
+}
+
+?>

@@ -1,0 +1,32 @@
+Presione q para salir
+El 01 de noviembre 2026 a las 18:35:19 se creo el usuario pepito en el grupo coquitos
+El 01 de noviembre 2026 a las 18:50:43 se borro el grupo coquitos
+El 01 de noviembre 2026 a las 18:51:08 se borro el grupo coquitas
+El 01 de noviembre 2026 a las 18:51:13 se borro el grupo profes
+El 01 de noviembre 2026 a las 18:51:23 se borro el usuario pepito
+El 01 de noviembre 2026 a las 18:51:33 se borro el grupo coquitos
+El 01 de noviembre 2026 a las 19:08:39 se creo el grupo coquitos
+El 01 de noviembre 2026 a las 19:09:09 se borro el grupo coquitos
+El 01 de noviembre 2026 a las 19:10:44 se borro el grupo coquitos
+El 01 de noviembre 2026 a las 19:12:17 se creo el grupo coquitos
+El 01 de noviembre 2026 a las 19:15:59 se creo el grupo coco
+El 01 de noviembre 2026 a las 19:19:37 se borro el grupo coco
+El 01 de noviembre 2026 a las 19:24:07 se borro el grupo coco
+El 01 de noviembre 2026 a las 19:25:33 se borro el grupo coco
+El 01 de noviembre 2026 a las 19:25:58 se creo el grupo coco
+El 01 de noviembre 2026 a las 19:26:10 se borro el grupo coco
+El 01 de noviembre 2026 a las 19:27:12 se creo el grupo coco
+El 01 de noviembre 2026 a las 19:27:20 se borro el grupo coco
+El 01 de noviembre 2026 a las 19:30:20 se creo el grupo coca
+El 01 de noviembre 2026 a las 19:30:22 se borro el grupo coca
+El 01 de noviembre 2026 a las 19:44:16 se revisaron los usuarios de sigeru
+El 01 de noviembre 2026 a las 20:16:22 se creo el grupo cocos
+El 01 de noviembre 2026 a las 20:16:35 se creo el usuario adrian en el grupo cocos
+El 01 de noviembre 2026 a las 20:17:02 se creo el usuario adrian en el grupo cocos
+El 01 de noviembre 2026 a las 20:17:17 se borro el usuario adrian
+El 01 de noviembre 2026 a las 20:17:26 se creo el usuario adrian en el grupo cocos
+El 01 de noviembre 2026 a las 20:17:31 se borro el usuario adrian
+El 01 de noviembre 2026 a las 20:17:41 se creo el usuario adrian en el grupo cocos
+El 01 de noviembre 2026 a las 20:17:56 se le asigno al usuario adrian el grupo cocos
+El 01 de noviembre 2026 a las 20:18:22 se creo el grupo cocas
+El 01 de noviembre 2026 a las 20:19:04 se le desasigno el grupo cocos al usuario adrian

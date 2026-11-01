@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de Administración</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <section class="hero-admin">
+        <div class="hero-admin-texto">
+            <span class="hero-etiqueta">Administrador</span>
+            <h1>Panel de Administración</h1>
+            <p>Gestione zonas, flota, usuarios y centros, y organice las rutas de recolección desde un solo lugar.</p>
+        </div>
+    </section>
+
+    <div class="contenido">
+        <div class="tarjetas-resumen tarjetas-5">
+            <div class="tarjeta-dato"><div><span>Usuarios</span><strong id="resUsuarios">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Camiones</span><strong id="resCamiones">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Contenedores</span><strong id="resContenedores">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Incidencias pendientes</span><strong id="resIncidencias">-</strong></div></div>
+            <div class="tarjeta-dato"><div><span>Rutas sin finalizar</span><strong id="resRutas">-</strong></div></div>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Vista general" data-menu-grupo="Resumen">
+        <h2>Vista general</h2>
+        <div class="carta" id="vistaGeneral">
+            <p>Zonas de recolección registradas.</p>
+            <div id="mapa"></div>
+            <p id="mensajeMapa"></p>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Zonas, flota y contenedores</h2>
+        <div class="grilla-acciones">
+            <div class="tarjeta-accion">
+                <h3>Zonas</h3>
+                <p>Dibuje y administre los polígonos de recolección.</p>
+                <a data-menu="Gestionar zonas" data-menu-grupo="Zonas, flota y contenedores" href="mapaAdmin.html" class="btn">Gestionar zonas</a>
+            </div>
+
+            <div class="tarjeta-accion">
+                <h3>Camiones</h3>
+                <p>Registre un camión con su matrícula, tipo (residuos mezclados o reciclables) y estado.</p>
+                <button type="button" class="btn" data-menu="Registrar camión" onclick="mostrarCamion()">Registrar camión</button>
+            </div>
+
+            <div class="tarjeta-accion">
+                <h3>Contenedores</h3>
+                <p>Elija la ubicación en el mapa y registre sus datos.</p>
+                <a data-menu="Añadir contenedor" href="mapaContenedores.html" class="btn btn-secundario">Añadir contenedor</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Personas y centros</h2>
+        <div class="grilla-acciones grilla-2">
+            <div class="tarjeta-accion">
+                <h3>Usuarios</h3>
+                <p>Registre un usuario indicando sus datos, correo, contraseña y rol.</p>
+                <button type="button" class="btn" data-menu="Registrar usuario" data-menu-grupo="Personas y centros" onclick="mostrarUsuario()">Registrar usuario</button>
+            </div>
+
+            <div class="tarjeta-accion">
+                <h3>Centros de acopio</h3>
+                <p>Registre un centro indicando su servicio y su capacidad.</p>
+                <button type="button" class="btn btn-secundario" data-menu="Registrar centro de acopio" onclick="mostrarCentro()">Registrar centro</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <h2>Rutas y asignaciones</h2>
+        <div class="grilla-acciones grilla-2">
+            <div class="tarjeta-accion destacada">
+                <h3>Camión de la cuadrilla</h3>
+                <p>Asigne a cada cuadrilla el camión que va a usar.</p>
+                <button type="button" class="btn" data-menu="Asignar camión a cuadrilla" data-menu-grupo="Rutas y asignaciones" onclick="mostrarCuadrillaCamion()">Asignar camión a cuadrilla</button>
+            </div>
+
+            <div class="tarjeta-accion destacada">
+                <h3>Rutas</h3>
+                <p>Cree la ruta de una zona (residuos mezclados, reciclables o incidencias) y asígnele un camión.</p>
+                <button type="button" class="btn" data-menu="Crear ruta" onclick="mostrarRuta()">Crear ruta</button>
+                <button type="button" class="btn btn-terciario-claro" data-menu="Ver rutas" onclick="irATabla('rutas')">Ver rutas</button>
+            </div>
+        </div>
+    </div>
+
+<div class="contenido">
+    <h2>Registros</h2>
+
+    <div class="carta">
+
+        <label for="selectorTabla">Seleccionar registro:</label>
+
+        <select id="selectorTabla" onchange="cambiarTabla()">
+            <option value="usuarios" data-menu="Usuarios" data-menu-grupo="Ver registros">Usuarios</option>
+            <option value="camiones" data-menu="Camiones">Camiones</option>
+            <option value="contenedores" data-menu="Contenedores">Contenedores</option>
+            <option value="incidencias" data-menu="Incidencias">Incidencias</option>
+            <option value="centros" data-menu="Centros de acopio">Centros de acopio</option>
+            <option value="asignaciones" data-menu="Cuadrillas y camiones">Cuadrillas y camiones</option>
+            <option value="rutas" data-menu="Rutas">Rutas</option>
+        </select>
+
+        <div id="tablaUsuariosContainer" class="tabla-container">
+            <h3>Usuarios registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>CI</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaUsuarios">
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tablaCamionesContainer" class="tabla-container">
+            <h3>Camiones registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaCamiones">
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tablaContenedoresContainer" class="tabla-container">
+            <h3>Contenedores registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ubicación</th>
+                        <th>Tipo de residuo</th>
+                        <th>Zona</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaContenedores">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tablaIncidenciasContainer" class="tabla-container">
+            <h3>Incidencias registradas</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Contenedor</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Foto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaIncidencias">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tablaCentrosContainer" class="tabla-container">
+            <h3>Centros de acopio registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Servicio</th>
+                        <th>Capacidad</th>
+                        <th>Contenedores almacenados</th>
+                        <th>Camiones almacenados</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaCentros">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tablaAsignacionesContainer" class="tabla-container">
+            <h3>Cuadrillas y camiones</h3>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cuadrilla</th>
+                            <th>Camión</th>
+                            <th>Tipo de camión</th>
+                            <th>Ruta actual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaAsignaciones">
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="mensajeAsignaciones"></p>
+        </div>
+
+        <div id="tablaRutasContainer" class="tabla-container">
+            <h3>Rutas</h3>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Zona</th>
+                            <th>Tipo</th>
+                            <th>Camión</th>
+                            <th>Cuadrilla</th>
+                            <th>Estado</th>
+                            <th>Avance</th>
+                            <th>Peso total (kg)</th>
+                            <th>Creada</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaRutas">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel de Administración</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <div id="modal" class="modal">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+        <div id="camionForm" style="display:none;">
+            <h2>Registrar Camión</h2>
+
+            <label for="matricula">Matrícula</label>
+            <input type="text" id="matricula" name="matricula" placeholder="Ingrese la matrícula">
+
+            <label for="tipoCamion">Tipo</label>
+            <select id="tipoCamion" name="tipoCamion">
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
+            </select>
+
+            <label for="estadoCamion">Estado</label>
+            <select id="estadoCamion" name="estadoCamion">
+                <option value="Disponible">Disponible</option>
+                <option value="En servicio">En servicio</option>
+                <option value="Fuera de servicio">Fuera de servicio</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarCamion()">Registrar Camión</button>
+            <p id="mensajeCamion"></p>
+        </div>
+
+        <div id="usuarioForm" style="display:none;">
+            <h2>Registrar Usuario</h2>
+
+            <label for="ciUsuario">Cédula de identidad</label>
+            <input type="text" id="ciUsuario" maxlength="8" placeholder="Cédula de identidad">
+
+            <label for="nombre1Usuario">Primer nombre</label>
+            <input type="text" id="nombre1Usuario" placeholder="Primer nombre">
+
+            <label for="nombre2Usuario">Segundo nombre</label>
+            <input type="text" id="nombre2Usuario" placeholder="Segundo nombre (opcional)">
+
+            <label for="apellido1Usuario">Primer apellido</label>
+            <input type="text" id="apellido1Usuario" placeholder="Primer apellido">
+
+            <label for="apellido2Usuario">Segundo apellido</label>
+            <input type="text" id="apellido2Usuario" placeholder="Segundo apellido (opcional)">
+
+            <label for="correoUsuario">Correo electrónico</label>
+            <input type="email" id="correoUsuario" placeholder="Correo electrónico">
+
+            <label for="contrasenaUsuario">Contraseña</label>
+            <input type="password" id="contrasenaUsuario" placeholder="Contraseña">
+
+            <label for="rolUsuario">Rol</label>
+            <select id="rolUsuario">
+                <option value="Administrador">Administrador</option>
+                <option value="Vecino">Vecino</option>
+                <option value="Cuadrilla">Cuadrilla</option>
+                <option value="Operario">Operario</option>
+            </select>
+
+            <button type="button" class="btn" onclick="registrarUsuario()">Registrar Usuario</button>
+            <p id="mensajeUsuario"></p>
+        </div>
+
+        <div id="centroForm" style="display:none;">
+            <h2>Registrar Centro de Acopio</h2>
+
+            <label for="servicioCentro">Servicio</label>
+            <input type="text" id="servicioCentro" name="servicioCentro" placeholder="Ej: Clasificación">
+
+            <label for="capacidadCentro">Capacidad</label>
+            <input type="number" id="capacidadCentro" name="capacidadCentro" min="0" placeholder="Ej: 600">
+
+            <label for="contAlmacenadosCentro">Contenedores almacenados</label>
+            <input type="number" id="contAlmacenadosCentro" name="contAlmacenadosCentro" min="0" placeholder="Ej: 0">
+
+            <label for="camAlmacenadosCentro">Camiones almacenados</label>
+            <input type="number" id="camAlmacenadosCentro" name="camAlmacenadosCentro" min="0" placeholder="Ej: 0">
+
+            <button type="button" class="btn" onclick="registrarCentro()">Registrar Centro</button>
+            <p id="mensajeCentro"></p>
+        </div>
+
+        <div id="cuadrillaCamionForm" style="display:none;">
+            <h2>Asignar camión a cuadrilla</h2>
+
+            <label for="ccCuadrilla">Cuadrilla</label>
+            <select id="ccCuadrilla" onchange="actualizarCamionActual()"></select>
+
+            <label for="ccCamion">Camión</label>
+            <select id="ccCamion"></select>
+
+            <button type="button" class="btn" onclick="guardarCuadrillaCamionUI()">Guardar</button>
+            <p id="mensajeCuadrillaCamion"></p>
+        </div>
+
+        <div id="rutaForm" style="display:none;">
+            <h2>Crear ruta</h2>
+
+            <label for="rutaZona">Zona</label>
+            <select id="rutaZona"></select>
+
+            <label for="rutaTipo">Tipo de ruta</label>
+            <select id="rutaTipo" onchange="actualizarCamionesRuta()">
+                <option value="Residuos mezclados">Residuos mezclados</option>
+                <option value="Reciclables">Reciclables</option>
+                <option value="Incidencias">Incidencias</option>
+            </select>
+
+            <label for="rutaCamion">Camión (opcional, se puede asignar después)</label>
+            <select id="rutaCamion"></select>
+
+            <button type="button" class="btn" onclick="crearRutaUI()">Crear ruta</button>
+            <p id="mensajeRuta"></p>
+        </div>
+
+        <div id="rutaCamionForm" style="display:none;">
+            <h2>Asignar camión a la ruta</h2>
+            <p id="rutaCamionDetalle"></p>
+
+            <label for="rcCamion">Camión</label>
+            <select id="rcCamion"></select>
+
+            <button type="button" class="btn" onclick="guardarRutaCamionUI()">Guardar</button>
+            <p id="mensajeRutaCamion"></p>
+        </div>
+    </div>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/administrador.js"></script>
+    <script src="js/menu.js" defer></script>
+</body>
+</html>

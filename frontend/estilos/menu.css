@@ -1,0 +1,202 @@
+/* ===== Menú hamburguesa ===== */
+
+.header{
+    position:relative;
+}
+
+.menu-toggle{
+    display:inline-flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:5px;
+    width:46px;
+    height:46px;
+    padding:0;
+    background:rgba(255,255,255,.14);
+    border:2px solid rgba(255,255,255,.7);
+    border-radius:4px;
+    cursor:pointer;
+    order:-1;
+}
+
+.menu-toggle:hover{
+    background:rgba(255,255,255,.28);
+}
+
+.menu-toggle span{
+    display:block;
+    width:22px;
+    height:3px;
+    background:white;
+    border-radius:4px;
+}
+
+/* El cierre de sesión vive en el menú lateral, no en el banner */
+.header .nav button{
+    display:none;
+}
+
+.menu-fondo{
+    position:fixed;
+    inset:0;
+    background:rgba(10,25,45,.55);
+    opacity:0;
+    visibility:hidden;
+    z-index:2000;
+}
+
+.menu-fondo.abierto{
+    opacity:1;
+    visibility:visible;
+}
+
+.menu-lateral{
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:290px;
+    max-width:85vw;
+    display:flex;
+    flex-direction:column;
+    background:#fff;
+    transform:translateX(-105%);
+    z-index:2001;
+}
+
+.menu-lateral.abierto{
+    transform:translateX(0);
+}
+
+body.menu-abierto{
+    overflow:hidden;
+}
+
+.menu-cabecera{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 20px;
+    background:#0f4c81;
+    color:white;
+    font-size:22px;
+}
+
+.menu-cerrar{
+    width:36px;
+    height:36px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.18);
+    color:white;
+    font-size:26px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.menu-cerrar:hover{
+    background:rgba(255,255,255,.32);
+}
+
+.menu-enlaces{
+    flex:1;
+    padding:14px 12px;
+    overflow-y:auto;
+}
+
+.menu-enlaces a{
+    display:block;
+    padding:13px 16px;
+    margin-bottom:4px;
+    border-radius:4px;
+    border-left:4px solid transparent;
+    color:#1f2d3d;
+    font-size:16px;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+.menu-enlaces a:hover{
+    background:#eef4fb;
+}
+
+.menu-enlaces a.activo{
+    background:#e3eefa;
+    border-left-color:#0f4c81;
+    color:#0f4c81;
+}
+
+.menu-pie{
+    padding:16px;
+    border-top:1px solid #e1e8f0;
+}
+
+.menu-salir{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:100%;
+    padding:13px 16px;
+    background:#fdecec;
+    color:#b42323;
+    font-size:16px;
+    font-weight:bold;
+    border:2px solid #f3c1c1;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.menu-salir:hover{
+    background:#d64545;
+    border-color:#d64545;
+    color:white;
+}
+
+/* Versión plana (se aplica también en el inicio, que no usa admin.css) */
+.menu-toggle{ background:none; border-radius:0; }
+.menu-toggle:hover{ background:rgba(255,255,255,.15); }
+.menu-lateral{ box-shadow:none; border-right:1px solid #999; }
+.menu-fondo{ background:rgba(0,0,0,.4); }
+.menu-cabecera{ background:#0f4c81; }
+.menu-cerrar{ border-radius:0; background:none; }
+.menu-enlaces a{ border-left:none; border-radius:0; font-weight:normal; }
+.menu-enlaces a:hover{ background:#eee; }
+.menu-enlaces a.activo{ background:#e6e6e6; color:#222; font-weight:bold; }
+.menu-pie{ border-top:1px solid #ccc; }
+.menu-salir{ background:white; color:#222; border:1px solid #777; border-radius:0; font-weight:normal; }
+.menu-salir:hover{ background:#b32424; border-color:#b32424; color:white; }
+
+.menu-opciones{
+    padding:0 12px 14px;
+}
+
+.menu-opciones h4{
+    margin:14px 16px 4px;
+    font-size:12px;
+    font-weight:bold;
+    color:#666;
+    text-transform:uppercase;
+}
+
+.menu-opciones a{
+    display:block;
+    padding:9px 16px;
+    color:#1f2d3d;
+    font-size:15px;
+    text-decoration:none;
+}
+
+.menu-opciones a:hover{
+    background:#eee;
+}
+
+.menu-opciones:empty{
+    display:none;
+}
+
+.menu-lateral{ overflow-y:auto; }
+.menu-enlaces{ flex:0 0 auto; overflow:visible; padding-bottom:6px; border-bottom:1px solid #ddd; }
+.menu-opciones{ flex:1 0 auto; }
+.menu-pie{ margin-top:auto; }
