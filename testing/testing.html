@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SiGeRU - Pruebas de la API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+    body { background: #f2f2f2; color: #333; }
+
+    .encabezado { background: #0f4c81; color: white; padding: 16px 8%; }
+    .encabezado h1 { font-size: 22px; }
+    .encabezado p { margin-top: 4px; font-size: 14px; }
+
+    main { padding: 20px 8%; }
+
+    .resumen { background: white; border: 1px solid #d9d9d9; padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+    .resumen strong { font-size: 18px; }
+    .resumen .ok { color: #2e7d32; }
+    .resumen .fail { color: #c0392b; }
+    .resumen .info { color: #555; }
+    .resumen button { margin-left: auto; background: #0f4c81; color: white; border: none; padding: 8px 16px; cursor: pointer; }
+
+    h2 { font-size: 16px; background: #0f4c81; color: white; padding: 8px 16px; margin-top: 20px; }
+
+    .fila { background: white; border: 1px solid #d9d9d9; border-top: none; padding: 8px 16px; display: grid; grid-template-columns: 70px 1fr; gap: 12px; }
+    .estado { font-weight: bold; font-size: 13px; }
+    .fila.ok .estado { color: #2e7d32; }
+    .fila.fail .estado { color: #c0392b; }
+    .fila.info .estado { color: #555; }
+    .fila.fail { background: #fbeeee; }
+    .nombre { font-size: 14px; }
+    .detalle { margin-top: 4px; font-family: Consolas, "Courier New", monospace; font-size: 12px; color: #555; white-space: pre-wrap; word-break: break-word; }
+    .fila.fail .detalle { color: #7a1f16; }
+
+    .aviso { background: white; border: 1px solid #d9d9d9; padding: 12px 16px; margin-top: 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="encabezado">
+    <h1>Pruebas de la API</h1>
+    <p>Comprueba que funcionan los endpoints de SiGeRU. Hace falta tener la base cargada con sigeru.sql.</p>
+  </div>
+
+  <main>
+    <div class="resumen">
+      <span id="resumen">Ejecutando...</span>
+      <button type="button" onclick="location.reload()">Ejecutar de nuevo</button>
+    </div>
+    <div id="output"></div>
+  </main>
+
+  <script type="module" src="./testing.js"></script>
+</body>
+</html>
