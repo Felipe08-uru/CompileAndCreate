@@ -302,6 +302,14 @@ td{
     background:#245a94;
 }
 
+.btn-ver{
+    background:#0f4c81;
+}
+
+.btn-ver:hover{
+    background:#0b3a64;
+}
+
 .btn-eliminar:hover{
     background:#a52a2a;
 }

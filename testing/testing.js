@@ -27,7 +27,7 @@ import {
 import { getPoligonos, crearPoligono, eliminarPoligono } from '../frontend/js/APIPoligonos.js';
 
 import {
-  getIncidencias, getIncidenciaPorId, crearIncidencia, eliminarIncidencia,
+  getIncidencias, getIncidenciaPorId, crearIncidencia, eliminarIncidencia, getFotoIncidencia,
 } from '../frontend/js/APIIncidencias.js';
 
 import {
@@ -39,7 +39,7 @@ import {
 } from '../frontend/js/APIAsignaciones.js';
 
 import {
-  getDesbordados, getPromedio, getZonasLlenado, getLimpieza, registrarLectura,
+  getDesbordados, getPromedio, getZonasLlenado, getLimpieza,
 } from '../frontend/js/APIEstadisticas.js';
 
 // ================== UI / LOG helpers ==================
@@ -410,104 +410,52 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
     return r.data;
   });
 
-  // ====== (6) Estadísticas ======
-  seccion('6. Estadísticas (lecturas, desbordes, promedios, zonas y limpieza)');
+  // ====== (6) Estadísticas (antes de recolectar) ======
+  seccion('6. Estadísticas: estado inicial (el llenado sale del peso retirado, 300 kg = 100 %)');
 
-  if (!idContenedorRuta) {
-    info('Estadísticas', 'No hay contenedor de prueba; se omite la sección.');
-  } else {
-    await prueba('Operario registra una lectura desbordada (97): responde 201 y desbordado = true', async function () {
-      await como('Operario');
-      const r = await registrarLectura(idContenedorRuta, 97);
-      estado(r, 201);
-      afirmar(r.data.desbordado === true, 'debía marcar desbordado', r);
-      afirmar(r.data.id_lectura, 'no devolvió id_lectura', r);
-      return r.data;
-    });
+  await prueba('Mes inválido devuelve 400', async function () {
+    await como('Administrador');
+    estado(await getDesbordados('abc'), 400);
+  });
 
-    await prueba('Límites del nivel: 0 y 100 se aceptan', async function () {
-      await como('Administrador');
-      estado(await registrarLectura(idContenedorRuta, 0), 201);
-      estado(await registrarLectura(idContenedorRuta, 100), 201);
-    });
+  await prueba('Las estadísticas responden con la estructura esperada', async function () {
+    await como('Administrador');
+    const d = await getDesbordados('', 50);
+    estado(d, 200);
+    afirmar(d.data.capacidad_kg === 300 && d.data.umbral === 90 && d.data.umbral_kg === 270, 'esperaba capacidad 300 kg, umbral 90 % y 270 kg', d);
+    afirmar(Array.isArray(d.data.contenedores), 'falta la lista de contenedores', d);
+    const p = await getPromedio(30, 50);
+    estado(p, 200);
+    afirmar(Array.isArray(p.data.contenedores), 'falta la lista de contenedores', p);
+    const z = await getZonasLlenado(30);
+    estado(z, 200);
+    afirmar(Array.isArray(z.data.zonas), 'falta la lista de zonas', z);
+  });
 
-    await prueba('Cuadrilla puede registrar una lectura (50)', async function () {
-      await como('Cuadrilla');
-      estado(await registrarLectura(idContenedorRuta, 50), 201);
-    });
+  await prueba('Un contenedor nuevo figura como "nunca" recolectado y sin llenado', async function () {
+    if (!idContenedorRuta) throw new Error('no hay contenedor de prueba');
+    await como('Administrador');
+    const l = await getLimpieza();
+    estado(l, 200);
+    const fila = buscarFila(l.data.contenedores, 'Id_Contenedor', idContenedorRuta);
+    afirmar(fila, 'el contenedor no aparece', l);
+    afirmar(fila.Categoria === 'nunca' && fila.Dias === null, 'esperaba nunca / null', l);
+    const p = await getPromedio(30, 500);
+    afirmar(!buscarFila(p.data.contenedores, 'Id_Contenedor', idContenedorRuta), 'no debería tener llenado sin recolecciones', p);
+  });
 
-    await prueba('Rechaza nivel 140, -1 y contenedor sin indicar (400)', async function () {
-      await como('Operario');
-      estado(await registrarLectura(idContenedorRuta, 140), 400);
-      estado(await registrarLectura(idContenedorRuta, -1), 400);
-      estado(await registrarLectura(null, 50), 400);
-    });
-
-    await prueba('Rechaza fecha mal formada (400) y contenedor inexistente (404)', async function () {
-      await como('Operario');
-      estado(await registrarLectura(idContenedorRuta, 50, 'ayer'), 400);
-      estado(await registrarLectura(999999, 50), 404);
-    });
-
-    await prueba('Vecino no puede registrar lecturas (403)', async function () {
-      await como('Vecino');
-      estado(await registrarLectura(idContenedorRuta, 50), 403);
-    });
-
-    await prueba('Desbordados del mes incluye el contenedor con 2 desbordes (97 y 100)', async function () {
-      await como('Administrador');
-      const r = await getDesbordados('', 500);
-      estado(r, 200);
-      const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
-      afirmar(fila, 'el contenedor no aparece entre los desbordados', r);
-      afirmar(Number(fila.Veces) === 2, 'esperaba Veces = 2 y llegó ' + fila.Veces, r);
-      afirmar(r.data.umbral === 90, 'el umbral debía ser 90', r);
-      return fila;
-    });
-
-    await prueba('Mes inválido devuelve 400', async function () {
-      await como('Administrador');
-      estado(await getDesbordados('abc'), 400);
-    });
-
-    await prueba('Promedio por contenedor: (97+0+100+50)/4 = 61,75', async function () {
-      const r = await getPromedio(30, 500);
-      estado(r, 200);
-      const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
-      afirmar(fila, 'el contenedor no aparece en el promedio', r);
-      afirmar(Math.abs(Number(fila.Promedio) - 61.75) <= 0.06, 'esperaba ~61,75 y llegó ' + fila.Promedio, r);
-      afirmar(typeof r.data.promedio_general === 'number', 'falta promedio_general', r);
-      return fila;
-    });
-
-    await prueba('Llenado por zona: la zona de prueba tiene ~61,75', async function () {
-      const r = await getZonasLlenado(30);
-      estado(r, 200);
-      const fila = buscarFila(r.data.zonas, 'Id_Poligono', idZonaTest);
-      afirmar(fila, 'la zona no aparece', r);
-      afirmar(Math.abs(Number(fila.Promedio) - 61.75) <= 0.06, 'esperaba ~61,75 y llegó ' + fila.Promedio, r);
-      afirmar(fila.Categoria === 'medio', 'categoría esperada: medio', r);
-      return fila;
-    });
-
-    await prueba('Limpieza: contenedor nuevo figura como "nunca" (sin recolección)', async function () {
-      const r = await getLimpieza();
-      estado(r, 200);
-      const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
-      afirmar(fila, 'el contenedor no aparece', r);
-      afirmar(fila.Categoria === 'nunca' && fila.Dias === null, 'esperaba nunca / null', r);
-      return fila;
-    });
-
-    await prueba('Con la semilla: hay contenedores con días de limpieza registrados', async function () {
-      const r = await getLimpieza();
-      const conDias = r.data.contenedores.filter(function (c) { return typeof c.Dias === 'number'; });
-      afirmar(conDias.length >= 10, 'esperaba al menos 10 contenedores con fecha de limpieza (¿se cargó sigeru.sql?) y hay ' + conDias.length, r);
-      const mayor = Math.max.apply(null, conDias.map(function (c) { return c.Dias; }));
-      afirmar(mayor >= 1, 'ningún contenedor tiene días sin limpiar', r);
-      return { contenedores_con_fecha: conDias.length, mayor_cantidad_de_dias: mayor };
-    });
-  }
+  await prueba('Con la semilla: hay recolecciones y contenedores con días de limpieza', async function () {
+    await como('Administrador');
+    const l = await getLimpieza();
+    const conDias = l.data.contenedores.filter(function (c) { return typeof c.Dias === 'number'; });
+    afirmar(conDias.length >= 10, 'esperaba al menos 10 contenedores con recolección (¿se cargó sigeru.sql?) y hay ' + conDias.length, l);
+    const p = await getPromedio(30, 500);
+    afirmar(p.data.contenedores.length >= 5, 'esperaba promedios de la semilla', p);
+    const primero = p.data.contenedores[0];
+    afirmar(primero.Promedio >= 0 && primero.Promedio <= 100, 'el promedio debe estar entre 0 y 100', p);
+    afirmar(Math.abs(primero.Peso_Promedio / 300 * 100 - primero.Promedio) <= 0.1, 'el promedio debe ser peso / 300 kg', p);
+    return { contenedores_con_recoleccion: conDias.length, contenedor_mas_lleno: primero.Id_Contenedor, promedio: primero.Promedio };
+  });
 
   // ====== (7) Usuarios ======
   seccion('7. Usuarios (registro, alta por administrador, edición y baja)');
@@ -694,6 +642,27 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
       return r.data;
     });
 
+    if (idIncidencia) {
+      await prueba('Un segundo reporte en el mismo contenedor se rechaza (409) mientras el primero siga pendiente', async function () {
+        await como('Vecino');
+        estado(await crearIncidencia(idContenedorRuta, 'Contenedor roto', archivoPng()), 409);
+      });
+
+      await prueba('Solo el administrador puede ver la foto de la incidencia', async function () {
+        await como('Administrador');
+        const f = await getFotoIncidencia(idIncidencia);
+        afirmar(f.ok && f.url, 'no se pudo cargar la foto', f);
+        await como('Vecino');
+        const v = await getFotoIncidencia(idIncidencia);
+        afirmar(!v.ok && v.status === 403, 'el vecino no debería ver la foto', v);
+      });
+    }
+
+    await prueba('Incidencia en un contenedor inexistente se rechaza (404)', async function () {
+      await como('Vecino');
+      estado(await crearIncidencia(999999, 'Contenedor lleno', archivoPng()), 404);
+    });
+
     await prueba('Un archivo que no es imagen se rechaza (400)', async function () {
       await como('Vecino');
       estado(await crearIncidencia(idContenedorRuta, 'Contenedor lleno', archivoTexto()), 400);
@@ -726,7 +695,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
   }
 
   // ====== (10) Rutas, asignaciones y registro de peso ======
-  seccion('10. Rutas y asignaciones (flujo completo con una cuadrilla)');
+  seccion('10. Rutas, asignaciones y estadísticas con una recolección real');
 
   if (!idContenedorRuta || !idZonaTest) {
     info('Rutas', 'Faltan la zona o el contenedor de prueba; se omite la sección.');
@@ -803,21 +772,59 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
         estado(await registrarPeso(idRutaTest, 1, 10), 403);
       });
 
-      await prueba('Registrar el peso de la parada 1 (12,5 kg) finaliza la ruta', async function () {
+      await prueba('Registrar el peso de la parada 1 (285 kg) finaliza la ruta', async function () {
         await como('Cuadrilla2');
-        const r = await registrarPeso(idRutaTest, 1, 12.5);
+        const r = await registrarPeso(idRutaTest, 1, 285);
         estado(r, 200);
         afirmar(r.data.finalizada === true, 'la ruta debía quedar finalizada (una sola parada)', r);
         return r.data;
       });
 
-      await prueba('Después de recoger, el contenedor figura como limpiado hoy (Dias = 0, reciente)', async function () {
+      await prueba('Limpieza: el contenedor figura como recolectado hoy (0 días, reciente)', async function () {
         await como('Administrador');
         const r = await getLimpieza();
         estado(r, 200);
         const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
         afirmar(fila, 'el contenedor no aparece', r);
         afirmar(fila.Dias === 0 && fila.Categoria === 'reciente', 'esperaba 0 días / reciente y llegó ' + fila.Dias + ' / ' + fila.Categoria, r);
+      });
+
+      await prueba('Desbordados del mes: 285 kg = 95 % cuenta como desborde (una vez)', async function () {
+        const r = await getDesbordados('', 500);
+        estado(r, 200);
+        const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
+        afirmar(fila, 'el contenedor no aparece entre los desbordados', r);
+        afirmar(Number(fila.Veces) === 1, 'esperaba Veces = 1 y llegó ' + fila.Veces, r);
+        afirmar(Number(fila.Nivel_Maximo) === 95, 'esperaba nivel máximo 95 y llegó ' + fila.Nivel_Maximo, r);
+        return fila;
+      });
+
+      await prueba('Promedio por contenedor: 285 kg sobre 300 kg = 95 %', async function () {
+        const r = await getPromedio(30, 500);
+        estado(r, 200);
+        afirmar(r.data.capacidad_kg === 300, 'falta capacidad_kg', r);
+        const fila = buscarFila(r.data.contenedores, 'Id_Contenedor', idContenedorRuta);
+        afirmar(fila, 'el contenedor no aparece en el promedio', r);
+        afirmar(Number(fila.Promedio) === 95, 'esperaba 95 y llegó ' + fila.Promedio, r);
+        afirmar(Number(fila.Peso_Promedio) === 285, 'esperaba 285 kg y llegó ' + fila.Peso_Promedio, r);
+        afirmar(Number(fila.Recolecciones) === 1, 'esperaba 1 recolección', r);
+        return fila;
+      });
+
+      await prueba('Llenado por zona: la zona de prueba queda en 95 % (crítico)', async function () {
+        const r = await getZonasLlenado(30);
+        estado(r, 200);
+        const fila = buscarFila(r.data.zonas, 'Id_Poligono', idZonaTest);
+        afirmar(fila, 'la zona no aparece', r);
+        afirmar(Number(fila.Promedio) === 95 && fila.Categoria === 'critico', 'esperaba 95 / critico y llegó ' + fila.Promedio + ' / ' + fila.Categoria, r);
+        afirmar(Number(fila.Contenedores) === 1, 'esperaba 1 contenedor', r);
+      });
+
+      await prueba('Operario y vecino no pueden ver las estadísticas (403)', async function () {
+        await como('Operario');
+        estado(await getPromedio(), 403);
+        await como('Vecino');
+        estado(await getZonasLlenado(), 403);
       });
 
       await prueba('Registrar peso en una ruta finalizada devuelve 409', async function () {

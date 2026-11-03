@@ -3,7 +3,7 @@ import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getUsuarios, crearUsuario, eliminarUsuario } from "./APIUsuarios.js";
 import { getCamiones, crearCamion, eliminarCamion } from "./APICamiones.js";
 import { getContenedores, eliminarContenedor } from "./APIContenedores.js";
-import { getIncidencias, eliminarIncidencia } from "./APIIncidencias.js";
+import { getIncidencias, eliminarIncidencia, getFotoIncidencia } from "./APIIncidencias.js";
 import { getPoligonos } from "./APIPoligonos.js";
 import { getCentros, crearCentro, eliminarCentro } from "./APICentros.js";
 import { getAsignaciones, asignarCamionACuadrilla } from "./APIAsignaciones.js";
@@ -13,7 +13,7 @@ import { activarFlechaScroll } from "./scrollFlecha.js";
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
 
-const FORMULARIOS = ["camionForm", "usuarioForm", "centroForm", "cuadrillaCamionForm", "rutaForm", "rutaCamionForm"];
+const FORMULARIOS = ["camionForm", "usuarioForm", "centroForm", "cuadrillaCamionForm", "rutaForm", "rutaCamionForm", "fotoIncidenciaForm"];
 
 function abrirFormulario(idFormulario) {
     modal.style.display = "block";
@@ -299,13 +299,43 @@ async function cargarIncidencias() {
             "<td>" + incidencia.Id_Contenedor + "</td>" +
             "<td>" + incidencia.Tipo + "</td>" +
             "<td>" + incidencia.Estado + "</td>" +
-            "<td>" + (incidencia.Foto || "Sin foto") + "</td>" +
+            "<td>" + (incidencia.Foto ? "<button class='btn-ver' onclick=\"verFotoIncidencia('" + incidencia.Id_Incidencia + "')\">Ver foto</button>" : "Sin foto") + "</td>" +
             "<td class='acciones'>" +
             "<button class='btn-eliminar' onclick=\"eliminarIncidenciaUI('" + incidencia.Id_Incidencia + "')\">Eliminar</button>" +
             "</td>";
 
         tabla.appendChild(fila);
     });
+}
+
+let urlFotoActual = null;
+
+async function verFotoIncidencia(id) {
+    abrirFormulario("fotoIncidenciaForm");
+
+    const imagen = document.getElementById("fotoIncidencia");
+    const mensaje = document.getElementById("mensajeFotoIncidencia");
+
+    document.getElementById("tituloFotoIncidencia").textContent = "Foto de la incidencia " + id;
+    imagen.style.display = "none";
+    mensaje.textContent = "Cargando...";
+
+    if (urlFotoActual) {
+        URL.revokeObjectURL(urlFotoActual);
+        urlFotoActual = null;
+    }
+
+    const foto = await getFotoIncidencia(id);
+
+    if (!foto.ok) {
+        mensaje.textContent = foto.error;
+        return;
+    }
+
+    urlFotoActual = foto.url;
+    imagen.src = foto.url;
+    imagen.style.display = "block";
+    mensaje.textContent = "";
 }
 
 async function cargarCentros() {
@@ -905,6 +935,7 @@ window.eliminarUsuarioUI = eliminarUsuarioUI;
 window.eliminarCamionUI = eliminarCamionUI;
 window.eliminarContenedorUI = eliminarContenedorUI;
 window.eliminarIncidenciaUI = eliminarIncidenciaUI;
+window.verFotoIncidencia = verFotoIncidencia;
 window.eliminarCentroUI = eliminarCentroUI;
 window.cerrarSesion = () => cerrarSesion("index.html");
 
