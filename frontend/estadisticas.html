@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Panel de control</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="administrador.html">Administrador</a>
+            <a href="estadisticas.html">Estadísticas</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <section class="hero-admin">
+        <div class="hero-admin-texto">
+            <h1>Panel de control</h1>
+            <p>Estadísticas de llenado y limpieza de los contenedores. El llenado sale del peso que retira la cuadrilla en cada recolección: 300 kg equivalen a 100 %.</p>
+        </div>
+    </section>
+
+    <div class="contenido" data-menu="Resumen" data-menu-grupo="Panel de control">
+        <div class="tarjetas-resumen tarjetas-5" id="tarjetasEstadisticas">
+            <div class="tarjeta-dato"><div><span>Cargando...</span></div></div>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Contenedores desbordados del mes">
+        <h2>Contenedores más desbordados del mes</h2>
+        <div class="carta">
+            <div class="barra-filtros">
+                <label for="selectorMes">Mes:</label>
+                <input type="month" id="selectorMes">
+                <span class="nota" id="notaDesborde"></span>
+            </div>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Contenedor</th>
+                            <th>Zona</th>
+                            <th>Veces desbordado</th>
+                            <th>Llenado máximo</th>
+                            <th>Última vez</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDesbordados"></tbody>
+                </table>
+            </div>
+            <p id="mensajeDesbordados"></p>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Contenedor con más basura en promedio">
+        <h2>Contenedor con más basura en promedio</h2>
+        <div class="carta">
+            <div id="destacadoPromedio"></div>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Contenedor</th>
+                            <th>Zona</th>
+                            <th>Llenado promedio</th>
+                            <th>Recolecciones</th>
+                            <th>Peso promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPromedio"></tbody>
+                </table>
+            </div>
+            <p class="nota">Promedio de las recolecciones de los últimos 30 días. Llenado = peso retirado / 300 kg.</p>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Mapa de zonas por llenado">
+        <h2>Mapa de zonas según el llenado de sus contenedores</h2>
+        <div class="carta">
+            <div class="leyenda-estadistica" id="leyendaZonas"></div>
+            <div id="mapaZonas" class="mapa-estadistica"></div>
+            <p class="nota">Cada zona se pinta según el llenado promedio de sus contenedores en los últimos 30 días.</p>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Mapa de tiempo sin limpiar">
+        <h2>Mapa de tiempo sin limpiar</h2>
+        <div class="carta">
+            <div class="leyenda-estadistica" id="leyendaLimpieza"></div>
+            <div id="mapaLimpieza" class="mapa-estadistica"></div>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Contenedor</th>
+                            <th>Zona</th>
+                            <th>Última recolección</th>
+                            <th>Tiempo sin limpiar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaLimpieza"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Panel de control</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">↓</button>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/estadisticas.js"></script>
+    <script src="js/menu.js" defer></script>
+</body>
+</html>

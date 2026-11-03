@@ -644,7 +644,10 @@ class Ruta {
             $stmtUsa->bind_param("ss", $ci, $ruta["Matricula"]);
             $stmtUsa->execute();
 
-            if($ruta["Matricula"] === null || $stmtUsa->get_result()->num_rows === 0){
+            // El resultado se lee siempre: si queda sin leer, el rollback falla con "Commands out of sync".
+            $usaCamion = $stmtUsa->get_result()->num_rows > 0;
+
+            if($ruta["Matricula"] === null || !$usaCamion){
                 $this->conn->rollback();
                 return $this->error("Esta ruta no le corresponde", 403);
             }

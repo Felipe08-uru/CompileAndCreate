@@ -1493,3 +1493,132 @@ body{ background:#f4f4f4; }
     font-weight:normal;
 }
 .menu-salir:hover{ background:#b32424; border-color:#b32424; color:white; }
+
+/* ===== Panel de control (estadísticas) ===== */
+
+.barra-filtros{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.barra-filtros input{
+    padding:6px 8px;
+    border:1px solid #999;
+    border-radius:0;
+}
+
+.nota{
+    color:#666;
+    font-size:13px;
+    margin-top:10px;
+}
+
+.barra-filtros .nota{
+    margin-top:0;
+}
+
+.celda-barra{
+    min-width:190px;
+}
+
+.barra-dato{
+    height:8px;
+    background:#e6e6e6;
+    margin-top:4px;
+}
+
+.barra-dato > div{
+    height:100%;
+}
+
+.destacado{
+    border:1px solid #cfcfcf;
+    background:#fafafa;
+    padding:14px 18px;
+    margin-bottom:16px;
+}
+
+.destacado span{
+    display:block;
+    font-size:12px;
+    text-transform:uppercase;
+    color:#555;
+}
+
+.destacado strong{
+    display:block;
+    font-size:24px;
+    color:#0f4c81;
+    margin:4px 0;
+}
+
+.destacado small{
+    color:#555;
+}
+
+.mapa-estadistica{
+    width:100%;
+    height:460px;
+    margin:12px 0;
+    border:1px solid #ccc;
+}
+
+.leyenda-estadistica{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 18px;
+    font-size:13px;
+}
+
+.leyenda-estadistica span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+
+.leyenda-estadistica i,
+.punto-color{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    margin-right:6px;
+    vertical-align:middle;
+}
+
+.leyenda-estadistica i{
+    margin-right:0;
+}
+
+.etiqueta-zona{
+    background:white;
+    border:1px solid #555;
+    border-radius:0;
+    box-shadow:none;
+    font-weight:bold;
+    text-align:center;
+}
+
+.cl-icono{
+    background:transparent;
+    border:none;
+}
+
+.cl{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:2px solid white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+
+.cl img{
+    width:24px;
+    height:24px;
+}

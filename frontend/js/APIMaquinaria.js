@@ -2,10 +2,6 @@ import { apiRequest } from "./apiConfig.js";
 
 const RUTA = "/APIMaquinaria/ApiMaquinaria.php";
 
-export function getCentrosDeAcopio() {
-    return apiRequest(`${RUTA}/centros`, "GET");
-}
-
 export function getMaquinaria(idCentro = null) {
     const query = idCentro !== null ? `?id_centro=${idCentro}` : "";
     return apiRequest(`${RUTA}/maquinaria${query}`, "GET");

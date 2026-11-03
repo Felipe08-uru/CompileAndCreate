@@ -185,34 +185,66 @@ class Usuario {
 
     public function updateUsuario($data){
 
-        $ci = $data["ci"];
+        foreach(["ci", "nombre1", "apellido1", "correo_e", "rol"] as $campo){
+            if(!isset($data[$campo]) || trim($data[$campo]) === ""){
+                http_response_code(400);
 
-        $nombre1 = $data["nombre1"];
-        $nombre2 = $data["nombre2"];
-        $apellido1 = $data["apellido1"];
-        $apellido2 = $data["apellido2"];
-        $correo_e = $data["correo_e"];
-        $rol = $data["rol"];
+                return json_encode([
+                    "error" => "Falta el campo: $campo"
+                ]);
+            }
+        }
 
-        $sql = "UPDATE usuario SET
-                nombre1='$nombre1',
-                nombre2='$nombre2',
-                apellido1='$apellido1',
-                apellido2='$apellido2',
-                correo_e='$correo_e',
-                rol='$rol'
-                WHERE CI='$ci'";
+        $ci = trim($data["ci"]);
+        $nombre1 = trim($data["nombre1"]);
+        $nombre2 = isset($data["nombre2"]) && trim($data["nombre2"]) !== "" ? trim($data["nombre2"]) : null;
+        $apellido1 = trim($data["apellido1"]);
+        $apellido2 = isset($data["apellido2"]) && trim($data["apellido2"]) !== "" ? trim($data["apellido2"]) : null;
+        $correo_e = trim($data["correo_e"]);
+        $rol = trim($data["rol"]);
 
-        if(mysqli_query($this->conn, $sql)){
+        if(!filter_var($correo_e, FILTER_VALIDATE_EMAIL)){
+            http_response_code(400);
+
             return json_encode([
-                "mensaje" => "Usuario actualizado correctamente"
+                "error" => "Correo electrónico inválido"
+            ]);
+        }
+
+        if(!in_array($rol, ["Vecino", "Operario", "Administrador", "Cuadrilla"], true)){
+            http_response_code(400);
+
+            return json_encode([
+                "error" => "Rol inválido"
+            ]);
+        }
+
+        // Consulta preparada: los datos nunca se concatenan en el SQL.
+        $sql = "UPDATE usuario SET
+                nombre1 = ?,
+                nombre2 = ?,
+                apellido1 = ?,
+                apellido2 = ?,
+                correo_e = ?,
+                rol = ?
+                WHERE ci = ?";
+
+        try{
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bind_param("sssssss", $nombre1, $nombre2, $apellido1, $apellido2, $correo_e, $rol, $ci);
+            $stmt->execute();
+        }catch(mysqli_sql_exception $e){
+            http_response_code(400);
+
+            return json_encode([
+                "error" => "No se pudo actualizar el usuario"
             ]);
         }
 
         return json_encode([
-            "error" => mysqli_error($this->conn)
+            "mensaje" => "Usuario actualizado correctamente"
         ]);
-    }    
+    }
 
     public function login($data) {
         if (!isset($data["correo_e"]) || !isset($data["contrasena"])) {
