@@ -114,6 +114,8 @@ CREATE TABLE centro (
   ContAlmacenados int(11) DEFAULT NULL,
   Capacidad int(11) DEFAULT NULL,
   CamAlmacenados int(11) DEFAULT NULL,
+  Latitud decimal(10,7) DEFAULT NULL,
+  Longitud decimal(10,7) DEFAULT NULL,
   PRIMARY KEY (ID)
 );
 
@@ -121,6 +123,15 @@ CREATE TABLE centrodeacopio (
   ID int(11) NOT NULL,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES centro (ID)
+);
+
+-- Centro de acopio en el que trabaja cada operario (a lo sumo uno por operario).
+CREATE TABLE operario_centro (
+  CI char(8) NOT NULL,
+  ID int(11) NOT NULL,
+  PRIMARY KEY (CI),
+  FOREIGN KEY (CI) REFERENCES operario (CI) ON DELETE CASCADE,
+  FOREIGN KEY (ID) REFERENCES centro (ID) ON DELETE CASCADE
 );
 
 CREATE TABLE maquinaria (
@@ -288,7 +299,7 @@ CREATE TABLE registro_camion (
 -- Datos de prueba
 -- ============================================================================
 
--- la contraseña de todos estos usuarios es: Password1234!
+-- la contraseña de todos estos usuarios es: Password1234
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
 ('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Administrador', 'admin@gmail.com'),
 ('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Vecino', 'vecino@gmail.com'),
@@ -498,14 +509,35 @@ INSERT INTO ruta_parada (Id_Ruta, Orden, Id_Contenedor, Estado, Peso, Fecha_Reco
 (36, 1, 15, 'Recogido', 87.00, DATE_SUB(NOW(), INTERVAL 509 HOUR)),
 (36, 2, 16, 'Recogido', 102.00, DATE_SUB(NOW(), INTERVAL 410 HOUR));
 
-INSERT INTO centro (ID, Servicio, ContAlmacenados, Capacidad, CamAlmacenados) VALUES
-(1, 'Cent. Felipe Cardozo', 250, 600, 12);
+-- Ubicación aproximada de los centros: son el destino final de las rutas (se asigna el más cercano).
+INSERT INTO centro (ID, Servicio, ContAlmacenados, Capacidad, CamAlmacenados, Latitud, Longitud) VALUES
+(1, 'Cent. Felipe Cardozo', 250, 600, 12, -34.8475000, -56.0963000),
+(2, 'Cent. de acopio Zona Este', 80, 400, 5, -34.8800000, -56.1250000);
 
 INSERT INTO centrodeacopio (ID) VALUES
-(1);
+(1),
+(2);
+
+INSERT INTO operario_centro (CI, ID) VALUES
+('55555555', 1);
 
 INSERT INTO maquinaria (ID, Nombre, Cantidad, Estado) VALUES
 (1, 'Gato hidráulico', 2, 'Operativa');
 
 INSERT INTO registro_camion (Matricula, CI, ID, Tipo_Carga, Cantidad_Carga) VALUES
 ('SBI1234', '55555555', 1, 'Residuos mezclados', 350.00);
+
+
+-- ============================================================================
+-- Contraseña del usuario root de MySQL
+-- ============================================================================
+-- root@localhost: conexiones desde la propia máquina o el contenedor.
+-- root@%: conexiones desde otros contenedores (por ejemplo "web" en docker-compose).
+CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY 'felipeadrianjuan';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'felipeadrianjuan';
+
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'felipeadrianjuan';
+ALTER USER 'root'@'%' IDENTIFIED BY 'felipeadrianjuan';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
