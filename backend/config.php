@@ -11,6 +11,7 @@ ob_start();
 // Hora de Uruguay en PHP y en MySQL (UTC-3 todo el año, sin horario de verano).
 date_default_timezone_set("America/Montevideo");
 
+$user = getenv("DB_USER") ?: "root";
 $password = getenv("DB_PASSWORD") !== false ? getenv("DB_PASSWORD") : "";
 $database = getenv("DB_NAME") ?: "sigeru";
 
