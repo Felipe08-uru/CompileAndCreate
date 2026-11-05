@@ -1,6 +1,6 @@
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getCamiones } from "./APICamiones.js";
-import { getCentros } from "./APICentros.js";
+import { getCentros, getMiCentro } from "./APICentros.js";
 import { getMaquinaria, crearMaquinaria, actualizarMaquinaria, eliminarMaquinaria } from "./APIMaquinaria.js";
 import { getRegistros, crearRegistro, actualizarRegistro, eliminarRegistro } from "./APIRegistroCamion.js";
 import { activarFlechaScroll } from "./scrollFlecha.js";
@@ -53,6 +53,33 @@ function cerrarModal() {
     document.getElementById("maquinariaForm").style.display = "none";
 }
 
+/**
+ * Un operario sin centro asociado no puede hacer nada: se tapa la pantalla con un aviso.
+ */
+function bloquearSinCentro() {
+    const aviso = document.createElement("div");
+    aviso.id = "avisoSinCentro";
+    aviso.style.cssText =
+        "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);display:flex;" +
+        "align-items:center;justify-content:center;padding:20px;";
+
+    aviso.innerHTML =
+        "<div style='background:#fff;max-width:460px;width:100%;padding:28px;border-radius:10px;" +
+        "text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.4);'>" +
+        "<h2 style='margin-top:0;color:#b3261e;'>No está asociado a ningún centro</h2>" +
+        "<p>Su cuenta de operario todavía no está asociada a un centro de acopio o vertedero, " +
+        "por lo que no puede registrar llegadas de camiones ni gestionar maquinaria.</p>" +
+        "<p>Solicite al administrador que lo asocie a un centro y vuelva a ingresar.</p>" +
+        "<button type='button' class='btn' id='botonSalirSinCentro'>Cerrar sesión</button>" +
+        "</div>";
+
+    document.body.appendChild(aviso);
+    document.body.style.overflow = "hidden";
+    document.getElementById("botonSalirSinCentro").addEventListener("click", function () {
+        cerrarSesion("index.html");
+    });
+}
+
 async function cargarCentros() {
     const { ok, data } = await getCentros();
 
@@ -61,6 +88,16 @@ async function cargarCentros() {
     }
 
     centros = data;
+
+    // Si el administrador lo asoció a un centro, solo puede trabajar con ese centro.
+    const mio = await getMiCentro();
+
+    if (mio.ok && mio.data.centro) {
+        centros = centros.filter(function (c) { return Number(c.ID) === Number(mio.data.centro.ID); });
+    } else if (mio.ok) {
+        bloquearSinCentro();
+        return;
+    }
 
     let selectCamion = document.getElementById("centroCamion");
     let selectMaquinaria = document.getElementById("centroMaquinaria");
@@ -350,7 +387,11 @@ window.eliminarMaquinariaUI = eliminarMaquinariaUI;
 window.cerrarSesion = () => cerrarSesion("index.html");
 
 verificarSesion("Operario", "index.html");
-cargarCentros().then(cargarCamionesDisponibles);
+cargarCentros().then(function () {
+    if (!document.getElementById("avisoSinCentro")) {
+        cargarCamionesDisponibles();
+    }
+});
 cargarRegistros();
 cargarMaquinaria();
 activarFlechaScroll();

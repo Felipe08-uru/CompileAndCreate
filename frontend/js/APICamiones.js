@@ -14,6 +14,10 @@ export function crearCamion(datos) {
     return apiRequest(`${RUTA}/camiones`, "POST", datos);
 }
 
+export function actualizarCamion(datos) {
+    return apiRequest(`${RUTA}/camiones`, "POST", { ...datos, accion: "editar" });
+}
+
 export function eliminarCamion(matricula) {
     return apiRequest(`${RUTA}/camiones`, "DELETE", { matricula });
 }

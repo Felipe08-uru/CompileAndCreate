@@ -101,4 +101,33 @@ function obtenerUsuarioConRol($usuarioObj, $ci, $rolesPermitidos) {
     return $usuario;
 }
 
+
+/**
+ * Un operario que no está asociado a ningún centro de acopio no puede operar.
+ * Para los demás roles no hace nada. Si lo bloquea, ya responde el error JSON y devuelve false.
+ */
+function exigirCentroOperario($conn, $usuarioObj, $ci) {
+    $usuario = $usuarioObj->getUsuarioByCi($ci);
+
+    if (!$usuario || $usuario["rol"] !== "Operario") {
+        return true;
+    }
+
+    $stmt = $conn->prepare("SELECT ID FROM operario_centro WHERE CI = ?");
+    $stmt->bind_param("s", $ci);
+    $stmt->execute();
+
+    if ($stmt->get_result()->num_rows > 0) {
+        return true;
+    }
+
+    http_response_code(403);
+    echo json_encode([
+        "error" => "No está asociado a ningún centro de acopio. Solicite al administrador que lo asocie a uno.",
+        "sin_centro" => true
+    ]);
+
+    return false;
+}
+
 ?>

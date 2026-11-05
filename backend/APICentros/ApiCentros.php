@@ -16,6 +16,30 @@ $endpoint = isset($_SERVER["PATH_INFO"]) ? $_SERVER["PATH_INFO"] : "/";
 
 switch($method){
     case "GET":
+        if($endpoint === "/operarios"){
+            $ci = autenticarUsuario($tokenObj);
+            if($ci === false){
+                break;
+            }
+
+            if(!esAdministrador($usuarioObj, $ci)){
+                break;
+            }
+
+            echo json_encode($centroObj->getOperarios());
+            break;
+        }
+
+        if($endpoint === "/mi-centro"){
+            $ci = autenticarUsuario($tokenObj);
+            if($ci === false){
+                break;
+            }
+
+            echo json_encode(["centro" => $centroObj->getCentroDeOperario($ci)]);
+            break;
+        }
+
         if($endpoint !== "/centros"){
             http_response_code(404);
             echo json_encode(["error" => "Endpoint no encontrado"]);
@@ -31,6 +55,27 @@ switch($method){
         break;
 
     case "POST":
+        if($endpoint === "/operario-centro"){
+            $ci = autenticarUsuario($tokenObj);
+            if($ci === false){
+                break;
+            }
+
+            if(!esAdministrador($usuarioObj, $ci)){
+                break;
+            }
+
+            $data = json_decode(file_get_contents("php://input"), true);
+            if(!is_array($data)){
+                http_response_code(400);
+                echo json_encode(["error" => "JSON inválido"]);
+                break;
+            }
+
+            echo $centroObj->asociarOperario($data);
+            break;
+        }
+
         if($endpoint !== "/centros"){
             http_response_code(404);
             echo json_encode(["error" => "Endpoint no encontrado"]);

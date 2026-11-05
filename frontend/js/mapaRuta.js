@@ -1,6 +1,7 @@
 import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getRuta, getRutaActiva, registrarPeso } from "./APIRutas.js";
+import { getCentros } from "./APICentros.js";
 import { activarFlechaScroll } from "./scrollFlecha.js";
 
 const rol = localStorage.getItem("rol");
@@ -21,6 +22,8 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const capaZona = L.layerGroup().addTo(mapa);
 const capaParadas = L.layerGroup().addTo(mapa);
 const capaFlechas = L.layerGroup().addTo(mapa);
+const capaCentros = L.layerGroup().addTo(mapa);
+let centrosCache = [];
 const marcadoresPorOrden = {};
 let coordsTrazado = [];
 let capaLineaRespaldo = null;
@@ -148,6 +151,44 @@ function dibujarZona() {
     return poligono;
 }
 
+/**
+ * Centros de acopio con ubicación. El destino final de la ruta (el más cercano
+ * a la última parada) se resalta con la etiqueta DESTINO.
+ */
+function dibujarCentros() {
+    capaCentros.clearLayers();
+
+    const destino = detalle.centro_destino;
+
+    centrosCache.forEach(function (centro) {
+        if (centro.Latitud === null || centro.Longitud === null) return;
+
+        const esDestino = destino && Number(destino.ID) === Number(centro.ID);
+
+        let html = "<div class='cm" + (esDestino ? " destino" : "") + "'>";
+        if (esDestino) html += "<span class='pm-etiqueta'>DESTINO FINAL</span>";
+        html += "<img src='img/centro.svg' alt='' draggable='false'></div>";
+
+        const marcador = L.marker([parseFloat(centro.Latitud), parseFloat(centro.Longitud)], {
+            icon: L.divIcon({
+                className: "pm-icono",
+                html: html,
+                iconSize: [44, 50],
+                iconAnchor: [22, 34],
+                popupAnchor: [0, -30]
+            }),
+            zIndexOffset: esDestino ? 800 : 0,
+            title: "Centro de acopio " + centro.ID
+        }).addTo(capaCentros);
+
+        marcador.bindPopup(
+            "<strong>Centro de acopio " + esc(centro.ID) + "</strong><br>" +
+            esc(centro.Servicio) +
+            (esDestino ? "<br>Destino final de esta ruta (a " + (destino.Distancia_m / 1000).toFixed(1) + " km de la última parada, en línea recta)" : "")
+        );
+    });
+}
+
 function dibujarParadas() {
     capaParadas.clearLayers();
 
@@ -250,6 +291,11 @@ function puntosDelTrazado() {
         detalle.paradas.forEach(function (p) {
             puntos.push([p.Latitud, p.Longitud]);
         });
+    }
+
+    // La ruta termina en el centro de acopio más cercano.
+    if (detalle.centro_destino) {
+        puntos.push([detalle.centro_destino.Latitud, detalle.centro_destino.Longitud]);
     }
 
     return puntos;
@@ -389,6 +435,7 @@ function mostrarResumen() {
         dato("Camión", ruta.Matricula ? esc(ruta.Matricula) : "-") +
         dato("Cuadrilla", ruta.Nombre_Cuadrilla ? esc(ruta.Nombre_Cuadrilla) : "-") +
         dato("Estado", etiquetaEstado(ruta.Estado)) +
+        dato("Destino final", detalle.centro_destino ? esc(detalle.centro_destino.Servicio) : "Sin centro con ubicación") +
         dato("Avance", ruta.Paradas_Hechas + " de " + ruta.Paradas_Total) +
         dato("Peso recogido", ruta.Peso_Total + " kg");
 }
@@ -433,6 +480,22 @@ function mostrarListaOrden() {
 
         lista.appendChild(item);
     });
+
+    if (detalle.centro_destino) {
+        const destino = detalle.centro_destino;
+        const item = document.createElement("li");
+        item.className = "orden-item";
+        item.innerHTML =
+            "<span class='mini-cont'><img src='img/centro.svg' alt=''></span>" +
+            "<span class='orden-texto'><strong>" + esc(destino.Servicio) + "</strong>" +
+            "<small>Destino final · centro más cercano</small></span>";
+
+        item.addEventListener("click", function () {
+            mapa.setView([destino.Latitud, destino.Longitud], Math.max(mapa.getZoom(), 16), { animate: true });
+        });
+
+        lista.appendChild(item);
+    }
 }
 
 function mostrarTablaParadas() {
@@ -572,6 +635,7 @@ function dibujar() {
 
     const poligono = dibujarZona();
     const marcadorActual = dibujarParadas();
+    dibujarCentros();
 
     trazarRuta(puntosDelTrazado());
 
@@ -579,7 +643,11 @@ function dibujar() {
         primeraVez = false;
 
         if (poligono) {
-            mapa.fitBounds(poligono.getBounds(), { padding: [30, 30] });
+            const limites = poligono.getBounds();
+            if (detalle.centro_destino) {
+                limites.extend([detalle.centro_destino.Latitud, detalle.centro_destino.Longitud]);
+            }
+            mapa.fitBounds(limites, { padding: [30, 30] });
         } else if (detalle.paradas.length > 0) {
             mapa.fitBounds(
                 detalle.paradas.map(function (p) { return [p.Latitud, p.Longitud]; }),
@@ -619,6 +687,10 @@ async function cargar() {
     }
 
     detalle = respuesta.data;
+
+    const centros = await getCentros();
+    centrosCache = centros.ok && Array.isArray(centros.data) ? centros.data : [];
+
     dibujar();
 }
 

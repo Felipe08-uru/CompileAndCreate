@@ -125,6 +125,66 @@ class Camion{
         ]);
     }
 
+    public function updateCamion($data){
+        $matricula = $this->leerCampo($data, "matricula");
+
+        if($matricula === null || trim($matricula) === ""){
+            http_response_code(400);
+            return json_encode(["error" => "Debe indicar la matrícula del camión"]);
+        }
+
+        $matricula = trim($matricula);
+        $actual = $this->getCamionByMatricula($matricula);
+
+        if(!$actual){
+            http_response_code(404);
+            return json_encode(["error" => "Camión no encontrado"]);
+        }
+
+        $tipo = $this->leerCampo($data, "tipo");
+        $tipo = $tipo === null ? $actual["Tipo"] : trim($tipo);
+
+        if(!in_array($tipo, self::TIPOS_PERMITIDOS, true)){
+            http_response_code(400);
+            return json_encode(["error" => "El tipo de camión debe ser: Residuos mezclados o Reciclables"]);
+        }
+
+        $estado = $this->leerCampo($data, "estado");
+        $estado = $estado === null || trim($estado) === "" ? $actual["Estado"] : trim($estado);
+
+        if(!in_array($estado, self::ESTADOS_PERMITIDOS, true)){
+            http_response_code(400);
+            return json_encode(["error" => "El estado del camión es inválido"]);
+        }
+
+        // No se cambia el tipo de un camión que tiene una ruta sin finalizar.
+        if($tipo !== $actual["Tipo"]){
+            $stmtRuta = $this->conn->prepare(
+                "SELECT Id_Ruta FROM ruta WHERE Matricula = ? AND Estado <> 'Finalizada' LIMIT 1"
+            );
+            $stmtRuta->bind_param("s", $matricula);
+            $stmtRuta->execute();
+            $ruta = $stmtRuta->get_result()->fetch_assoc();
+
+            if($ruta){
+                http_response_code(409);
+                return json_encode([
+                    "error" => "No se puede cambiar el tipo: el camión tiene la ruta #" . $ruta["Id_Ruta"] . " sin finalizar"
+                ]);
+            }
+        }
+
+        $stmt = $this->conn->prepare("UPDATE $this->table SET Tipo = ?, Estado = ? WHERE Matricula = ?");
+        $stmt->bind_param("sss", $tipo, $estado, $matricula);
+
+        if(!$stmt->execute()){
+            http_response_code(500);
+            return json_encode(["error" => "No se pudo actualizar el camión"]);
+        }
+
+        return json_encode(["mensaje" => "Camión actualizado"]);
+    }
+
     public function deleteCamion($data){
         $matricula = $this->leerCampo($data, "matricula");
 

@@ -7,14 +7,14 @@ import {
 } from '../frontend/js/APIUsuarios.js';
 
 import {
-  getCamiones, getCamionPorMatricula, crearCamion, eliminarCamion,
+  getCamiones, getCamionPorMatricula, crearCamion, actualizarCamion, eliminarCamion,
 } from '../frontend/js/APICamiones.js';
 
 import {
   getContenedores, getContenedorPorId, crearContenedor, eliminarContenedor,
 } from '../frontend/js/APIContenedores.js';
 
-import { getCentros, crearCentro, eliminarCentro } from '../frontend/js/APICentros.js';
+import { getCentros, crearCentro, eliminarCentro, getOperarios, getMiCentro, asociarOperarioCentro } from '../frontend/js/APICentros.js';
 
 import {
   getMaquinaria, crearMaquinaria, actualizarMaquinaria, eliminarMaquinaria,
@@ -134,11 +134,11 @@ async function prueba(nombre, fn) {
 
 // ================== Sesiones (token en localStorage, igual que la aplicación) ==================
 const CREDENCIALES = {
-  Administrador: { correo_e: 'admin@gmail.com',      contrasena: 'Password1234!', rol: 'Administrador' },
-  Vecino:        { correo_e: 'vecino@gmail.com',     contrasena: 'Password1234!', rol: 'Vecino' },
-  Operario:      { correo_e: 'operario@gmail.com',   contrasena: 'Password1234!', rol: 'Operario' },
-  Cuadrilla:     { correo_e: 'cuadrilla@gmail.com',  contrasena: 'Password1234!', rol: 'Cuadrilla' },
-  Cuadrilla2:    { correo_e: 'cuadrilla2@gmail.com', contrasena: 'Password1234!', rol: 'Cuadrilla' },
+  Administrador: { correo_e: 'admin@gmail.com',      contrasena: 'Password1234', rol: 'Administrador' },
+  Vecino:        { correo_e: 'vecino@gmail.com',     contrasena: 'Password1234', rol: 'Vecino' },
+  Operario:      { correo_e: 'operario@gmail.com',   contrasena: 'Password1234', rol: 'Operario' },
+  Cuadrilla:     { correo_e: 'cuadrilla@gmail.com',  contrasena: 'Password1234', rol: 'Cuadrilla' },
+  Cuadrilla2:    { correo_e: 'cuadrilla2@gmail.com', contrasena: 'Password1234', rol: 'Cuadrilla' },
 };
 const CI_CUADRILLA_2 = '77777777';
 const CAMION_CUADRILLA_2 = 'SBJ5678';
@@ -290,6 +290,18 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
     const r = await crearCamion({ matricula: matriculaCrud, tipo: 'Reciclables' });
     afirmar(r.data.mensaje, 'no devolvió mensaje de éxito', r);
     return r.data;
+  });
+
+  await prueba('Editar camión: cambia estado y tipo; rechaza valores inválidos', async function () {
+    await como('Administrador');
+    const r = await actualizarCamion({ matricula: matriculaCrud, tipo: 'Residuos mezclados', estado: 'Fuera de servicio' });
+    afirmar(r.data.mensaje, 'no devolvió mensaje de éxito', r);
+    const uno = await getCamionPorMatricula(matriculaCrud);
+    afirmar(uno.data.Tipo === 'Residuos mezclados' && uno.data.Estado === 'Fuera de servicio', 'no se guardaron los cambios', uno);
+    hayErrorEnCuerpo(await actualizarCamion({ matricula: matriculaCrud, tipo: 'Orgánico' }));
+    hayErrorEnCuerpo(await actualizarCamion({ matricula: matriculaCrud, estado: 'Roto' }));
+    estado(await actualizarCamion({ matricula: 'NOEXISTE9', tipo: 'Reciclables' }), 404);
+    await actualizarCamion({ matricula: matriculaCrud, tipo: 'Reciclables', estado: 'Disponible' });
   });
 
   await prueba('Rechaza matrícula repetida', async function () {
@@ -573,11 +585,62 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
     afirmar(listaContiene(lista.data, idCentro), 'no aparece en la lista', lista);
   });
 
+  await prueba('Crear centro con ubicación y rechazar una ubicación incompleta o inválida', async function () {
+    await como('Administrador');
+    const r = await crearCentro({ servicio: 'TEST Ubicado ' + sufijo, capacidad: 5, latitud: -34.9, longitud: -56.2 });
+    afirmar(r.data.id_centro, 'no devolvió id_centro', r);
+    deshacer('Eliminar centro ' + r.data.id_centro, async function () { return eliminarCentro(r.data.id_centro); });
+    const lista = await getCentros();
+    const c = buscarFila(lista.data, 'ID', r.data.id_centro);
+    afirmar(c && Math.abs(parseFloat(c.Latitud) + 34.9) < 0.001, 'el centro no guardó la latitud', lista);
+    hayErrorEnCuerpo(await crearCentro({ servicio: 'TEST X', latitud: -34.9 }));
+    hayErrorEnCuerpo(await crearCentro({ servicio: 'TEST X', latitud: 500, longitud: 10 }));
+  });
+
+  await prueba('Asociar un operario con un centro, verlo y quitarlo', async function () {
+    await como('Administrador');
+    const alta = await crearUsuario({ ci: '8' + sufijo + '1', nombre1: 'OpCentro', apellido1: 'Api', correo_e: 'opcentro.' + sufijo + '@example.com', contrasena: 'Clave12345', rol: 'Operario' });
+    afirmar(alta.data.success, 'no se creó el operario', alta);
+    const ciOp = '8' + sufijo + '1';
+    deshacer('Eliminar usuario ' + ciOp, async function () { await como('Administrador'); return eliminarUsuario(ciOp); });
+    const r = await asociarOperarioCentro(ciOp, idCentro || 1);
+    estado(r, 200);
+    const lista = await getOperarios();
+    estado(lista, 200);
+    const fila = buscarFila(lista.data, 'CI', ciOp);
+    afirmar(fila && Number(fila.Id_Centro) === Number(idCentro || 1), 'el operario no quedó asociado', lista);
+    const quitar = await asociarOperarioCentro(ciOp, null);
+    estado(quitar, 200);
+    const despues = buscarFila((await getOperarios()).data, 'CI', ciOp);
+    afirmar(despues && despues.Id_Centro === null, 'no se quitó la asociación', despues);
+    // Sin centro asociado, el operario no puede registrar ni ver nada (403 con sin_centro).
+    const loginOp = await iniciarSesion({ correo_e: 'opcentro.' + sufijo + '@example.com', contrasena: 'Clave12345' });
+    estado(loginOp, 200);
+    localStorage.setItem('token', loginOp.data.token);
+    const bloqueado = await crearRegistro({ matricula: 'X', id_centro: 1, tipo_carga: 'Reciclable' });
+    estado(bloqueado, 403);
+    afirmar(bloqueado.data.sin_centro === true, 'no indicó que falta el centro', bloqueado);
+    estado(await getRegistros(), 403);
+    estado(await getMaquinaria(), 403);
+    estado(await getMiCentro(), 200);
+    sinSesion();
+    estado(await getOperarios(), 401);
+    await como('Vecino');
+    estado(await asociarOperarioCentro(ciOp, 1), 403);
+  });
+
   await prueba('Crear centro sin servicio devuelve error', async function () {
     hayErrorEnCuerpo(await crearCentro({ capacidad: 5 }));
   });
 
   if (idCentro) {
+    // El operario de prueba solo puede operar en su centro: se lo asocia al centro de prueba y al final vuelve al 1.
+    await prueba('Se asocia el operario de prueba al centro de prueba', async function () {
+      await como('Administrador');
+      estado(await asociarOperarioCentro('55555555', idCentro), 200);
+      deshacer('Volver a asociar el operario 55555555 al centro 1', async function () { await como('Administrador'); return asociarOperarioCentro('55555555', 1); });
+    });
+
     await prueba('Operario ve el centro en el listado de centros', async function () {
       await como('Operario');
       const r = await getCentros();
@@ -774,6 +837,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
       await prueba('Consultar la ruta y verla en el listado del administrador', async function () {
         const u = await getRuta(idRutaTest);
         estado(u, 200);
+        afirmar(u.data.centro_destino && u.data.centro_destino.ID, 'la ruta no trae el centro de acopio de destino', u);
         const l = await getRutas();
         estado(l, 200);
         afirmar(contieneValor(l.data, idRutaTest), 'la ruta no aparece en la lista', l);

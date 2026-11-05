@@ -83,6 +83,19 @@ class RegistroCamion {
             ]);
         }
 
+        // Si el operario está asociado a un centro, solo puede registrar llegadas a ese centro.
+        $stmtAsociado = $this->conn->prepare("SELECT ID FROM operario_centro WHERE CI = ?");
+        $stmtAsociado->bind_param("s", $ci);
+        $stmtAsociado->execute();
+        $asociado = $stmtAsociado->get_result()->fetch_assoc();
+
+        if($asociado && intval($asociado["ID"]) !== $idCentro){
+            http_response_code(403);
+            return json_encode([
+                "error" => "Usted está asociado al centro " . $asociado["ID"] . " y solo puede registrar llegadas a ese centro"
+            ]);
+        }
+
         $sql = "INSERT INTO $this->table (Matricula, CI, ID, Tipo_Carga, Cantidad_Carga)
                 VALUES (?, ?, ?, ?, ?)";
 

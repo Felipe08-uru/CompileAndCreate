@@ -3,11 +3,11 @@ import "./recargarAlVolver.js";
 import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getUsuarios, crearUsuario, eliminarUsuario } from "./APIUsuarios.js";
-import { getCamiones, crearCamion, eliminarCamion } from "./APICamiones.js";
+import { getCamiones, crearCamion, actualizarCamion, eliminarCamion } from "./APICamiones.js";
 import { getContenedores, eliminarContenedor } from "./APIContenedores.js";
 import { getIncidencias, eliminarIncidencia, getFotoIncidencia } from "./APIIncidencias.js";
 import { getPoligonos } from "./APIPoligonos.js";
-import { getCentros, crearCentro, eliminarCentro } from "./APICentros.js";
+import { getCentros, eliminarCentro, getOperarios, asociarOperarioCentro } from "./APICentros.js";
 import { getAsignaciones, asignarCamionACuadrilla } from "./APIAsignaciones.js";
 import { getRutas, crearRuta, asignarCamionARuta, eliminarRuta } from "./APIRutas.js";
 import { activarFlechaScroll } from "./scrollFlecha.js";
@@ -15,7 +15,7 @@ import { activarFlechaScroll } from "./scrollFlecha.js";
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
 
-const FORMULARIOS = ["camionForm", "usuarioForm", "centroForm", "cuadrillaCamionForm", "rutaForm", "rutaCamionForm", "fotoIncidenciaForm"];
+const FORMULARIOS = ["camionForm", "usuarioForm", "operarioCentroForm", "cuadrillaCamionForm", "rutaForm", "rutaCamionForm", "fotoIncidenciaForm"];
 
 function abrirFormulario(idFormulario) {
     modal.style.display = "block";
@@ -26,19 +26,129 @@ function abrirFormulario(idFormulario) {
     });
 }
 
-function mostrarCamion() {
-    abrirFormulario("camionForm");
+let camionEditando = null;
+
+function prepararFormularioCamion(editando) {
+    camionEditando = editando;
+
+    document.getElementById("tituloCamion").textContent = editando ? "Editar Camión" : "Registrar Camión";
+    document.getElementById("botonCamion").textContent = editando ? "Guardar cambios" : "Registrar Camión";
+    document.getElementById("matricula").readOnly = editando !== null;
     document.getElementById("mensajeCamion").textContent = "";
+}
+
+function mostrarCamion() {
+    prepararFormularioCamion(null);
+    document.getElementById("matricula").value = "";
+    abrirFormulario("camionForm");
+}
+
+function editarCamionUI(matricula, tipo, estado) {
+    prepararFormularioCamion(matricula);
+    document.getElementById("matricula").value = matricula;
+    document.getElementById("tipoCamion").value = tipo;
+    document.getElementById("estadoCamion").value = estado;
+    abrirFormulario("camionForm");
+}
+
+let operariosCache = [];
+let centrosOpCache = [];
+
+async function mostrarOperarioCentro(ci) {
+    await cargarOperarios();
+
+    const selectOperario = document.getElementById("ocOperario");
+    selectOperario.innerHTML = "";
+
+    operariosCache.forEach(function (op) {
+        const opcion = document.createElement("option");
+        opcion.value = op.CI;
+        opcion.textContent = op.CI + " - " + op.Nombre1 + " " + op.Apellido1;
+        selectOperario.appendChild(opcion);
+    });
+
+    const selectCentro = document.getElementById("ocCentro");
+    selectCentro.innerHTML = "";
+
+    const sinCentro = document.createElement("option");
+    sinCentro.value = "";
+    sinCentro.textContent = "Sin centro";
+    selectCentro.appendChild(sinCentro);
+
+    centrosOpCache.forEach(function (centro) {
+        const opcion = document.createElement("option");
+        opcion.value = centro.ID;
+        opcion.textContent = "Centro " + centro.ID + " - " + centro.Servicio;
+        selectCentro.appendChild(opcion);
+    });
+
+    if (ci) selectOperario.value = ci;
+
+    actualizarCentroOperario();
+    document.getElementById("mensajeOperarioCentro").textContent =
+        operariosCache.length === 0 ? "No hay operarios registrados." : "";
+    abrirFormulario("operarioCentroForm");
+}
+
+function actualizarCentroOperario() {
+    const ci = document.getElementById("ocOperario").value;
+    const op = operariosCache.find(function (o) { return o.CI === ci; });
+
+    document.getElementById("ocCentro").value = op && op.Id_Centro !== null ? String(op.Id_Centro) : "";
+}
+
+async function guardarOperarioCentroUI() {
+    const ci = document.getElementById("ocOperario").value;
+    const idCentro = document.getElementById("ocCentro").value;
+    const mensaje = document.getElementById("mensajeOperarioCentro");
+
+    if (ci === "") {
+        mensaje.textContent = "Seleccione un operario.";
+        return;
+    }
+
+    const { ok, data } = await asociarOperarioCentro(ci, idCentro === "" ? null : parseInt(idCentro));
+
+    if (ok && !data.error) {
+        mensaje.textContent = data.mensaje;
+        await cargarOperarios();
+    } else {
+        mensaje.textContent = data.error || "No se pudo guardar la asociación.";
+    }
+}
+
+async function cargarOperarios() {
+    const resOperarios = await getOperarios();
+    const resCentros = await getCentros();
+
+    if (!resOperarios.ok || !Array.isArray(resOperarios.data)) {
+        return;
+    }
+
+    operariosCache = resOperarios.data;
+    centrosOpCache = resCentros.ok && Array.isArray(resCentros.data) ? resCentros.data : [];
+
+    const tabla = document.getElementById("tablaOperarios");
+    tabla.innerHTML = "";
+
+    operariosCache.forEach(function (op) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML =
+            "<td>" + esc(op.CI) + "</td>" +
+            "<td>" + esc(op.Nombre1 + " " + op.Apellido1) + "</td>" +
+            "<td>" + (op.Id_Centro !== null ? "Centro " + esc(op.Id_Centro) + " - " + esc(op.Servicio_Centro) : "Sin centro") + "</td>" +
+            "<td class='acciones'>" +
+            "<button class='btn-editar' onclick=\"mostrarOperarioCentro('" + esc(op.CI) + "')\">Editar</button>" +
+            "</td>";
+
+        tabla.appendChild(fila);
+    });
 }
 
 function mostrarUsuario() {
     abrirFormulario("usuarioForm");
     document.getElementById("mensajeUsuario").textContent = "";
-}
-
-function mostrarCentro() {
-    abrirFormulario("centroForm");
-    document.getElementById("mensajeCentro").textContent = "";
 }
 
 function cerrarModal() {
@@ -56,6 +166,7 @@ const TABLAS = {
     contenedores: "tablaContenedoresContainer",
     incidencias: "tablaIncidenciasContainer",
     centros: "tablaCentrosContainer",
+    operarios: "tablaOperariosContainer",
     asignaciones: "tablaAsignacionesContainer",
     rutas: "tablaRutasContainer"
 };
@@ -113,6 +224,14 @@ let mapa = L.map("mapa").setView([-34.9055, -56.1905], 16);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
 }).addTo(mapa);
+
+let iconoCentro = L.icon({
+    iconUrl: "img/centro.svg",
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -18]
+});
+let capaCentros = L.layerGroup().addTo(mapa);
 
 let iconoContenedor = L.icon({
     iconUrl: "img/contenedor.png",
@@ -273,6 +392,7 @@ async function cargarCamiones() {
             "<td>" + camion.Tipo + "</td>" +
             "<td>" + camion.Estado + "</td>" +
             "<td class='acciones'>" +
+            "<button class='btn-editar' onclick=\"editarCamionUI('" + esc(camion.Matricula) + "', '" + esc(camion.Tipo) + "', '" + esc(camion.Estado) + "')\">Editar</button> " +
             "<button class='btn-eliminar' onclick=\"eliminarCamionUI('" + camion.Matricula + "')\">Eliminar</button>" +
             "</td>";
 
@@ -350,8 +470,17 @@ async function cargarCentros() {
 
     let tabla = document.getElementById("tablaCentros");
     tabla.innerHTML = "";
+    capaCentros.clearLayers();
 
     data.forEach(function (centro) {
+        if (centro.Latitud !== null && centro.Longitud !== null) {
+            L.marker([parseFloat(centro.Latitud), parseFloat(centro.Longitud)], { icon: iconoCentro })
+                .addTo(capaCentros)
+                .bindPopup("<strong>Centro de acopio " + centro.ID + "</strong><br>" +
+                    "Servicio: " + centro.Servicio + "<br>" +
+                    "Capacidad: " + centro.Capacidad);
+        }
+
         let fila = document.createElement("tr");
 
         fila.innerHTML =
@@ -360,6 +489,7 @@ async function cargarCentros() {
             "<td>" + centro.Capacidad + "</td>" +
             "<td>" + centro.ContAlmacenados + "</td>" +
             "<td>" + centro.CamAlmacenados + "</td>" +
+            "<td>" + (centro.Latitud !== null ? centro.Latitud + ", " + centro.Longitud : "Sin ubicación") + "</td>" +
             "<td class='acciones'>" +
             "<button class='btn-eliminar' onclick=\"eliminarCentroUI('" + centro.ID + "')\">Eliminar</button>" +
             "</td>";
@@ -442,13 +572,19 @@ async function manejarRegistroCamion() {
     }
 
     try {
-        const { ok, data } = await crearCamion({ matricula, tipo, estado });
+        const { ok, data } = camionEditando !== null
+            ? await actualizarCamion({ matricula, tipo, estado })
+            : await crearCamion({ matricula, tipo, estado });
 
         console.log("Respuesta del servidor:", data);
 
         if (ok && !data.error) {
             mensaje.textContent = data.mensaje || "Camión registrado correctamente.";
-            document.getElementById("matricula").value = "";
+
+            if (camionEditando === null) {
+                document.getElementById("matricula").value = "";
+            }
+
             cargarCamiones();
             cargarAsignaciones();
 
@@ -457,50 +593,6 @@ async function manejarRegistroCamion() {
             }, 700);
         } else {
             mensaje.textContent = data.error || "No se pudo registrar el camión.";
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        mensaje.textContent = "No se pudo conectar con el servidor.";
-    }
-}
-
-async function manejarRegistroCentro() {
-    let servicio = document.getElementById("servicioCentro").value.trim();
-    let capacidad = document.getElementById("capacidadCentro").value;
-    let contAlmacenados = document.getElementById("contAlmacenadosCentro").value;
-    let camAlmacenados = document.getElementById("camAlmacenadosCentro").value;
-    let mensaje = document.getElementById("mensajeCentro");
-
-    if (servicio === "") {
-        mensaje.textContent = "Ingrese el servicio que presta el centro.";
-        return;
-    }
-
-    try {
-        const { ok, data } = await crearCentro({
-            servicio,
-            capacidad,
-            cont_almacenados: contAlmacenados,
-            cam_almacenados: camAlmacenados
-        });
-
-        console.log("Respuesta del servidor:", data);
-
-        if (ok && !data.error) {
-            mensaje.textContent = data.mensaje || "Centro registrado correctamente.";
-
-            document.getElementById("servicioCentro").value = "";
-            document.getElementById("capacidadCentro").value = "";
-            document.getElementById("contAlmacenadosCentro").value = "";
-            document.getElementById("camAlmacenadosCentro").value = "";
-
-            cargarCentros();
-
-            setTimeout(function () {
-                cerrarModal();
-            }, 700);
-        } else {
-            mensaje.textContent = data.error || "No se pudo registrar el centro.";
         }
     } catch (error) {
         console.error("Error:", error);
@@ -922,7 +1014,10 @@ async function eliminarRutaUI(idRuta) {
 
 window.mostrarCamion = mostrarCamion;
 window.mostrarUsuario = mostrarUsuario;
-window.mostrarCentro = mostrarCentro;
+window.editarCamionUI = editarCamionUI;
+window.mostrarOperarioCentro = mostrarOperarioCentro;
+window.actualizarCentroOperario = actualizarCentroOperario;
+window.guardarOperarioCentroUI = guardarOperarioCentroUI;
 window.mostrarCuadrillaCamion = mostrarCuadrillaCamion;
 window.actualizarCamionActual = actualizarCamionActual;
 window.guardarCuadrillaCamionUI = guardarCuadrillaCamionUI;
@@ -939,7 +1034,6 @@ window.cerrarModal = cerrarModal;
 window.cambiarTabla = cambiarTabla;
 window.registrarUsuario = manejarRegistroUsuario;
 window.registrarCamion = manejarRegistroCamion;
-window.registrarCentro = manejarRegistroCentro;
 window.eliminarUsuarioUI = eliminarUsuarioUI;
 window.eliminarCamionUI = eliminarCamionUI;
 window.eliminarContenedorUI = eliminarContenedorUI;
@@ -955,6 +1049,7 @@ cargarUsuarios();
 cargarCamiones();
 cargarIncidencias();
 cargarCentros();
+cargarOperarios();
 cargarAsignaciones();
 cargarRutas();
 cambiarTabla();

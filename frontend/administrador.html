@@ -69,6 +69,12 @@
                 <p>Elija la ubicación en el mapa y registre sus datos.</p>
                 <a data-menu="Añadir contenedor" href="mapaContenedores.html" class="btn btn-secundario">Añadir contenedor</a>
             </div>
+
+            <div class="tarjeta-accion">
+                <h3>Centros de acopio</h3>
+                <p>Elija la ubicación en el mapa y registre sus datos. Será el destino final de las rutas.</p>
+                <a data-menu="Añadir centro de acopio" href="mapaCentros.html" class="btn btn-secundario">Añadir centro de acopio</a>
+            </div>
         </div>
     </div>
 
@@ -82,9 +88,9 @@
             </div>
 
             <div class="tarjeta-accion">
-                <h3>Centros de acopio</h3>
-                <p>Registre un centro indicando su servicio y su capacidad.</p>
-                <button type="button" class="btn btn-secundario" data-menu="Registrar centro de acopio" onclick="mostrarCentro()">Registrar centro</button>
+                <h3>Operarios y centros</h3>
+                <p>Asocie a un operario con el centro de acopio en el que trabaja.</p>
+                <button type="button" class="btn btn-secundario" data-menu="Asociar operario a centro" data-menu-grupo="Personas y centros" onclick="mostrarOperarioCentro()">Asociar operario a centro</button>
             </div>
         </div>
     </div>
@@ -131,6 +137,7 @@
             <option value="contenedores" data-menu="Contenedores">Contenedores</option>
             <option value="incidencias" data-menu="Incidencias">Incidencias</option>
             <option value="centros" data-menu="Centros de acopio">Centros de acopio</option>
+            <option value="operarios" data-menu="Operarios y centros">Operarios y centros</option>
             <option value="asignaciones" data-menu="Cuadrillas y camiones">Cuadrillas y camiones</option>
             <option value="rutas" data-menu="Rutas">Rutas</option>
         </select>
@@ -215,6 +222,24 @@
             </table>
         </div>
 
+        <div id="tablaOperariosContainer" class="tabla-container">
+            <h3>Operarios y su centro de acopio</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Centro de acopio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaOperarios">
+                </tbody>
+            </table>
+        </div>
+
         <div id="tablaCentrosContainer" class="tabla-container">
             <h3>Centros de acopio registrados</h3>
 
@@ -226,6 +251,7 @@
                         <th>Capacidad</th>
                         <th>Contenedores almacenados</th>
                         <th>Camiones almacenados</th>
+                        <th>Ubicación</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -299,7 +325,7 @@
         <span class="cerrar" onclick="cerrarModal()">&times;</span>
 
         <div id="camionForm" style="display:none;">
-            <h2>Registrar Camión</h2>
+            <h2 id="tituloCamion">Registrar Camión</h2>
 
             <label for="matricula">Matrícula</label>
             <input type="text" id="matricula" name="matricula" placeholder="Ingrese la matrícula">
@@ -317,7 +343,7 @@
                 <option value="Fuera de servicio">Fuera de servicio</option>
             </select>
 
-            <button type="button" class="btn" onclick="registrarCamion()">Registrar Camión</button>
+            <button type="button" class="btn" id="botonCamion" onclick="registrarCamion()">Registrar Camión</button>
             <p id="mensajeCamion"></p>
         </div>
 
@@ -358,23 +384,17 @@
             <p id="mensajeUsuario"></p>
         </div>
 
-        <div id="centroForm" style="display:none;">
-            <h2>Registrar Centro de Acopio</h2>
+        <div id="operarioCentroForm" style="display:none;">
+            <h2>Asociar operario a centro de acopio</h2>
 
-            <label for="servicioCentro">Servicio</label>
-            <input type="text" id="servicioCentro" name="servicioCentro" placeholder="Ej: Clasificación">
+            <label for="ocOperario">Operario</label>
+            <select id="ocOperario" onchange="actualizarCentroOperario()"></select>
 
-            <label for="capacidadCentro">Capacidad</label>
-            <input type="number" id="capacidadCentro" name="capacidadCentro" min="0" placeholder="Ej: 600">
+            <label for="ocCentro">Centro de acopio</label>
+            <select id="ocCentro"></select>
 
-            <label for="contAlmacenadosCentro">Contenedores almacenados</label>
-            <input type="number" id="contAlmacenadosCentro" name="contAlmacenadosCentro" min="0" placeholder="Ej: 0">
-
-            <label for="camAlmacenadosCentro">Camiones almacenados</label>
-            <input type="number" id="camAlmacenadosCentro" name="camAlmacenadosCentro" min="0" placeholder="Ej: 0">
-
-            <button type="button" class="btn" onclick="registrarCentro()">Registrar Centro</button>
-            <p id="mensajeCentro"></p>
+            <button type="button" class="btn" onclick="guardarOperarioCentroUI()">Guardar</button>
+            <p id="mensajeOperarioCentro"></p>
         </div>
 
         <div id="cuadrillaCamionForm" style="display:none;">

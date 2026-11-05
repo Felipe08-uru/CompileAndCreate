@@ -39,6 +39,10 @@ switch($method){
             break;
         }
 
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
+            break;
+        }
+
         if($endpoint === "/maquinaria"){
             $idCentro = isset($_GET["id_centro"]) ? intval($_GET["id_centro"]) : null;
             echo json_encode($maquinariaObj->getAllMaquinaria($idCentro));
@@ -70,6 +74,10 @@ switch($method){
             break;
         }
 
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
+            break;
+        }
+
         $data = json_decode(file_get_contents("php://input"), true);
         if(!is_array($data)){
             http_response_code(400);
@@ -98,6 +106,10 @@ switch($method){
         }
 
         if(!esOperarioOAdministrador($usuarioObj, $ci)){
+            break;
+        }
+
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
             break;
         }
 

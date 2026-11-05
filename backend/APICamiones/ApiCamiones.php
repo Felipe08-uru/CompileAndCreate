@@ -51,7 +51,11 @@ switch($method){
             echo json_encode(["error" => "JSON inválido"]);
             break;
         }
-        echo $camionObj->addCamion($data);
+        if(isset($data["accion"]) && $data["accion"] === "editar"){
+            echo $camionObj->updateCamion($data);
+        }else{
+            echo $camionObj->addCamion($data);
+        }
         break;
 
     case "DELETE":

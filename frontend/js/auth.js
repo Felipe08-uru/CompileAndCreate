@@ -1,6 +1,6 @@
 import { getUsuarios, cerrarSesionServidor } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
-import { getRegistros } from "./APIRegistroCamion.js";
+import { getMiCentro } from "./APICentros.js";
 import { getMiAsignacion } from "./APIAsignaciones.js";
 
 export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
@@ -17,7 +17,8 @@ export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
     if (rolEsperado === "Administrador") {
         comprobacion = await getUsuarios();
     } else if (rolEsperado === "Operario") {
-        comprobacion = await getRegistros();
+        // No se usa getRegistros: un operario sin centro asociado recibe 403 ahí y no debe perder la sesión.
+        comprobacion = await getMiCentro();
     } else if (rolEsperado === "Cuadrilla") {
         comprobacion = await getMiAsignacion();
     } else {

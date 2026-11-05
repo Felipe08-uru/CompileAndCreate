@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../Geo/Geometria.php";
 require_once __DIR__ . "/../APIPoligonos/Poligono.php";
+require_once __DIR__ . "/../APICentros/Centro.php";
 
 /**
  * Rutas de recolección.
@@ -266,11 +267,21 @@ class Ruta {
         $poligonoObj = new Poligono($this->conn);
         $poligono = $poligonoObj->getPoligonoPorId($ruta["Id_Poligono"]);
 
+        // Destino final: el centro de acopio más cercano a la última parada de la ruta.
+        $centroDestino = null;
+
+        if(count($paradas) > 0){
+            $ultima = $paradas[count($paradas) - 1];
+            $centroObj = new Centro($this->conn);
+            $centroDestino = $centroObj->getMasCercano($ultima["Latitud"], $ultima["Longitud"]);
+        }
+
         return [
             "ruta" => $ruta,
             "poligono" => $poligono,
             "paradas" => $paradas,
-            "siguiente_orden" => $siguienteOrden
+            "siguiente_orden" => $siguienteOrden,
+            "centro_destino" => $centroDestino
         ];
     }
 

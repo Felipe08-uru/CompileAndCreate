@@ -35,6 +35,10 @@ switch($method){
             break;
         }
 
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
+            break;
+        }
+
         if($usuario["rol"] === "Administrador"){
             echo json_encode($registroObj->getAllRegistros());
         }elseif($usuario["rol"] === "Operario"){
@@ -53,6 +57,10 @@ switch($method){
         }
 
         if(!esOperario($usuarioObj, $ci)){
+            break;
+        }
+
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
             break;
         }
 
@@ -92,6 +100,10 @@ switch($method){
         if(!is_array($data) || !isset($data["id_registro"])){
             http_response_code(400);
             echo json_encode(["error" => "Debe indicar el registro a eliminar"]);
+            break;
+        }
+
+        if(!exigirCentroOperario($conn, $usuarioObj, $ci)){
             break;
         }
 
