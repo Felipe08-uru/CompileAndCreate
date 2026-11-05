@@ -3,19 +3,6 @@ require_once __DIR__ . "/../Geo/Geometria.php";
 require_once __DIR__ . "/../APIPoligonos/Poligono.php";
 require_once __DIR__ . "/../APICentros/Centro.php";
 
-/**
- * Rutas de recolección.
- *
- * Una ruta pertenece a UNA zona (polígono) y solo recorre los contenedores
- * que están en esa zona. Hay tres tipos de ruta:
- *   - Residuos mezclados: contenedores de ese tipo de la zona.
- *   - Reciclables:        contenedores de ese tipo de la zona.
- *   - Incidencias:        contenedores de la zona con incidencias pendientes.
- *
- * Las paradas se guardan ya ordenadas con el recorrido más corto posible
- * (ver Geometria::optimizarOrden). El trazado sobre las calles lo dibuja el
- * navegador con Leaflet Routing Machine.
- */
 class Ruta {
 
     private $conn;
@@ -76,9 +63,6 @@ class Ruta {
                 $where";
     }
 
-    /**
-     * Todas las rutas (para el administrador), de la más nueva a la más vieja.
-     */
     public function getRutas(){
         $sql = $this->consultaResumen("ORDER BY r.Id_Ruta DESC");
 
@@ -93,9 +77,6 @@ class Ruta {
         return $rutas;
     }
 
-    /**
-     * Resumen de la ruta sin finalizar de un camión (o null si no tiene).
-     */
     public function getResumenActivaPorMatricula($matricula){
         $sql = $this->consultaResumen(
             "WHERE r.Matricula = ? AND r.Estado <> 'Finalizada'
@@ -111,9 +92,6 @@ class Ruta {
         return $fila ? $this->normalizarResumen($fila) : null;
     }
 
-    /**
-     * Últimas rutas finalizadas por una cuadrilla.
-     */
     public function getHistorialCuadrilla($ci, $limite = 10){
         $sql = $this->consultaResumen(
             "INNER JOIN circula cir ON cir.Id_Ruta = r.Id_Ruta AND cir.CI = ?
@@ -136,9 +114,6 @@ class Ruta {
         return $rutas;
     }
 
-    /**
-     * ID de la ruta sin finalizar del camión que usa la cuadrilla.
-     */
     public function getIdRutaActivaDeCuadrilla($ci){
         $sql = "SELECT r.Id_Ruta
                 FROM ruta r
@@ -156,9 +131,6 @@ class Ruta {
         return $fila ? intval($fila["Id_Ruta"]) : null;
     }
 
-    /**
-     * Matrícula del camión que usa una cuadrilla (o null si no tiene uno asignado).
-     */
     public function getMatriculaDeCuadrilla($ci){
         $stmt = $this->conn->prepare("SELECT Matricula FROM usa WHERE CI = ?");
         $stmt->bind_param("s", $ci);
@@ -169,9 +141,6 @@ class Ruta {
         return $fila ? $fila["Matricula"] : null;
     }
 
-    /**
-     * Una cuadrilla solo puede ver las rutas de su camión o las que ya hizo.
-     */
     public function cuadrillaPuedeVerRuta($ci, $idRuta){
         $sql = "SELECT r.Id_Ruta
                 FROM ruta r
@@ -191,9 +160,6 @@ class Ruta {
         return $stmt->get_result()->num_rows > 0;
     }
 
-    /**
-     * Ruta completa con sus paradas ordenadas y el polígono al que pertenece.
-     */
     public function getDetalle($idRuta){
         $idRuta = intval($idRuta);
 
@@ -289,10 +255,6 @@ class Ruta {
     // Acciones
     // ------------------------------------------------------------------
 
-    /**
-     * Genera la ruta de un camión según la zona y el tipo de ruta que le
-     * asignó el administrador.
-     */
     public function generarRuta($matricula){
 
         $matricula = trim($matricula);
@@ -330,10 +292,6 @@ class Ruta {
         return $this->construirRuta($idPoligono, $tipoRuta, $matricula);
     }
 
-    /**
-     * Crea una ruta para una zona (la crea el administrador). El camión es
-     * opcional: se puede asignar después con asignarCamionARuta().
-     */
     public function crearRuta($idPoligono, $tipoRuta, $matricula = null){
 
         $idPoligono = trim((string)$idPoligono);
@@ -371,9 +329,6 @@ class Ruta {
         return $this->construirRuta($idPoligono, $tipoRuta, $matricula);
     }
 
-    /**
-     * Devuelve null si el camión puede hacer una ruta de ese tipo, o el JSON de error.
-     */
     private function validarCamionParaRuta($matricula, $tipoRuta, $exceptoIdRuta){
 
         $stmt = $this->conn->prepare("SELECT Tipo FROM camion WHERE Matricula = ?");
@@ -402,10 +357,6 @@ class Ruta {
         return null;
     }
 
-    /**
-     * Asigna (o quita, con matrícula vacía) el camión de una ruta que todavía
-     * no empezó. La cuadrilla de la ruta pasa a ser la que usa ese camión.
-     */
     public function asignarCamionARuta($idRuta, $matricula){
 
         $idRuta = intval($idRuta);
@@ -488,11 +439,7 @@ class Ruta {
             return $this->error("No se pudo asignar el camión a la ruta", 500);
         }
     }
-
-    /**
-     * Arma la ruta: elige los contenedores de la zona, los ordena para el
-     * recorrido más corto y los guarda como paradas.
-     */
+    
     private function construirRuta($idPoligono, $tipoRuta, $matricula){
 
         // Solo los contenedores que están en la zona de la ruta.
@@ -608,15 +555,6 @@ class Ruta {
         }
     }
 
-    /**
-     * La cuadrilla informa el peso del contenedor de la parada actual.
-     * La parada se marca como recogida y la ruta avanza a la siguiente.
-     *
-     * @param int $idRuta
-     * @param int|null $orden Parada que el cliente cree estar cerrando (para evitar duplicados).
-     * @param mixed $peso Kilos.
-     * @param string $ci Cédula de la cuadrilla.
-     */
     public function registrarPeso($idRuta, $orden, $peso, $ci){
 
         $idRuta = intval($idRuta);
