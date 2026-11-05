@@ -290,11 +290,11 @@ CREATE TABLE registro_camion (
 
 -- la contraseña de todos estos usuarios es: Password1234!
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
-('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Administrador', 'admin@gmail.com'),
-('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Vecino', 'vecino@gmail.com'),
-('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Operario', 'operario@gmail.com'),
-('66666666', 'Cuadrilla', NULL, 'Uno', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Cuadrilla', 'cuadrilla@gmail.com'),
-('77777777', 'Cuadrilla', NULL, 'Dos', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Cuadrilla', 'cuadrilla2@gmail.com');
+('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Administrador', 'admin@gmail.com'),
+('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Vecino', 'vecino@gmail.com'),
+('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Operario', 'operario@gmail.com'),
+('66666666', 'Cuadrilla', NULL, 'Uno', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Cuadrilla', 'cuadrilla@gmail.com'),
+('77777777', 'Cuadrilla', NULL, 'Dos', NULL, '$2y$10$.6BzejaUQiKhxZdOW9vAiOatwfQPf5X1gotl.l3OQanCkb7tdsghi', 'Cuadrilla', 'cuadrilla2@gmail.com');
 
 INSERT INTO administrador (CI) VALUES
 ('12341234');
