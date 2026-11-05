@@ -1,0 +1,121 @@
+/* ===== Campanita de notificaciones ===== */
+
+.campana{
+    position:relative;
+    order:1;
+}
+
+.campana-boton{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:46px;
+    height:46px;
+    padding:0;
+    color:white;
+    background:rgba(255,255,255,.14);
+    border:2px solid rgba(255,255,255,.7);
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.campana-boton:hover{
+    background:rgba(255,255,255,.28);
+}
+
+.campana-boton.con-avisos{
+    border-color:#ffb020;
+}
+
+.campana-contador{
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    min-width:20px;
+    height:20px;
+    padding:0 5px;
+    font-size:12px;
+    font-weight:bold;
+    line-height:20px;
+    text-align:center;
+    color:white;
+    background:#d64545;
+    border:2px solid #0f4c81;
+    border-radius:10px;
+}
+
+.campana-contador[hidden],
+.campana-panel[hidden],
+.campana-todas[hidden]{
+    display:none;
+}
+
+.campana-panel{
+    position:absolute;
+    top:calc(100% + 10px);
+    right:0;
+    z-index:3000;
+    width:340px;
+    max-width:90vw;
+    color:#333;
+    background:white;
+    border-radius:6px;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);
+    text-align:left;
+}
+
+.campana-cabecera{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 14px;
+    border-bottom:1px solid #ddd;
+}
+
+.campana-todas{
+    padding:0;
+    font-size:13px;
+    color:#0f4c81;
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+}
+
+.campana-lista{
+    max-height:340px;
+    margin:0;
+    padding:0;
+    overflow-y:auto;
+    list-style:none;
+}
+
+.campana-item{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:12px 14px;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+}
+
+.campana-item.sin-leer{
+    background:#eef5fc;
+    border-left:4px solid #0f4c81;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.campana-fecha{
+    font-weight:normal;
+    color:#777;
+}
+
+.campana-vacio{
+    padding:18px 14px;
+    font-size:14px;
+    color:#777;
+    text-align:center;
+}

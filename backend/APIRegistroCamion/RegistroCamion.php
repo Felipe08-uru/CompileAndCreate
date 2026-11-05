@@ -1,6 +1,9 @@
 <?php
 
 class RegistroCamion {
+    // Tipos de carga que acepta el centro de acopio (los mismos que ofrece el formulario).
+    const TIPOS_CARGA = ["Reciclable", "Residuos mezclados"];
+
 
     private $conn;
     private $table = "registro_camion";
@@ -63,6 +66,12 @@ class RegistroCamion {
             ? floatval($data["cantidad_carga"])
             : null;
 
+        if(!in_array($tipoCarga, self::TIPOS_CARGA, true)){
+            return json_encode([
+                "error" => "El tipo de carga debe ser Reciclable o Residuos mezclados"
+            ]);
+        }
+
         $sqlCamion = "SELECT Matricula FROM camion WHERE Matricula = ?";
         $stmtCamion = $this->conn->prepare($sqlCamion);
         $stmtCamion->bind_param("s", $matricula);
@@ -108,6 +117,12 @@ class RegistroCamion {
         if($tipoCarga === ""){
             return json_encode([
                 "error" => "Debe indicar el tipo de carga"
+            ]);
+        }
+
+        if(!in_array($tipoCarga, self::TIPOS_CARGA, true)){
+            return json_encode([
+                "error" => "El tipo de carga debe ser Reciclable o Residuos mezclados"
             ]);
         }
 

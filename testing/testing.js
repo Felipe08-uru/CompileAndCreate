@@ -29,6 +29,7 @@ import { getPoligonos, crearPoligono, eliminarPoligono } from '../frontend/js/AP
 import {
   getIncidencias, getIncidenciaPorId, crearIncidencia, eliminarIncidencia, getFotoIncidencia,
 } from '../frontend/js/APIIncidencias.js';
+import { getNotificaciones, marcarNotificacionLeida, marcarTodasLeidas } from '../frontend/js/APINotificaciones.js';
 
 import {
   getRutas, getRutaActiva, getRuta, crearRuta, asignarCamionARuta, registrarPeso, eliminarRuta,
@@ -190,6 +191,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
   let idContenedorRuta = null;
   let idZonaTest = null;
   let idRutaTest = null;
+  const idsIncidenciasVecino = [];   // incidencias que reporta el vecino de prueba
   let idCentro = null;
 
   try {
@@ -589,7 +591,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
     let idRegistro = null;
     await prueba('Operario registra la llegada de un camión', async function () {
       await como('Operario');
-      const r = await crearRegistro({ matricula: matriculaRuta, id_centro: idCentro, tipo_carga: 'Reciclables', cantidad_carga: 120.5 });
+      const r = await crearRegistro({ matricula: matriculaRuta, id_centro: idCentro, tipo_carga: 'Reciclable', cantidad_carga: 120.5 });
       afirmar(r.data.id_registro, 'no devolvió id_registro', r);
       idRegistro = r.data.id_registro;
       deshacer('Eliminar registro ' + idRegistro, async function () { await como('Operario'); return eliminarRegistro(idRegistro); });
@@ -638,14 +640,35 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
       const r = await crearIncidencia(idContenedorRuta, 'Contenedor lleno', archivoPng());
       afirmar(r.data.success && r.data.Id_Incidencia, 'no se registró', r);
       idIncidencia = r.data.Id_Incidencia;
+      idsIncidenciasVecino.push(idIncidencia);
       deshacer('Eliminar incidencia ' + idIncidencia, async function () { await como('Administrador'); return eliminarIncidencia(idIncidencia); });
       return r.data;
     });
 
     if (idIncidencia) {
-      await prueba('Un segundo reporte en el mismo contenedor se rechaza (409) mientras el primero siga pendiente', async function () {
+      await prueba('Un contenedor admite varias incidencias a la vez (un segundo reporte se acepta)', async function () {
         await como('Vecino');
-        estado(await crearIncidencia(idContenedorRuta, 'Contenedor roto', archivoPng()), 409);
+        const r = await crearIncidencia(idContenedorRuta, 'Contenedor roto', archivoPng());
+        afirmar(r.data.success && r.data.Id_Incidencia, 'no se registró la segunda incidencia', r);
+        afirmar(r.data.Id_Incidencia !== idIncidencia, 'devolvió el mismo id que la primera', r);
+        idsIncidenciasVecino.push(r.data.Id_Incidencia);
+        const idSegunda = r.data.Id_Incidencia;
+        deshacer('Eliminar incidencia ' + idSegunda, async function () { await como('Administrador'); return eliminarIncidencia(idSegunda); });
+        await como('Administrador');
+        const l = await getIncidencias();
+        estado(l, 200);
+        afirmar(contieneValor(l.data, idIncidencia) && contieneValor(l.data, idSegunda), 'las dos incidencias deben figurar en el listado', l);
+        return r.data;
+      });
+
+      await prueba('Notificaciones: sin token (401); el vecino consulta las suyas (200) y ninguna es de otro usuario', async function () {
+        localStorage.removeItem('token');
+        estado(await getNotificaciones(), 401);
+        await como('Vecino');
+        const n = await getNotificaciones();
+        estado(n, 200);
+        afirmar(typeof n.data.no_leidas === 'number' && Array.isArray(n.data.notificaciones), 'la respuesta debe traer no_leidas y notificaciones', n);
+        estado(await marcarNotificacionLeida(999999), 404);
       });
 
       await prueba('Solo el administrador puede ver la foto de la incidencia', async function () {
@@ -690,6 +713,9 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
         await como('Administrador');
         const r = await eliminarIncidencia(idIncidencia);
         afirmar(r.data.success, 'no se eliminó', r);
+        // Ya no existe: no debe esperarse una notificación por ella más adelante
+        const pos = idsIncidenciasVecino.indexOf(idIncidencia);
+        if (pos !== -1) idsIncidenciasVecino.splice(pos, 1);
       });
     }
   }
@@ -831,6 +857,75 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
         await como('Cuadrilla2');
         estado(await registrarPeso(idRutaTest, 1, 5), 409);
       });
+
+      // ---- Ruta de Incidencias: resuelve todas las incidencias del contenedor y avisa al vecino ----
+      let idRutaIncidencias = null;
+
+      await prueba('El vecino reporta otra incidencia: el contenedor queda con varias pendientes', async function () {
+        await como('Vecino');
+        const r = await crearIncidencia(idContenedorRuta, 'Contenedor lleno', archivoPng());
+        afirmar(r.data.success && r.data.Id_Incidencia, 'no se registró la incidencia', r);
+        const idNueva = r.data.Id_Incidencia;
+        idsIncidenciasVecino.push(idNueva);
+        deshacer('Eliminar incidencia ' + idNueva, async function () { await como('Administrador'); return eliminarIncidencia(idNueva); });
+        afirmar(idsIncidenciasVecino.length >= 2, 'esperaba al menos 2 incidencias del vecino en el contenedor', idsIncidenciasVecino);
+      });
+
+      await prueba('Crear una ruta de Incidencias: el contenedor tiene incidencias pendientes', async function () {
+        await como('Administrador');
+        const r = await crearRuta(idZonaTest, 'Incidencias', matriculaRuta);
+        estado(r, 201);
+        afirmar(r.data.total_paradas === 1, 'esperaba 1 parada y llegó ' + r.data.total_paradas, r);
+        idRutaIncidencias = r.data.id_ruta;
+        deshacer('Eliminar ruta de incidencias ' + idRutaIncidencias, async function () { await como('Administrador'); return eliminarRuta(idRutaIncidencias); });
+        return r.data;
+      });
+
+      if (idRutaIncidencias) {
+        await prueba('Al atender el contenedor se resuelven TODAS sus incidencias pendientes', async function () {
+          await como('Cuadrilla2');
+          const r = await registrarPeso(idRutaIncidencias, 1, 40);
+          estado(r, 200);
+          afirmar(r.data.finalizada === true, 'la ruta debía finalizar', r);
+          await como('Administrador');
+          for (const id of idsIncidenciasVecino) {
+            const i = await getIncidenciaPorId(id);
+            afirmar(i.data && i.data.Estado === 'Resuelta', 'la incidencia ' + id + ' debía quedar Resuelta y está ' + (i.data && i.data.Estado), i);
+          }
+        });
+
+        await prueba('El vecino recibe una notificación por cada incidencia resuelta (campanita)', async function () {
+          await como('Vecino');
+          const n = await getNotificaciones();
+          estado(n, 200);
+          const mias = n.data.notificaciones.filter(function (x) { return idsIncidenciasVecino.indexOf(x.Id_Incidencia) !== -1; });
+          afirmar(mias.length === idsIncidenciasVecino.length, 'esperaba ' + idsIncidenciasVecino.length + ' notificaciones y llegaron ' + mias.length, n);
+          afirmar(mias.every(function (x) { return x.Leida === false && /resuelta/i.test(x.Mensaje); }), 'deben estar sin leer y avisar que se resolvió', n);
+          afirmar(n.data.no_leidas >= mias.length, 'el contador de no leídas no coincide', n);
+          return mias;
+        });
+
+        await prueba('Marcar una notificación y luego todas como leídas deja el contador en 0', async function () {
+          await como('Vecino');
+          const antes = await getNotificaciones();
+          const primera = antes.data.notificaciones.find(function (x) { return !x.Leida; });
+          afirmar(primera, 'no hay notificaciones sin leer', antes);
+          estado(await marcarNotificacionLeida(primera.Id_Notificacion), 200);
+          const medio = await getNotificaciones();
+          afirmar(medio.data.no_leidas === antes.data.no_leidas - 1, 'esperaba ' + (antes.data.no_leidas - 1) + ' sin leer y llegó ' + medio.data.no_leidas, medio);
+          estado(await marcarTodasLeidas(), 200);
+          const despues = await getNotificaciones();
+          afirmar(despues.data.no_leidas === 0, 'esperaba 0 sin leer y llegó ' + despues.data.no_leidas, despues);
+        });
+
+        await prueba('Una notificación es privada: otro usuario no puede marcarla (404)', async function () {
+          await como('Vecino');
+          const n = await getNotificaciones();
+          const id = n.data.notificaciones[0].Id_Notificacion;
+          await como('Operario');
+          estado(await marcarNotificacionLeida(id), 404);
+        });
+      }
     }
   }
 

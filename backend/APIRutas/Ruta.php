@@ -691,8 +691,21 @@ class Ruta {
             $stmtParada->bind_param("dii", $peso, $idRuta, $ordenActual);
             $stmtParada->execute();
 
-            // En una ruta de incidencias, al atender el contenedor se resuelven sus incidencias.
+            // En una ruta de incidencias, al atender el contenedor se resuelven todas sus
+            // incidencias pendientes y se avisa (notificación) a quien reportó cada una.
             if($ruta["Tipo"] === "Incidencias"){
+                $stmtAviso = $this->conn->prepare(
+                    "INSERT INTO notificacion (CI, Tipo, Mensaje, Id_Incidencia)
+                     SELECT r.CI, 'Incidencia resuelta',
+                            CONCAT('Su incidencia \"', i.Tipo, '\" en el contenedor ', i.Id_Contenedor, ' fue resuelta.'),
+                            i.Id_Incidencia
+                     FROM incidencia i
+                     INNER JOIN reporta r ON r.Id_Incidencia = i.Id_Incidencia
+                     WHERE i.Id_Contenedor = ? AND i.Estado = 'Pendiente'"
+                );
+                $stmtAviso->bind_param("i", $idContenedor);
+                $stmtAviso->execute();
+
                 $stmtIncidencia = $this->conn->prepare(
                     "UPDATE incidencia SET Estado = 'Resuelta'
                      WHERE Id_Contenedor = ? AND Estado = 'Pendiente'"

@@ -1,3 +1,4 @@
+import "./recargarAlVolver.js";
 import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getUsuarios, crearUsuario, eliminarUsuario } from "./APIUsuarios.js";

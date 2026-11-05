@@ -4,6 +4,7 @@ import { getPoligonos } from "./APIPoligonos.js";
 import { getContenedores } from "./APIContenedores.js";
 import { crearIncidencia } from "./APIIncidencias.js";
 import { activarFlechaScroll } from "./scrollFlecha.js";
+import { iniciarCampana } from "./notificaciones.js";
 
 const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
@@ -188,3 +189,4 @@ cargarZonas();
 cargarContenedores();
 verificarSesion("Vecino", "index.html");
 activarFlechaScroll();
+iniciarCampana();

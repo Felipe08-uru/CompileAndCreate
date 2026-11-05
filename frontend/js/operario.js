@@ -23,7 +23,7 @@ function mostrarCamion() {
     document.getElementById("tituloCamionForm").textContent = "Registrar llegada de camión";
     document.getElementById("btnGuardarRegistro").textContent = "Registrar llegada";
     document.getElementById("idRegistro").value = "";
-    document.getElementById("tipoCargaCamion").value = "Orgánico";
+    document.getElementById("tipoCargaCamion").value = "Reciclable";
     document.getElementById("cantidadCargaCamion").value = "";
     document.getElementById("mensajeCamion").textContent = "";
     document.getElementById("matriculaCamion").disabled = false;

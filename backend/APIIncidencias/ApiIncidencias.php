@@ -93,12 +93,6 @@ switch($method){
             break;
         }
 
-        if($incidenciaObj->getPendienteDelContenedor($idContenedor) !== null){
-            http_response_code(409);
-            echo json_encode(["error" => "El contenedor ya tiene una incidencia pendiente. Hay que resolverla antes de registrar otra."]);
-            break;
-        }
-
         $foto = $_FILES["foto"];
 
         if($foto["size"] > 5 * 1024 * 1024){
@@ -144,7 +138,8 @@ switch($method){
             "Tipo" => $tipoIncidencia,
             "Estado" => "Pendiente",
             "Id_Contenedor" => $idContenedor,
-            "Foto" => $nombreArchivo
+            "Foto" => $nombreArchivo,
+            "CI" => $ci
         ];
 
         $resultado = $incidenciaObj->addIncidencia($data);

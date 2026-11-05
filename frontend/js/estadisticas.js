@@ -1,3 +1,4 @@
+import "./recargarAlVolver.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getDesbordados, getPromedio, getZonasLlenado, getLimpieza } from "./APIEstadisticas.js";
 import { getPoligonos } from "./APIPoligonos.js";

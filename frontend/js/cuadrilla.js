@@ -1,3 +1,4 @@
+import "./recargarAlVolver.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
 import { getMiAsignacion } from "./APIAsignaciones.js";
 import { getRutaActiva } from "./APIRutas.js";

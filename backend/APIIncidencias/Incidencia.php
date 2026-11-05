@@ -31,16 +31,6 @@ class Incidencia{
         return null;
     }
 
-    /** Incidencia pendiente (sin resolver) del contenedor, o null si no tiene. */
-    public function getPendienteDelContenedor($idContenedor){
-        $stmt=$this->conn->prepare("SELECT * FROM incidencia WHERE Id_Contenedor=? AND Estado='Pendiente' LIMIT 1");
-        $stmt->bind_param("i",$idContenedor);
-        $stmt->execute();
-        $resultado=$stmt->get_result();
-
-        return $resultado->num_rows>0 ? $resultado->fetch_assoc() : null;
-    }
-
     public function existeContenedor($idContenedor){
         $stmt=$this->conn->prepare("SELECT 1 FROM contenedor WHERE Id_Contenedor=?");
         $stmt->bind_param("i",$idContenedor);
@@ -49,50 +39,50 @@ class Incidencia{
         return $stmt->get_result()->num_rows>0;
     }
 
+    /**
+     * Registra una incidencia. Un contenedor puede tener varias incidencias a la vez
+     * (de distintas personas o de distintos tipos). Si se indica la cédula de quien
+     * reporta ($data["CI"]) se guarda en la tabla "reporta", que es lo que permite
+     * avisarle después, con una notificación, cuando la incidencia se resuelva.
+     */
     public function addIncidencia($data){
-        // Un contenedor no puede tener dos incidencias pendientes a la vez.
-        if($this->getPendienteDelContenedor($data["Id_Contenedor"]) !== null){
-            http_response_code(409);
+        $ci=isset($data["CI"]) ? $data["CI"] : null;
 
-            return json_encode([
-                "error"=>"El contenedor ya tiene una incidencia pendiente. Hay que resolverla antes de registrar otra."
-            ]);
-        }
-
-        $stmt=$this->conn->prepare("INSERT INTO incidencia(Tipo,Estado,Id_Contenedor,Foto) VALUES(?,?,?,?)");
-        $stmt->bind_param(
-            "ssis",
-            $data["Tipo"],
-            $data["Estado"],
-            $data["Id_Contenedor"],
-            $data["Foto"]
-        );
+        $this->conn->begin_transaction();
 
         try{
-            $ok=$stmt->execute();
-        }catch(mysqli_sql_exception $e){
-            // 1062: el índice único detectó otra incidencia pendiente (dos pedidos a la vez).
-            if($e->getCode()==1062){
-                http_response_code(409);
+            $stmt=$this->conn->prepare("INSERT INTO incidencia(Tipo,Estado,Id_Contenedor,Foto) VALUES(?,?,?,?)");
+            $stmt->bind_param(
+                "ssis",
+                $data["Tipo"],
+                $data["Estado"],
+                $data["Id_Contenedor"],
+                $data["Foto"]
+            );
+            $stmt->execute();
 
-                return json_encode([
-                    "error"=>"El contenedor ya tiene una incidencia pendiente. Hay que resolverla antes de registrar otra."
-                ]);
+            $idIncidencia=$this->conn->insert_id;
+
+            if($ci!==null){
+                $stmtReporta=$this->conn->prepare("INSERT INTO reporta(CI,Id_Incidencia) VALUES(?,?)");
+                $stmtReporta->bind_param("si",$ci,$idIncidencia);
+                $stmtReporta->execute();
             }
 
-            $ok=false;
-        }
+            $this->conn->commit();
+        }catch(mysqli_sql_exception $e){
+            $this->conn->rollback();
+            error_log("[SiGeRU] No se pudo registrar la incidencia: ".$e->getMessage());
 
-        if($ok){
             return json_encode([
-                "success"=>true,
-                "mensaje"=>"La incidencia fue registrada correctamente.",
-                "Id_Incidencia"=>$this->conn->insert_id
+                "error"=>"No se pudo registrar la incidencia."
             ]);
         }
 
         return json_encode([
-            "error"=>"No se pudo registrar la incidencia."
+            "success"=>true,
+            "mensaje"=>"La incidencia fue registrada correctamente.",
+            "Id_Incidencia"=>$idIncidencia
         ]);
     }
 

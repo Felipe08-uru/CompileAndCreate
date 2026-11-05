@@ -8,6 +8,9 @@ error_reporting(E_ALL);
 
 ob_start();
 
+// Hora de Uruguay en PHP y en MySQL (UTC-3 todo el año, sin horario de verano).
+date_default_timezone_set("America/Montevideo");
+
 // Datos de conexión. Cada uno se puede forzar con una variable de entorno
 // (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME).
 //
@@ -111,6 +114,7 @@ foreach($candidatos as $candidato){
         $conexion->options(MYSQLI_OPT_CONNECT_TIMEOUT, 3);
         $conexion->real_connect($hostPrueba, $user, $password, $database, $puertoPrueba);
         $conexion->set_charset("utf8mb4");
+        $conexion->query("SET time_zone = '-03:00'");
 
         $conn = $conexion;
         break;
