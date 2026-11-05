@@ -15,16 +15,42 @@ services:
     ports:
     - "3303:3306"
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_DATABASE: sigeru
+      DB_USER: root
+      MYSQL_ROOT_PASSWORD: felipeadrianjuan
+      DB_NAME: sigeru
     volumes:
       - datos_logs:/var/lib/mysql
       - ./sigeru.sql:/docker-entrypoint-initdb.d/sigeru.sql
     networks:
       - red_logs
+  
+  respaldos:
+    build:
+      context: .
+      dockerfile: Dockerfile.respaldos
+    image: rclone/rclone:latest
+    container_name: respaldos
+    restart: unless-stopped
+
+    volumes:
+      - ./respaldos:/respaldo
+      - ./rclone:/config/rclone
+      - ./:/datos
+      - datos_logs:/datos_mysql
+    
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          /bin/sh /datos/script/respaldar.sh
+          sleep 86400
+        done 
+    
+    networks:
+      - red_logs 
  
 networks:
-  red_logs:
- 
+ red_logs:
 volumes:
-  datos_logs:
+ datos_logs:
+
