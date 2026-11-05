@@ -49,6 +49,20 @@ switch($method){
         break;
 
     case "POST":
+        if($endpoint === "/logout"){
+            $token = obtenerToken();
+
+            if($token === null || $token === ""){
+                http_response_code(401);
+                echo json_encode(["error" => "Token requerido"]);
+                break;
+            }
+
+            $tokenObj->eliminarToken($token);
+            echo json_encode(["success" => "Sesión cerrada"]);
+            break;
+        }
+
         $data = json_decode(file_get_contents("php://input"), true);
 
         if(!is_array($data)){
@@ -68,6 +82,7 @@ switch($method){
 
             if(isset($resultado["success"])){
                 $usuario = $resultado["success"];
+                $tokenObj->eliminarVencidos($usuario["ci"]);
                 $token = $tokenObj->crearToken($usuario["ci"]);
 
                 if($token === false){

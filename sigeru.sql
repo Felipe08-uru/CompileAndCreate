@@ -1,3 +1,6 @@
+-- Hora de Uruguay (UTC-3, sin horario de verano) para NOW() y los DEFAULT current_timestamp().
+SET time_zone = '-03:00';
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP DATABASE IF EXISTS sigeru;
@@ -218,7 +221,22 @@ CREATE TABLE reporta (
   PRIMARY KEY (CI, Id_Incidencia),
   KEY Id_Incidencia (Id_Incidencia),
   FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE,
-  FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia)
+  FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia) ON DELETE CASCADE
+);
+
+-- Avisos que se muestran en la "campanita" de cada usuario (por ahora: incidencia resuelta).
+CREATE TABLE notificacion (
+  Id_Notificacion int(11) NOT NULL AUTO_INCREMENT,
+  CI char(8) NOT NULL,
+  Tipo varchar(30) NOT NULL,
+  Mensaje varchar(255) NOT NULL,
+  Id_Incidencia int(11) DEFAULT NULL,
+  Leida tinyint(1) NOT NULL DEFAULT 0,
+  Fecha datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (Id_Notificacion),
+  KEY CI_Leida (CI, Leida),
+  FOREIGN KEY (CI) REFERENCES usuario (ci) ON DELETE CASCADE,
+  FOREIGN KEY (Id_Incidencia) REFERENCES incidencia (Id_Incidencia) ON DELETE SET NULL
 );
 
 CREATE TABLE reporta_centro (
@@ -270,13 +288,13 @@ CREATE TABLE registro_camion (
 -- Datos de prueba
 -- ============================================================================
 
--- las contraseñas de todos estos usuarios es: 1234
+-- la contraseña de todos estos usuarios es: Password1234!
 INSERT INTO usuario (ci, nombre1, nombre2, apellido1, apellido2, contrasena, rol, correo_e) VALUES
-('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Administrador', 'admin@gmail.com'),
-('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Vecino', 'vecino@gmail.com'),
-('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Operario', 'operario@gmail.com'),
-('66666666', 'Cuadrilla', NULL, 'Uno', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Cuadrilla', 'cuadrilla@gmail.com'),
-('77777777', 'Cuadrilla', NULL, 'Dos', NULL, '$2b$10$y4cARLVaeb5vZ7LmSMgFvuAXk8KgIiSuimZQUGBjIVfd/Zoi0CSgC', 'Cuadrilla', 'cuadrilla2@gmail.com');
+('12341234', 'Administrador', NULL, 'ejemplo', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Administrador', 'admin@gmail.com'),
+('44444444', 'Vecino', NULL, 'ejmelp', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Vecino', 'vecino@gmail.com'),
+('55555555', 'Operario', NULL, 'Ejemplo', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Operario', 'operario@gmail.com'),
+('66666666', 'Cuadrilla', NULL, 'Uno', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Cuadrilla', 'cuadrilla@gmail.com'),
+('77777777', 'Cuadrilla', NULL, 'Dos', NULL, '$2a$12$H5btrWnXAxey2Bd0jA04rOAjEvTGOCgODu5/sJb0EcmN48DN/NL6u', 'Cuadrilla', 'cuadrilla2@gmail.com');
 
 INSERT INTO administrador (CI) VALUES
 ('12341234');
@@ -490,4 +508,4 @@ INSERT INTO maquinaria (ID, Nombre, Cantidad, Estado) VALUES
 (1, 'Gato hidráulico', 2, 'Operativa');
 
 INSERT INTO registro_camion (Matricula, CI, ID, Tipo_Carga, Cantidad_Carga) VALUES
-('SBI1234', '55555555', 1, 'Orgánico', 350.00);
+('SBI1234', '55555555', 1, 'Residuos mezclados', 350.00);

@@ -42,6 +42,15 @@ class Token {
         return $resultado->fetch_assoc()["CI"];
     }
 
+    public function eliminarVencidos($ci) {
+        $sql = "DELETE FROM access_token
+                WHERE CI = ?
+                AND fecha_vencimiento <= NOW()";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $ci);
+        return $stmt->execute();
+    }
+
     public function eliminarToken($token) {
         $sql = "DELETE FROM access_token
                 WHERE token = ?";

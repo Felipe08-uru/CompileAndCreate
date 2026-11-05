@@ -6,6 +6,10 @@ export function iniciarSesion(datos) {
     return apiRequest(`${RUTA}/login`, "POST", datos);
 }
 
+export function cerrarSesionServidor() {
+    return apiRequest(`${RUTA}/logout`, "POST");
+}
+
 export function registrarUsuario(datos) {
     return apiRequest(`${RUTA}/registro`, "POST", datos);
 }

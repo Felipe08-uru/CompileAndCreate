@@ -1,5 +1,35 @@
 <?php
 class Usuario {
+    /**
+     * Política de contraseñas: mínimo 10 caracteres, con mayúscula, minúscula y número.
+     * Devuelve null si es válida, o un mensaje que indica lo que falta.
+     */
+    public static function validarContrasena($contrasena) {
+        $faltan = [];
+
+        if (!is_string($contrasena) || mb_strlen($contrasena) < 10) {
+            $faltan[] = "al menos 10 caracteres";
+        }
+
+        if (!is_string($contrasena) || !preg_match('/\p{Lu}/u', $contrasena)) {
+            $faltan[] = "una letra mayúscula";
+        }
+
+        if (!is_string($contrasena) || !preg_match('/\p{Ll}/u', $contrasena)) {
+            $faltan[] = "una letra minúscula";
+        }
+
+        if (!is_string($contrasena) || !preg_match('/\d/', $contrasena)) {
+            $faltan[] = "un número";
+        }
+
+        if (count($faltan) === 0) {
+            return null;
+        }
+
+        return "Contraseña no válida. Le falta: " . implode(", ", $faltan) . ".";
+    }
+
     private $conn;
     private $table = "usuario";
 
@@ -58,6 +88,16 @@ class Usuario {
         $apellido1 = trim($data["apellido1"]);
         $apellido2 = isset($data["apellido2"]) && $data["apellido2"] !== "" ? trim($data["apellido2"]) : null;
         $correo_e = trim($data["correo_e"]);
+        $errorContrasena = self::validarContrasena($data["contrasena"]);
+
+        if ($errorContrasena !== null) {
+            http_response_code(400);
+
+            return json_encode([
+                "error" => $errorContrasena
+            ]);
+        }
+
         $contrasena = password_hash($data["contrasena"], PASSWORD_DEFAULT);
         $rol = trim($data["rol"]);
 

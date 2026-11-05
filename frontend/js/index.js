@@ -1,3 +1,4 @@
+import { validarContrasena } from "./validarContrasena.js";
 import { iniciarSesion, registrarUsuario } from "./APIUsuarios.js";
 import { getUsuarios } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
@@ -137,6 +138,13 @@ async function manejarRegistro() {
 
     if (contrasena !== confirmar) {
         mensaje.textContent = "Las contraseñas no coinciden.";
+        return;
+    }
+
+    const errorContrasena = validarContrasena(contrasena);
+
+    if (errorContrasena) {
+        mensaje.textContent = errorContrasena;
         return;
     }
 

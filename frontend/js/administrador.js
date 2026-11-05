@@ -1,3 +1,4 @@
+import { validarContrasena } from "./validarContrasena.js";
 import "./recargarAlVolver.js";
 import { ESTILO_ZONA } from "./zonaEstilo.js";
 import { verificarSesion, cerrarSesion } from "./auth.js";
@@ -380,6 +381,13 @@ async function manejarRegistroUsuario() {
 
     if (ci === "" || nombre1 === "" || apellido1 === "" || correo === "" || contrasena === "") {
         mensaje.textContent = "Complete todos los campos obligatorios.";
+        return;
+    }
+
+    const errorContrasena = validarContrasena(contrasena);
+
+    if (errorContrasena) {
+        mensaje.textContent = errorContrasena;
         return;
     }
 

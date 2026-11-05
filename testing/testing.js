@@ -3,7 +3,7 @@
 // ================== IMPORTS (los mismos módulos que usa el frontend) ==================
 import {
   iniciarSesion, registrarUsuario, getUsuarios, getUsuarioPorCi,
-  crearUsuario, actualizarUsuario, eliminarUsuario,
+  crearUsuario, actualizarUsuario, eliminarUsuario, cerrarSesionServidor,
 } from '../frontend/js/APIUsuarios.js';
 
 import {
@@ -134,11 +134,11 @@ async function prueba(nombre, fn) {
 
 // ================== Sesiones (token en localStorage, igual que la aplicación) ==================
 const CREDENCIALES = {
-  Administrador: { correo_e: 'admin@gmail.com',      contrasena: '1234', rol: 'Administrador' },
-  Vecino:        { correo_e: 'vecino@gmail.com',     contrasena: '1234', rol: 'Vecino' },
-  Operario:      { correo_e: 'operario@gmail.com',   contrasena: '1234', rol: 'Operario' },
-  Cuadrilla:     { correo_e: 'cuadrilla@gmail.com',  contrasena: '1234', rol: 'Cuadrilla' },
-  Cuadrilla2:    { correo_e: 'cuadrilla2@gmail.com', contrasena: '1234', rol: 'Cuadrilla' },
+  Administrador: { correo_e: 'admin@gmail.com',      contrasena: 'Password1234!', rol: 'Administrador' },
+  Vecino:        { correo_e: 'vecino@gmail.com',     contrasena: 'Password1234!', rol: 'Vecino' },
+  Operario:      { correo_e: 'operario@gmail.com',   contrasena: 'Password1234!', rol: 'Operario' },
+  Cuadrilla:     { correo_e: 'cuadrilla@gmail.com',  contrasena: 'Password1234!', rol: 'Cuadrilla' },
+  Cuadrilla2:    { correo_e: 'cuadrilla2@gmail.com', contrasena: 'Password1234!', rol: 'Cuadrilla' },
 };
 const CI_CUADRILLA_2 = '77777777';
 const CAMION_CUADRILLA_2 = 'SBJ5678';
@@ -464,30 +464,52 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
 
   await prueba('Registro de vecino y login con ese usuario', async function () {
     sinSesion();
-    const r = await registrarUsuario({ ci: ciVecino, nombre1: 'Test', apellido1: 'Api', correo_e: correoVecino, contrasena: 'clave123' });
+    const r = await registrarUsuario({ ci: ciVecino, nombre1: 'Test', apellido1: 'Api', correo_e: correoVecino, contrasena: 'Clave12345' });
     afirmar(r.data.success, 'no se registró', r);
     deshacer('Eliminar usuario ' + ciVecino, async function () { await como('Administrador'); return eliminarUsuario(ciVecino); });
-    const login = await iniciarSesion({ correo_e: correoVecino, contrasena: 'clave123' });
+    const login = await iniciarSesion({ correo_e: correoVecino, contrasena: 'Clave12345' });
     estado(login, 200);
     afirmar(login.data.rol === 'Vecino', 'el rol debía ser Vecino', login);
   });
 
   await prueba('Registro repetido, cédula inválida y correo inválido devuelven error', async function () {
     sinSesion();
-    hayError(await registrarUsuario({ ci: ciVecino, nombre1: 'Test', apellido1: 'Api', correo_e: 'otro.' + correoVecino, contrasena: 'clave123' }));
+    hayError(await registrarUsuario({ ci: ciVecino, nombre1: 'Test', apellido1: 'Api', correo_e: 'otro.' + correoVecino, contrasena: 'Clave12345' }));
     hayError(await registrarUsuario({ ci: '12', nombre1: 'T', apellido1: 'A', correo_e: 'x@x.com', contrasena: 'c' }));
     hayError(await registrarUsuario({ ci: '1234567a', nombre1: 'T', apellido1: 'A', correo_e: 'x@x.com', contrasena: 'c' }));
     hayError(await registrarUsuario({ ci: '9' + sufijo + '9', nombre1: 'T', apellido1: 'A', correo_e: 'no-es-correo', contrasena: 'c' }));
+  });
+
+  await prueba('Contraseña débil rechazada: corta, sin mayúscula, sin minúscula o sin número', async function () {
+    sinSesion();
+    const base = { ci: '9' + sufijo + '7', nombre1: 'T', apellido1: 'A', correo_e: 'debil.' + sufijo + '@example.com' };
+    const casos = ['Corta1a', 'sinmayuscula1', 'SINMINUSCULA1', 'SinNumeroAlguno'];
+    for (const c of casos) {
+      const r = await registrarUsuario({ ...base, contrasena: c });
+      estado(r, 400);
+      afirmar(/Contraseña no válida/.test(r.data.error || ''), 'el mensaje no indica que la contraseña no es válida (' + c + ')', r);
+    }
+  });
+
+  await prueba('Cerrar sesión invalida el token en el servidor', async function () {
+    sinSesion();
+    const login = await iniciarSesion({ correo_e: correoVecino, contrasena: 'Clave12345' });
+    estado(login, 200);
+    localStorage.setItem('token', login.data.token);
+    estado(await cerrarSesionServidor(), 200);
+    const r = await getContenedores();
+    estado(r, 401);
+    sinSesion();
   });
 
   await prueba('El registro público siempre crea Vecino (aunque pida otro rol)', async function () {
     sinSesion();
     const ci = '9' + sufijo + ((digito() + 2) % 10);
     const correo = 'rol.' + sufijo + '@example.com';
-    const r = await registrarUsuario({ ci: ci, nombre1: 'Test', apellido1: 'Rol', correo_e: correo, contrasena: 'clave123', rol: 'Administrador' });
+    const r = await registrarUsuario({ ci: ci, nombre1: 'Test', apellido1: 'Rol', correo_e: correo, contrasena: 'Clave12345', rol: 'Administrador' });
     if (r.data.success) {
       deshacer('Eliminar usuario ' + ci, async function () { await como('Administrador'); return eliminarUsuario(ci); });
-      const login = await iniciarSesion({ correo_e: correo, contrasena: 'clave123' });
+      const login = await iniciarSesion({ correo_e: correo, contrasena: 'Clave12345' });
       afirmar(login.data.rol === 'Vecino', 'se pudo crear un usuario con rol ' + login.data.rol + ' desde el registro público', login);
     }
   });
@@ -502,7 +524,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
 
   await prueba('Administrador crea un operario, lo edita y lo consulta', async function () {
     await como('Administrador');
-    const alta = await crearUsuario({ ci: ciOperario, nombre1: 'TestOp', apellido1: 'Api', correo_e: correoOperario, contrasena: 'clave123', rol: 'Operario' });
+    const alta = await crearUsuario({ ci: ciOperario, nombre1: 'TestOp', apellido1: 'Api', correo_e: correoOperario, contrasena: 'Clave12345', rol: 'Operario' });
     afirmar(alta.data.success, 'no se creó', alta);
     deshacer('Eliminar usuario ' + ciOperario, async function () { await como('Administrador'); return eliminarUsuario(ciOperario); });
     const edit = await actualizarUsuario({ ci: ciOperario, nombre1: 'Editado', nombre2: '', apellido1: 'Api', apellido2: '', correo_e: correoOperario, rol: 'Cuadrilla' });
@@ -533,7 +555,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
     await como('Administrador');
     const r = await eliminarUsuario(ciOperario);
     afirmar(r.data.success, 'no se eliminó', r);
-    const login = await iniciarSesion({ correo_e: correoOperario, contrasena: 'clave123' });
+    const login = await iniciarSesion({ correo_e: correoOperario, contrasena: 'Clave12345' });
     estado(login, 401);
   });
 

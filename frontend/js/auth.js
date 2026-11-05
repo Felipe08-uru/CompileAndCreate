@@ -1,4 +1,4 @@
-import { getUsuarios } from "./APIUsuarios.js";
+import { getUsuarios, cerrarSesionServidor } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
 import { getRegistros } from "./APIRegistroCamion.js";
 import { getMiAsignacion } from "./APIAsignaciones.js";
@@ -29,7 +29,16 @@ export async function verificarSesion(rolEsperado, redirigirA = "index.html") {
     }
 }
 
-export function cerrarSesion(redirigirA = "index.html") {
+export async function cerrarSesion(redirigirA = "index.html") {
+    // Se invalida el token en el servidor para que no siga siendo válido las 12 horas.
+    if (localStorage.getItem("token")) {
+        try {
+            await cerrarSesionServidor();
+        } catch (e) {
+            console.error("No se pudo invalidar el token en el servidor:", e);
+        }
+    }
+
     localStorage.removeItem("token");
     localStorage.removeItem("rol");
     window.location.href = redirigirA;
