@@ -2,31 +2,31 @@ cont=felipeadrianjuan
 user=root
 
 Usuarios() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM usuario"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM usuario"
 	date +"El %d de %B %Y a las %T se revisaron los usuarios de sigeru" >> log.txt
 }
 Camiones() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM camion"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM camion"
 	date +"El %d de %B %Y a las %T se revisaron los camiones de sigeru" >> log.txt
 
 }
 Contenedores() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM contenedor"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM contenedor"
 	date +"El %d de %B %Y a las %T se revisaron los contenedores de sigeru" >> log.txt
 
 }
 Centros() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM centro"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM centro"
 	date +"El %d de %B %Y a las %T se revisaron los centros de sigeru" >> log.txt
 
 }
 Herramientas() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM herramienta"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM herramienta"
 	date +"El %d de %B %Y a las %T se revisaron las herramientas de sigeru" >> log.txt
 
 }
 Incidencias() {
-	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM incidencia"
+	mysql -u $user -p"$cont" -D sigeru -e "SELECT * FROM incidencia"
 	date +"El %d de %B %Y a las %T se revisaron las incidencias de sigeru" >> log.txt
 }
 Respaldo() {

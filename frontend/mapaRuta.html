@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiGeRU - Mapa de la ruta</title>
+    <link rel="stylesheet" href="estilos/admin.css">
+    <link rel="stylesheet" href="estilos/menu.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="img/logoIMMNaranja.svg" alt="Logo">
+            <span>SiGeRU</span>
+        </div>
+        <nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="cuadrilla.html" id="enlaceVolver">Volver</a>
+            <button type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </nav>
+    </header>
+
+    <div class="titulo">
+        <h1 id="tituloRuta">Mapa de la ruta</h1>
+        <p id="subtituloRuta">Recorrido optimizado de los contenedores de la zona.</p>
+    </div>
+
+    <div class="contenido" data-menu="Mapa de la ruta" data-menu-grupo="Ruta">
+        <div class="carta">
+            <div id="resumenRuta" class="resumen-ruta"></div>
+
+            <div id="panelParada"></div>
+
+            <div class="mapa-ruta-layout">
+                <div class="mapa-ruta-principal">
+                    <div id="mapa"></div>
+
+                    <div class="leyenda-ruta">
+                        <span><i class="ley-punto ley-inicio"></i>Inicio</span>
+                        <span><i class="ley-punto ley-actual"></i>Siguiente parada</span>
+                        <span><i class="ley-punto ley-hecha"></i>Ya recogido</span>
+                        <span><i class="ley-punto ley-fin"></i>Fin</span>
+                        <span><i class="ley-flecha"></i>Sentido del recorrido</span>
+                    </div>
+
+                    <p id="mensajeMapa"></p>
+                </div>
+
+                <aside class="mapa-ruta-lateral" data-menu="Orden de la ruta">
+                    <h3>Orden de la ruta</h3>
+                    <ol id="listaOrden" class="lista-orden"></ol>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <div class="contenido" data-menu="Tabla de paradas">
+        <h2>Paradas</h2>
+        <div class="carta">
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Orden</th>
+                            <th>Contenedor</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Peso (kg)</th>
+                            <th>Recogido</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaParadas">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>SiGeRU</strong></p>
+        <p>Mapa de la ruta</p>
+        <p>Proyecto Integrador - UTU 2026</p>
+    </footer>
+
+    <button id="flechaScroll" class="flecha-scroll" aria-label="Bajar en la página">
+        ↓
+    </button>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script type="module" src="js/mapaRuta.js"></script>
+    <script src="js/menu.js" defer></script>
+</body>
+</html>

@@ -11,8 +11,16 @@ ob_start();
 // Hora de Uruguay en PHP y en MySQL (UTC-3 todo el año, sin horario de verano).
 date_default_timezone_set("America/Montevideo");
 
+// Datos de conexión. Cada uno se puede forzar con una variable de entorno
+// (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME).
+//
+// Si no se define DB_HOST se prueban, en orden, las ubicaciones habituales:
+//   - dentro de un contenedor de docker-compose: "db" (puerto 3306)
+//   - instalación local (XAMPP, WAMP, MySQL del sistema): localhost y 127.0.0.1
+//     en los puertos 3306 y 3307
+//   - base de datos de docker-compose publicada en la máquina: 127.0.0.1 (puerto 3303)
 $user = getenv("DB_USER") ?: "root";
-$password = getenv("MYSQL_ROOT_PASSWORD") !== false ? getenv("MYSQL_ROOT_PASSWORD") : "felipeadrianjuan";
+$password = getenv("DB_PASSWORD") !== false ? getenv("DB_PASSWORD") : "";
 $database = getenv("DB_NAME") ?: "sigeru";
 
 $enContenedor = @file_exists("/.dockerenv") || @file_exists("/run/.containerenv");
@@ -30,6 +38,12 @@ if(getenv("DB_HOST")){
     ];
 }
 
+/**
+ * Ante un error inesperado (consulta fallida, tabla inexistente, error fatal...)
+ * se responde un JSON en lugar de un "500" vacío. El detalle técnico solo se
+ * incluye si la petición viene de la propia máquina o de una red privada
+ * (desarrollo); siempre se registra en el log de errores de PHP.
+ */
 function responderErrorInterno($contexto, $detalle, $mensajePublico = "Error interno del servidor"){
     error_log("[SiGeRU] " . $contexto . ": " . $detalle);
 

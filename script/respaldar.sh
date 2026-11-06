@@ -1,13 +1,25 @@
+#!/bin/sh
+# Respaldo diario: archivos del proyecto + volcado de la base. Se ejecuta dentro del contenedor "respaldos".
+set -u
+
 FECHA=$(TZ="America/Montevideo" date +%Y-%m-%d_%H-%M-%S)
+DIR=/datos/script/respaldos
+mkdir -p "$DIR/local" "$DIR/remoto"
 
-tar -czvf "/datos/script/respaldos/local/respaldo-$FECHA.tar.gz" /datos \ --exclude='datos/script/respaldos' \
+# Los respaldos anteriores NO se incluyen en el nuevo (si no, cada copia contendría las anteriores y el tamaño se multiplica).
+tar -czf "$DIR/local/respaldo-$FECHA.tar.gz" \
+    --exclude='datos/script/respaldos' \
+    --exclude='datos/.git' \
+    -C / datos
 
-mysqldump -h db -P 3306 -u root sigeru > "/datos/script/respaldos/local/respaldo-$FECHA.sql"
+# La contraseña llega por la variable MYSQL_PWD definida en docker-compose.yml.
+mysqldump -h db -P 3306 -u root sigeru > "$DIR/local/respaldo-$FECHA.sql"
 
-cp "/datos/script/respaldos/local/respaldo-$FECHA.tar.gz" "/datos/script/respaldos/remoto/respaldo-$FECHA.tar.gz" && cp "/datos/script/respaldos/local/respaldo-$FECHA.sql" "/datos/script/respaldos/remoto/respaldo-$FECHA.sql"
+cp "$DIR/local/respaldo-$FECHA.tar.gz" "$DIR/remoto/"
+cp "$DIR/local/respaldo-$FECHA.sql" "$DIR/remoto/"
 
-rclone copy "/datos/script/respaldos/remoto/respaldo-$FECHA.tar.gz" "remoto:proyecto" --drive-shared-with-me
-rclone copy "/datos/script/respaldos/remoto/respaldo-$FECHA.sql" "remoto:proyecto" --drive-shared-with-me
+rclone copy "$DIR/remoto/respaldo-$FECHA.tar.gz" "remoto:proyecto" --drive-shared-with-me
+rclone copy "$DIR/remoto/respaldo-$FECHA.sql" "remoto:proyecto" --drive-shared-with-me
 
-find datos/script/respaldos/local datos/script/respaldos/remoto -name 'respaldo-*' -mtime +7 -delete
-rclone delete remoto:proyecto --include "*delete*" --drive-shared-with-me
+# Se conservan solo 7 días en disco.
+find "$DIR/local" "$DIR/remoto" -name 'respaldo-*' -mtime +7 -delete
