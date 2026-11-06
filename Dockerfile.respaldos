@@ -2,4 +2,4 @@ FROM rclone/rclone:latest
 
 USER root
 
-RUN apk add --no-cache mariadb-client tzdata
+RUN apk add --no-cache mariadb-client tzdata tar
