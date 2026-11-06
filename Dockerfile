@@ -8,8 +8,10 @@ RUN echo 'AcceptPathInfo On' >> /etc/apache2/apache2.conf
 #necesaria 
 
 COPY . /var/www/html/
-#no se porque esta
+#copia el proyecto a la carpeta que sirve Apache
 
-#RUN chown -R www-data:www-data /var/www/html/
-#no se porque esta
-
+# Apache corre como el usuario www-data, pero COPY deja los archivos como root.
+# Sin este permiso no se pueden guardar las fotos de las incidencias
+# ("No se pudo guardar la fotografía").
+RUN mkdir -p /var/www/html/backend/uploads/incidencias \
+    && chown -R www-data:www-data /var/www/html/backend/uploads

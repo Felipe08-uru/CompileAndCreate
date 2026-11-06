@@ -7,6 +7,11 @@ services:
       - "8083:80"
     depends_on:
       - db
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: felipeadrianjuan
+      DB_NAME: sigeru
     networks:
       - red_logs
  
@@ -15,9 +20,7 @@ services:
     ports:
     - "3303:3306"
     environment:
-      DB_USER: root
       MYSQL_ROOT_PASSWORD: felipeadrianjuan
-      DB_NAME: sigeru
     volumes:
       - datos_logs:/var/lib/mysql
       - ./sigeru.sql:/docker-entrypoint-initdb.d/sigeru.sql
@@ -28,12 +31,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.respaldos
-    image: rclone/rclone:latest
+    image: sigeru-respaldos
     container_name: respaldos
     restart: unless-stopped
+    environment:
+      MYSQL_PWD: felipeadrianjuan
 
     volumes:
-      - ./respaldos:/respaldo
       - ./rclone:/config/rclone
       - ./:/datos
       - datos_logs:/datos_mysql
