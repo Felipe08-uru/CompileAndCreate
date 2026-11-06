@@ -11,6 +11,7 @@ echo "3.Ver ip del servidor"
 echo "4.Gestion de Firewall"
 echo "5.Gestion de Base de Datos"
 echo "6.Gestion de Logs"
+echo "7.Gestion de Respaldos"
 echo "0.Salir"
 read -p "Opcion:" op
 
@@ -21,6 +22,7 @@ case $op in
 	4)sh Firewall.sh;;
 	5)sh BaseDatos.sh;;
 	6)sh Log.sh;;
+	7)sh restaurar.sh;;
 	0)exit;;
 	*)echo "Pusiste cualquiera";;
 esac

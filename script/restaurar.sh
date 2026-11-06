@@ -1,8 +1,15 @@
 opc="--config ../rclone/rclone.conf --drive-shared-with-me"
 
+Hacer() {
+	docker exec respaldos sh /datos/script/respaldar.sh
+	date +"El %d de %B %Y a las %T se hizo un respaldo" >> log.txt
+}
+
 Listar() {
-	echo "Presione q para salir"
-	rclone lsf remoto:proyecto $opc | grep '^respaldo-' | sort | less
+	echo "Respaldos locales:"
+	ls -l respaldos/local
+	echo "Respaldos en Drive:"
+	rclone lsf remoto:proyecto $opc | grep '^respaldo-' | sort
 }
 
 Restaurar() {
@@ -53,14 +60,16 @@ op=1
 while test $op -ne 0
 do
 echo "-----------------------------------------------------------------"
-echo "1-Listar respaldos en Drive"
-echo "2-Restaurar el respaldo mas reciente"
+echo "1-Hacer respaldo"
+echo "2-Listar respaldos"
+echo "3-Restaurar el respaldo mas reciente"
 echo "0-Salir"
 read -p "Opcion:" op
 
 case $op in
-	1)Listar;;
-	2)Restaurar;;
+	1)Hacer;;
+	2)Listar;;
+	3)Restaurar;;
 	0)exit;;
 	*)echo "Seleccionaste mal";;
 esac
