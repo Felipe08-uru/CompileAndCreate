@@ -12,7 +12,7 @@ ob_start();
 date_default_timezone_set("America/Montevideo");
 
 $user = getenv("DB_USER") ?: "root";
-$password = getenv("DB_PASSWORD") !== false ? getenv("DB_PASSWORD") : "";
+$password = getenv("DB_PASSWORD") !== false ? getenv("DB_PASSWORD") : "felipeadrianjuan";
 $database = getenv("DB_NAME") ?: "sigeru";
 
 $enContenedor = @file_exists("/.dockerenv") || @file_exists("/run/.containerenv");

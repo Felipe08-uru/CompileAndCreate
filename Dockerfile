@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 FROM php:apache 
 #necesaria
 

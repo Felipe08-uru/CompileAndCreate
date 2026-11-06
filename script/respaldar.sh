@@ -1,6 +1,8 @@
 FECHA=$(TZ="America/Montevideo" date +%Y-%m-%d_%H-%M-%S)
 
-tar -czvf "/datos/script/respaldos/local/respaldo-$FECHA.tar.gz" /datos \ --exclude='datos/script/respaldos' \
+tar -czvf "/datos/script/respaldos/local/respaldo-$FECHA.tar.gz" \
+    --exclude='./script/respaldos' \
+    -C /datos .
 
 mysqldump -h db -P 3306 -u root sigeru > "/datos/script/respaldos/local/respaldo-$FECHA.sql"
 
