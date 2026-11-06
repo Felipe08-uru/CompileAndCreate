@@ -74,7 +74,15 @@ function esOperario($usuarioObj, $ci) {
 
     return true;
 }
-
+/**
+ * Devuelve los datos del usuario autenticado si su rol está entre los permitidos.
+ * Si no, ya responde el error JSON correspondiente y devuelve false.
+ *
+ * @param Usuario $usuarioObj
+ * @param string $ci
+ * @param array $rolesPermitidos Ej: ["Administrador", "Cuadrilla"]
+ * @return array|false
+ */
 function obtenerUsuarioConRol($usuarioObj, $ci, $rolesPermitidos) {
     $usuario = $usuarioObj->getUsuarioByCi($ci);
 
@@ -93,6 +101,11 @@ function obtenerUsuarioConRol($usuarioObj, $ci, $rolesPermitidos) {
     return $usuario;
 }
 
+
+/**
+ * Un operario que no está asociado a ningún centro de acopio no puede operar.
+ * Para los demás roles no hace nada. Si lo bloquea, ya responde el error JSON y devuelve false.
+ */
 function exigirCentroOperario($conn, $usuarioObj, $ci) {
     $usuario = $usuarioObj->getUsuarioByCi($ci);
 

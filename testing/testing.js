@@ -160,8 +160,8 @@ const sufijo = String(Date.now()).slice(-6);
 const digito = function () { return Math.floor(Math.random() * 10); };
 const matriculaCrud = 'TST' + sufijo;        // camión que se crea y borra en la sección de camiones
 const matriculaRuta = 'TSR' + sufijo;        // camión que se usa en las rutas
-const ciVecino = '9' + sufijo + digito();    // 8 dígitos
-const ciOperario = '9' + sufijo + ((digito() + 1) % 10);
+const ciVecino = '9' + sufijo + '1';         // 8 dígitos; el último dígito es fijo para que las tres cédulas de prueba nunca coincidan
+const ciOperario = '9' + sufijo + '2';
 const correoVecino = 'test.' + sufijo + '@example.com';
 const correoOperario = 'test.op.' + sufijo + '@example.com';
 
@@ -516,7 +516,7 @@ function deshacer(nombre, fn) { pilaLimpieza.push({ nombre: nombre, fn: fn }); }
 
   await prueba('El registro público siempre crea Vecino (aunque pida otro rol)', async function () {
     sinSesion();
-    const ci = '9' + sufijo + ((digito() + 2) % 10);
+    const ci = '9' + sufijo + '3';
     const correo = 'rol.' + sufijo + '@example.com';
     const r = await registrarUsuario({ ci: ci, nombre1: 'Test', apellido1: 'Rol', correo_e: correo, contrasena: 'Clave12345', rol: 'Administrador' });
     if (r.data.success) {

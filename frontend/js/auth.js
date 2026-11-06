@@ -1,4 +1,4 @@
-import { getUsuarios } from "./APIUsuarios.js";
+import { getUsuarios, cerrarSesionServidor } from "./APIUsuarios.js";
 import { getContenedores } from "./APIContenedores.js";
 import { getMiCentro } from "./APICentros.js";
 import { getMiAsignacion } from "./APIAsignaciones.js";
