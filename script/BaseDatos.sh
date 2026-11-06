@@ -1,29 +1,32 @@
+cont=felipeadrianjuan
+user=root
+
 Usuarios() {
-	mysql -D sigeru -e "SELECT * FROM Usuario"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM usuario"
 	date +"El %d de %B %Y a las %T se revisaron los usuarios de sigeru" >> log.txt
 }
 Camiones() {
-	mysql -D sigeru -e "SELECT * FROM Camion"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM camion"
 	date +"El %d de %B %Y a las %T se revisaron los camiones de sigeru" >> log.txt
 
 }
 Contenedores() {
-	mysql -D sigeru -e "SELECT * FROM Contenedor"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM contenedor"
 	date +"El %d de %B %Y a las %T se revisaron los contenedores de sigeru" >> log.txt
 
 }
 Centros() {
-	mysql -D sigeru -e "SELECT * FROM Centro"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM centro"
 	date +"El %d de %B %Y a las %T se revisaron los centros de sigeru" >> log.txt
 
 }
 Herramientas() {
-	mysql -D sigeru -e "SELECT * FROM Centro_Herramientas"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM herramienta"
 	date +"El %d de %B %Y a las %T se revisaron las herramientas de sigeru" >> log.txt
 
 }
 Incidencias() {
-	mysql -D sigeru -e "SELECT * FROM Incidencia"
+	mysql -u $user -p $cont -D sigeru -e "SELECT * FROM incidencia"
 	date +"El %d de %B %Y a las %T se revisaron las incidencias de sigeru" >> log.txt
 }
 Respaldo() {
